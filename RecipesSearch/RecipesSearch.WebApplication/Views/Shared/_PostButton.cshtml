@@ -1,0 +1,6 @@
+﻿@model RecipesSearch.WebApplication.ViewModels.PostButtonModel
+
+@using (Html.BeginForm(Model.Action, Model.Controller, Model.RouteValues, FormMethod.Post, new {@class="post-button"}))
+{
+    <input type="submit" class="btn @Model.ButtonClass" onclick="@Model.OnClick" value="@Model.Text" />
+}

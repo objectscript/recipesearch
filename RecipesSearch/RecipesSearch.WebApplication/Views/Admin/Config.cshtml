@@ -1,0 +1,84 @@
+﻿@using RecipesSearch.WebApplication.ViewModels
+@model ConfigViewModel
+@{
+    ViewBag.Title = "Admin Config";
+}
+
+<div class="container-fluid admin">
+    <div class="row settings">
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Crawler settings</div>
+                <div class="panel-body">
+                    @using (Html.BeginForm("UpdateCrawlerConfig", "Admin", FormMethod.Post, new { id = "updateConfigForm" }))
+                    {
+                        @Html.HiddenFor(model => model.Id)
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.MaxPagesToCrawl)
+                            @Html.TextBoxFor(model => model.MaxPagesToCrawl, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.MaxPagesToCrawl)
+                        </div>
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.MaxCrawlDepth)
+                            @Html.TextBoxFor(model => model.MaxCrawlDepth, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.MaxCrawlDepth)
+                        </div>
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.CrawlTimeoutSeconds)
+                            @Html.TextBoxFor(model => model.CrawlTimeoutSeconds, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.CrawlTimeoutSeconds)
+                        </div>
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.LoggingEnabled)
+                            @Html.CheckBoxFor(model => model.LoggingEnabled)
+                        </div>
+                        <div class="right">
+                            <input type="submit" class="btn btn-primary" value="Update config" />
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-primary crawled-sites">
+                <div class="panel-heading">Sites To Crawl</div>
+                <div class="panel-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th class="name-col">Name</th>
+                                <th class="url-col">Url</th>
+                                <th class="action-col"></th>
+                            </tr>
+                        <tbody>
+                            @foreach (SiteToCrawlViewModel siteToCrawl in @Model.SitesToCrawl)
+                            {
+                                <tr>
+                                    <td class="name-col">@siteToCrawl.Name</td>
+                                    <td class="url-col">
+                                        <a href="@siteToCrawl.URL" target="_blank">@siteToCrawl.URL</a>
+                                    </td>
+                                    <td class="action-col">
+                                        @Html.Partial("_PostButton", new PostButtonModel
+                                        {
+                                            Action = "RemoveSiteToCrawl",
+                                            Controller = "Admin",
+                                            RouteValues = new { siteToCrawlId = siteToCrawl.Id },
+                                            OnClick = "return confirm('Are you sure you want to delete the site?')",
+                                            ButtonClass = "btn-link",
+                                            Text = "Delete"
+                                        })
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <hr />
+                    <div>
+                        @Html.Partial("~/Views/Admin/_AddSiteToCrawl.cshtml", new SiteToCrawlViewModel { ConfigId = Model.Id })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,51 @@
+﻿@model RecipesSearch.WebApplication.ViewModels.LogonViewModel
+
+@{
+    ViewBag.Title = "Login";
+    Model.RedirectUrl = HttpContext.Current.Request.QueryString["ReturnUrl"];
+}
+
+<div class="container-fluid login">
+    <div class="panel panel-primary crawled-sites">
+        <div class="panel-heading">Login to the site</div>
+        <div class="panel-body">
+            @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { id = "loginForm" }))
+            {
+                @Html.AntiForgeryToken()
+                if (ViewBag.InvalidAttempt != null && ViewBag.InvalidAttempt)
+                {
+                    <h5 class="field-validation-error">Wrong Username or Password</h5>
+                }
+                @Html.ValidationSummary(true)
+                @Html.HiddenFor(model => model.RedirectUrl)
+                <div class="row">
+                    <div class="col-md-8 form-group">
+                        @Html.LabelFor(model => model.Login)
+                        @Html.TextBoxFor(model => model.Login, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.Login)
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8 form-group">
+                        @Html.LabelFor(model => model.Password)
+                        @Html.PasswordFor(model => model.Password, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.Password)
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2">
+                        <input type="submit" class="btn btn-primary" value="Log in" />
+                    </div>
+                    <div class="col-md-6">
+                        <div class="checkbox">
+                            <label>
+                                @Html.EditorFor(model => model.RememberMe)
+                                Remember Me
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>        

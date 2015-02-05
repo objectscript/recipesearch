@@ -1,0 +1,20 @@
+﻿@model RecipesSearch.WebApplication.ViewModels.SiteToCrawlViewModel
+@using (Html.BeginForm("AddSiteToCrawl", "Admin", FormMethod.Post, new { id = "crawledSiteAddForm"}))
+{
+    @Html.HiddenFor(model => model.ConfigId)
+    <div class="row form-group">
+        <div class="col-md-6">
+            @Html.LabelFor(model => model.Name)
+            @Html.TextBoxFor(model => model.Name, new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.Name)
+        </div>
+        <div class="col-md-6">
+            @Html.LabelFor(model => model.URL)
+            @Html.TextBoxFor(model => model.URL, new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.URL)
+        </div>
+    </div>
+    <div class="right">
+        <input type="submit" class="btn btn-primary" value="Add site to crawl" />
+    </div>
+}

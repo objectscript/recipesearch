@@ -1,0 +1,76 @@
+﻿@using RecipesSearch.WebApplication.Enums
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipes Search - @ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="@Url.Action("Index","Home")">Recipes Search</a>
+                </div>
+
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <form class="navbar-form navbar-left" role="search" action="/Home/Index">
+                        <div class="form-group">
+                            <input type="text" name="query" class="form-control" placeholder="Search" value="@ViewBag.SearchQuery">
+                        </div>
+                        <button type="submit" class="btn btn-default">Go</button>
+                    </form>
+                    <ul class="nav navbar-nav navbar-right">
+                        @{
+                            var currentNavTitle = "Admin";
+                            var dropdownClass = "";
+                            var adminNavItems = new []
+                            {
+                                new Tuple<AdminPages, string, string>(AdminPages.Config, "Crawler config", "Config"),
+                                new Tuple<AdminPages, string, string>(AdminPages.ControlPanel, "Control panel", "Control"),
+                            };
+                            if (ViewBag.AdminPage != null)
+                            {
+                                Func<Tuple<AdminPages, string, string>, bool> predicate = navItem => navItem.Item1 == ViewBag.AdminPage;
+                                currentNavTitle = adminNavItems.First(predicate).Item2;
+                                adminNavItems = adminNavItems.Where(navItem => !predicate(navItem)).ToArray();
+                                dropdownClass = "active";
+                            }
+                        }
+                        <li class="dropdown @dropdownClass">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">@currentNavTitle <span class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                @foreach (var item in adminNavItems)
+                                {
+                                    <li><a href="@Url.Action(item.Item3, "Admin")">@item.Item2</a></li>
+                                }
+                            </ul>
+                        </li>
+                        @if (HttpContext.Current.User.Identity.IsAuthenticated)
+                        {
+                            <li><a href="@Url.Action("LogOff", "Account")">Logout</a></li>
+                        }                    
+                    </ul>                   
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        @RenderBody()
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

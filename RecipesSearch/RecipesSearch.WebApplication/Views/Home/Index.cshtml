@@ -1,0 +1,48 @@
+﻿@{
+    ViewBag.Title = "Search";
+}
+@model List<RecipesSearch.WebApplication.ViewModels.SearchResultViewModel>
+<div class="search-results">
+    <div class="container-fluid results-list">
+        @if (Model == null)
+        {
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-info" role="alert">
+                        Enter a search query
+                    </div>
+                </div>
+            </div>
+        }
+        else if (Model.Count == 0)
+        {
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-warning" role="alert">
+                        There are no results for this query :(
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            foreach (var searchResult in Model)
+            {
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">
+                                    <a href="@searchResult.URL" target=" _blank">@searchResult.URL</a>
+                                </h3>
+                            </div>
+                            <div class="panel-body">
+                                @searchResult.Content
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
