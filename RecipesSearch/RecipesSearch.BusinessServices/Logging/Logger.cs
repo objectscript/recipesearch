@@ -34,7 +34,7 @@ namespace RecipesSearch.BusinessServices.Logging
                 CreatedDate = DateTime.UtcNow,
                 Type = type
             });
-            DbContext.SaveChangesAsync();
+            DbContext.SaveChanges();
         }
     }
 }

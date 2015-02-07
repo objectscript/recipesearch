@@ -9,6 +9,7 @@ using System.Web.Security;
 using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.BusinessServices.PageStorage;
 using RecipesSearch.BusinessServices.SqlRepositories;
+using RecipesSearch.Data.Views;
 using RecipesSearch.SitePagesImporter.Importer;
 using RecipesSearch.WebApplication.Enums;
 using RecipesSearch.WebApplication.ViewModels;
@@ -42,7 +43,7 @@ namespace RecipesSearch.WebApplication.Controllers
                 IsCrawlingStarted = _importer.IsImportingInProgress,
                 CrawledPages = _importer.CrawledPages,
                 CrawlingHistory = crawlingHistory,
-                SitesInfo = sitesInfo,
+                SitesInfo = sitesInfo ?? new List<SiteInfo>(),
                 SitesQueue = _importer.SitesQueue
             });
         }

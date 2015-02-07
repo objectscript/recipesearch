@@ -1,0 +1,5 @@
+**/obj/
+*.cache
+!*.cache/
+RecipesSearch/RecipesSearch.Crawler/obj/Debug/RecipesSearch.SitePagesImporter.csprojResolveAssemblyReference.cache
+RecipesSearch/RecipesSearch.Crawler/obj/Debug/RecipesSearch.SitePagesImporter.csprojResolveAssemblyReference.cache
