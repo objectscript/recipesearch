@@ -30,8 +30,8 @@ namespace RecipesSearch.WebApplication.ViewModels
         public int MaxCrawlDepth { get; set; }
 
         [Required(ErrorMessage = "Field is required")]
-        [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
-        [Display(Name = "Crawling timeout")]
+        [RegularExpression("([0-9]*)", ErrorMessage = "Must be a non-negative number")]
+        [Display(Name = "Max crawling time (0 to disable)")]
         public int CrawlTimeoutSeconds { get; set; }
 
         public List<SiteToCrawlViewModel> SitesToCrawl { get; set; }

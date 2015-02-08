@@ -19,21 +19,22 @@ namespace RecipesSearch.DAL.SqlServer.Migrations
 
         protected override void Seed(DatabaseContexts.DatabaseContext context)
         {
+            context.CrawlingHistory.RemoveRange(context.CrawlingHistory);
+            context.SaveChanges();
+
             context.Configs.RemoveRange(context.Configs);
             context.Configs.Add(new Config
             {
                 LoggingEnabled = true,
-                CrawlTimeoutSeconds = 100,
+                CrawlTimeoutSeconds = 0,
                 MaxCrawlDepth = 10000,
                 MaxPagesToCrawl = 10000,
                 SitesToCrawl = new List<SiteToCrawl>(new[]
                 {
                     new SiteToCrawl {URL = "http://www.say7.info/", Name = "say7"},
-                    new SiteToCrawl {URL = "http://eda.ru/", Name = "eda.ru"},
+                    new SiteToCrawl {URL = "http://www.povarenok.ru/", Name = "povarenok"},
                 })
             });
-
-            context.CrawlingHistory.RemoveRange(context.CrawlingHistory);
         }
     }
 }

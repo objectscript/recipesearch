@@ -184,7 +184,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
 
                 //TODO: Revisit
                 // Wait for worker thread to remove item from queue
-                Thread.Sleep(100);
+                Thread.Sleep(2000);
             }
         }
 

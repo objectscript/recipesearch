@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Abot.Core;
 using Abot.Crawler;
 using Abot.Poco;
 using RecipesSearch.BusinessServices.Logging;
