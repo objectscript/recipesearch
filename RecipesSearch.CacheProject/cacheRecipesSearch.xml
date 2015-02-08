@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1 (Build 220)" ts="2015-02-01 15:50:53">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1 (Build 220)" ts="2015-02-08 15:35:42">
 <Project name="RecipesSearch" LastModified="2015-01-31 19:54:01.801854" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
   <Items>
     <ProjectItem name="RecipesSearch.SitePage" type="CLS"></ProjectItem>
@@ -9,12 +9,13 @@
 
 <Class name="RecipesSearch.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63584,54643.760503</TimeChanged>
+<TimeChanged>63591,55977.819363</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
 <Type>%String</Type>
 <Required>1</Required>
+<Parameter name="MAXLEN" value="255"/>
 </Property>
 
 <Property name="Content">
@@ -41,9 +42,14 @@
 <Required>1</Required>
 </Property>
 
+<Index name="MainIDX">
+<PrimaryKey>1</PrimaryKey>
+<Properties>SiteId,URL</Properties>
+</Index>
+
 <Method name="Upsert">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String,Content:%String(MAXLEN=100000),Keyword:%String,SiteId:%Integer</FormalSpec>
+<FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),Keyword:%String,SiteId:%Integer</FormalSpec>
 <Language>tsql</Language>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
@@ -76,10 +82,12 @@
 
 <Query name="GetRecords">
 <Type>%SQLQuery</Type>
+<FormalSpec>query:%String(MAXLEN=1000)</FormalSpec>
 <SqlName>SitePage_GetRecords</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>SELECT Content,Keyword,SiteId,URL,CreatedDate, ModifiedDate
-FROM SitePage</SqlQuery>
+<SqlQuery>SELECT TOP 25 :query, Content,Keyword,SiteId,URL,CreatedDate, ModifiedDate
+FROM SitePage
+WHERE Content LIKE :query</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
