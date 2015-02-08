@@ -43,12 +43,13 @@ namespace RecipesSearch.DAL.Cache
         {
             var command = new CacheCommand("RecipesSearch.SitePage_GetRecords", _cacheConnection);
             command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add("query", String.Format("%{0}%",searchQuery));
 
             var dataReader = command.ExecuteReader();
 
             var sitePages = ObjectMapper.Map<SitePage>(dataReader);
 
-            return sitePages.Where(sitePage=>sitePage.Content.Contains(searchQuery)).ToList();
+            return sitePages;
         }
 
         public List<SiteInfo> GetSitesInfo()
