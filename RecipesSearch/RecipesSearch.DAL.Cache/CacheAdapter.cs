@@ -39,19 +39,6 @@ namespace RecipesSearch.DAL.Cache
             return command.ExecuteNonQuery() != 0;
         }
 
-        public List<SitePage> SearchByQuery(string searchQuery)
-        {
-            var command = new CacheCommand("RecipesSearch.SitePage_GetRecords", _cacheConnection);
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.Add("query", String.Format("%{0}%",searchQuery));
-
-            var dataReader = command.ExecuteReader();
-
-            var sitePages = ObjectMapper.Map<SitePage>(dataReader);
-
-            return sitePages;
-        }
-
         public List<SiteInfo> GetSitesInfo()
         {
             var command = new CacheCommand("RecipesSearch.SitePage_GetRecordsBySiteId", _cacheConnection);

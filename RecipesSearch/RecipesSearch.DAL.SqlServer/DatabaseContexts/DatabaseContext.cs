@@ -10,6 +10,7 @@ namespace RecipesSearch.DAL.SqlServer.DatabaseContexts
         public DbSet<Config> Configs { get; set; }
         public DbSet<SiteToCrawl> SitesToCrawl { get; set; }
         public DbSet<CrawlingHistoryItem> CrawlingHistory { get; set; }
+        public DbSet<SearchSettings> SearchSettings { get; set; }
 
         public DatabaseContext()
             : base("SiteData")

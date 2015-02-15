@@ -75,6 +75,10 @@
     <Compile Include="Migrations\201502151208522_AddedKeywordProcessingSettingForCrawlerConfig.Designer.cs">
       <DependentUpon>201502151208522_AddedKeywordProcessingSettingForCrawlerConfig.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201502151816132_AddedSearchSettings.cs" />
+    <Compile Include="Migrations\201502151816132_AddedSearchSettings.Designer.cs">
+      <DependentUpon>201502151816132_AddedSearchSettings.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -96,6 +100,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201502151208522_AddedKeywordProcessingSettingForCrawlerConfig.resx">
       <DependentUpon>201502151208522_AddedKeywordProcessingSettingForCrawlerConfig.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201502151816132_AddedSearchSettings.resx">
+      <DependentUpon>201502151816132_AddedSearchSettings.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

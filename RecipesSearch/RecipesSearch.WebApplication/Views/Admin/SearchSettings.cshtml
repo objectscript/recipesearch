@@ -1,0 +1,29 @@
+﻿@using RecipesSearch.WebApplication.ViewModels
+@model SearchSettingsViewModel
+@{
+    ViewBag.Title = "Search Settings";
+}
+
+<div class="container-fluid admin">
+    <div class="row settings">
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Search settings</div>
+                <div class="panel-body">
+                    @using (Html.BeginForm("UpdateSearchSettings", "Admin", FormMethod.Post, new { id = "updateSearchSettingsForm" }))
+                    {
+                        @Html.HiddenFor(model => model.Id)
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ResultsOnPage)
+                            @Html.TextBoxFor(model => model.ResultsOnPage, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.ResultsOnPage)
+                        </div>
+                        <div class="right">
+                            <input type="submit" class="btn btn-primary" value="Update settings" />
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -45,6 +45,7 @@
     <Compile Include="Models\Base\Errors\ErrorCode.cs" />
     <Compile Include="Models\Base\Errors\StandardErrors.cs" />
     <Compile Include="Models\Base\IEntity.cs" />
+    <Compile Include="Models\SearchSettings.cs" />
     <Compile Include="Models\CrawlingHistoryItem.cs" />
     <Compile Include="Models\Config.cs" />
     <Compile Include="Models\SiteToCrawl.cs" />

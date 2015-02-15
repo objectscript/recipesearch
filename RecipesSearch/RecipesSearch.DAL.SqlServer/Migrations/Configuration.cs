@@ -22,20 +22,31 @@ namespace RecipesSearch.DAL.SqlServer.Migrations
             context.CrawlingHistory.RemoveRange(context.CrawlingHistory);
             context.SaveChanges();
 
-            context.Configs.RemoveRange(context.Configs);
-            context.Configs.Add(new Config
+            if (!context.Configs.Any())
             {
-                LoggingEnabled = false,
-                EnhancedKeywordProcessing = false,
-                CrawlTimeoutSeconds = 0,
-                MaxCrawlDepth = 10000,
-                MaxPagesToCrawl = 10000,
-                SitesToCrawl = new List<SiteToCrawl>(new[]
+                context.Configs.Add(new Config
                 {
-                    new SiteToCrawl {URL = "http://www.say7.info/", Name = "say7"},
-                    new SiteToCrawl {URL = "http://www.povarenok.ru/", Name = "povarenok"},
-                })
-            });
+                    LoggingEnabled = false,
+                    EnhancedKeywordProcessing = false,
+                    CrawlTimeoutSeconds = 0,
+                    MaxCrawlDepth = 10000,
+                    MaxPagesToCrawl = 10000,
+                    SitesToCrawl = new List<SiteToCrawl>(new[]
+                    {
+                        new SiteToCrawl {URL = "http://www.say7.info/", Name = "say7"},
+                        new SiteToCrawl {URL = "http://www.povarenok.ru/", Name = "povarenok"},
+                    })
+                });
+            }
+
+            if (!context.SearchSettings.Any())
+            {
+                context.SearchSettings.Add(new SearchSettings
+                {
+                    ResultsOnPage = 25
+                });
+            }
+
         }
     }
 }

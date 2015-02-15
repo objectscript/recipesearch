@@ -5,28 +5,16 @@ using RecipesSearch.BusinessServices.SqlRepositories.Base;
 
 namespace RecipesSearch.BusinessServices.SqlRepositories
 {
-    public class ConfigRepository : SqlRepositoryBase
+    public class SearchSettingsRepository : SqlRepositoryBase
     {
-        public Config SaveConfig(Config config)
+        public SearchSettings SaveSearchSettings(SearchSettings searchSettings)
         {
-            // Don't update crawled sites here
-            config.SitesToCrawl = _dbContext.SitesToCrawl.Where(siteToCrawl => siteToCrawl.ConfigId == config.Id).ToList();
-            return SaveEntity(config, _dbContext.Configs);
-        }       
-
-        public Config GetConfig()
-        {
-            return GetConfigs().First();
+            return SaveEntity(searchSettings, _dbContext.SearchSettings);
         }
 
-        private List<Config> GetConfigs()
+        public SearchSettings GetSearchSettings()
         {
-            var configs = GetEntities(_dbContext.Configs);
-            foreach (var config in configs)
-            {
-                config.SitesToCrawl = config.SitesToCrawl.Where(siteToCrawl => siteToCrawl.IsActive).ToList();
-            }
-            return configs;
+            return GetEntities(_dbContext.SearchSettings).First();
         }
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1 (Build 220)" ts="2015-02-15 14:43:51">
-<Project name="RecipesSearch" LastModified="2015-02-15 13:08:53.266868" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1 (Build 220)" ts="2015-02-15 20:32:02">
+<Project name="RecipesSearch" LastModified="2015-02-15 19:32:31.034113" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
   <Items>
     <ProjectItem name="REST" type="PKG"></ProjectItem>
     <ProjectItem name="RecipesSearch.SitePage" type="CLS"></ProjectItem>
@@ -10,7 +10,7 @@
 
 <Class name="RecipesSearch.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63598,52301.443772</TimeChanged>
+<TimeChanged>63598,71469.565966</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -82,18 +82,6 @@
 ]]></Implementation>
 </Method>
 
-<Query name="GetRecords">
-<Type>%SQLQuery</Type>
-<FormalSpec>query:%String(MAXLEN=1000)</FormalSpec>
-<SqlName>SitePage_GetRecords</SqlName>
-<SqlProc>1</SqlProc>
-<SqlQuery>SELECT TOP 25 :query, Content,Keywords,SiteId,URL,CreatedDate, ModifiedDate
-FROM SitePage
-WHERE Content LIKE :query</SqlQuery>
-<Parameter name="CONTAINID" value="1"/>
-<Parameter name="SELECTMODE" value="RUNTIME"/>
-</Query>
-
 <Query name="GetRecordsBySiteId">
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetRecordsBySiteId</SqlName>
@@ -144,13 +132,14 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.iKnow">
 <Super>%CSP.REST</Super>
-<TimeChanged>63598,50259.284014</TimeChanged>
+<TimeChanged>63598,73736.059541</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
 
 <XData name="UrlMap">
 <Data><![CDATA[
 <Routes>
  <Route Url="/processKeywords" Method="GET" Call="ProcessKeyword"/>
+ <Route Url="/search" Method="GET" Call="Search"/>
  </Routes>
 ]]></Data>
 </XData>
@@ -161,7 +150,25 @@ GROUP BY SiteId</SqlQuery>
 <Implementation><![CDATA[
 	set keywords = %request.Get("keywords", "")
 	try {
-    	do ##class(REST.KeywordProcessResult).GetProccessedKeyword(keywords)
+    	do ##class(REST.KeywordProcessor).GetProccessedKeyword(keywords)
+	} catch err {
+    	write err.AsSystemError()
+    }
+		
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Search">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set query = %request.Get("query", "")
+	set startIndex = %request.Get("startIndex", "0")
+	set pageSize = %request.Get("pageSize", "25")
+	
+	try {
+    	do ##class(REST.SearchEngine).SearchPages(query, startIndex, pageSize)
 	} catch err {
     	write err.AsSystemError()
     }
@@ -555,12 +562,19 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.KeywordProcessResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63598,50244.147252</TimeChanged>
+<TimeChanged>63598,70105.310223</TimeChanged>
 <TimeCreated>63598,41194.381073</TimeCreated>
 
 <Property name="Keywords">
 <Type>%String</Type>
 </Property>
+</Class>
+
+
+<Class name="REST.KeywordsProcessor">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63598,70110.477535</TimeChanged>
+<TimeCreated>63598,70110.477535</TimeCreated>
 
 <Method name="GetProccessedKeyword">
 <ClassMethod>1</ClassMethod>
@@ -580,4 +594,24 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
+
+
+<Class name="REST.SearchEngine">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63598,73707.199772</TimeChanged>
+<TimeCreated>63598,70157.596857</TimeCreated>
+
+<Method name="SearchPages">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String,startIndex:%Integer,pageSize:%Integer</FormalSpec>
+<Implementation><![CDATA[
+	// TODO: Implement real pagination
+	set sqlSquery = "SELECT TOP "_pageSize_" Content,Keywords,SiteId,URL,CreatedDate, ModifiedDate"
+	_" FROM RecipesSearch.SitePage"
+	_" WHERE Keywords LIKE '%"_query_"%'"
+
+	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlSquery)
+]]></Implementation>
+</Method>
+</Class>
 </Export>

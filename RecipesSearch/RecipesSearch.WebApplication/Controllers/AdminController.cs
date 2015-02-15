@@ -22,6 +22,7 @@ namespace RecipesSearch.WebApplication.Controllers
         private readonly ConfigRepository _configRepository = new ConfigRepository();
         private readonly SiteToCrawlRepository _sitesToCrawlRepository = new SiteToCrawlRepository();
         private readonly CrawlingHistoryRepository _crawlingHistoryRepository = new CrawlingHistoryRepository();
+        private readonly SearchSettingsRepository _searchSettingsRepository = new SearchSettingsRepository();
         private readonly SitePageManager _sitePageManager = new SitePageManager();
         private readonly Importer _importer = Importer.GetImporter();
 
@@ -48,6 +49,31 @@ namespace RecipesSearch.WebApplication.Controllers
             });
         }
 
+        public ActionResult SearchSettings()
+        {
+            ViewBag.AdminPage = AdminPages.SearchSettings;
+            var searchSettings = _searchSettingsRepository.GetSearchSettings();
+            return View(SearchSettingsViewModel.GetViewModel(searchSettings));
+        }
+
+        [HttpPost]
+        public ActionResult UpdateSearchSettings(SearchSettingsViewModel searchSettings)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    _searchSettingsRepository.SaveSearchSettings(SearchSettingsViewModel.GetEntity(searchSettings));
+                    return Redirect("/Admin/SearchSettings");
+                }
+                return View("Error");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("UpdateSearchSettings error.", ex);
+                return View("Error");
+            }
+        }
 
         [HttpPost]
         public ActionResult UpdateCrawlerConfig(ConfigViewModel config)
