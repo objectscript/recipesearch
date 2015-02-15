@@ -13,11 +13,11 @@ namespace RecipesSearch.SearchEngine.Search
     {
         private readonly SearchService _searchService = new SearchService();
         
-        public List<SitePage> SearchByQuery(string query)
+        public List<SitePage> SearchByQuery(string query, int pageNumber, int pageSize)
         {
             try
             {
-                return _searchService.SearchByQuery(query);
+                return _searchService.SearchByQuery(query, pageNumber, pageSize);
             }
             catch (Exception exception)
             {

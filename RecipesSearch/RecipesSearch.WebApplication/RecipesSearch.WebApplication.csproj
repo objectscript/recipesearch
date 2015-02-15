@@ -202,10 +202,6 @@
       <Project>{3075b2de-512a-4bfa-96c9-b49d11a6dc3c}</Project>
       <Name>RecipesSearch.BusinessServices</Name>
     </ProjectReference>
-    <ProjectReference Include="..\RecipesSearch.CacheService\RecipesSearch.CacheService.csproj">
-      <Project>{4181c673-b57a-4db6-a0de-6f5813cc587a}</Project>
-      <Name>RecipesSearch.CacheService</Name>
-    </ProjectReference>
     <ProjectReference Include="..\RecipesSearch.Crawler\RecipesSearch.SitePagesImporter.csproj">
       <Project>{7ef77b59-1700-4ffb-87eb-4048dc21dfe0}</Project>
       <Name>RecipesSearch.SitePagesImporter</Name>
@@ -213,6 +209,10 @@
     <ProjectReference Include="..\RecipesSearch.Data\RecipesSearch.Data.csproj">
       <Project>{f4257151-8806-4a0e-8e8b-9fe49ff98b47}</Project>
       <Name>RecipesSearch.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RecipesSearch.SearchEngine\RecipesSearch.SearchEngine.csproj">
+      <Project>{3785d491-7bfc-429b-a8e3-cb84f83644f6}</Project>
+      <Name>RecipesSearch.SearchEngine</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
