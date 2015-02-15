@@ -22,7 +22,19 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
 
         public void ProcessContent(SitePage sitePage, CrawledPage crawledPage)
         {
-            var keywordsTag = crawledPage.HtmlDocument.DocumentNode.SelectNodes("//meta[@name='keywords']").FirstOrDefault();
+            if (crawledPage.HtmlDocument == null || crawledPage.HtmlDocument.DocumentNode == null)
+            {
+                return;
+
+            }
+            var keywordsTags = crawledPage.HtmlDocument.DocumentNode.SelectNodes("//meta[@name='keywords']");
+
+            if (keywordsTags == null)
+            {
+                return;
+            }
+
+            var keywordsTag = keywordsTags.FirstOrDefault();
             
             if (keywordsTag == null)
             {
