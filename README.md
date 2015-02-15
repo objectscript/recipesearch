@@ -5,5 +5,5 @@
 4. Choose correct namespace
 5. Enable iKnow for this application
 6. Add password to Allowed Authentication Methods
-7. Add REST.iKnow as Dispatch Class
+7. Set REST.iKnow as Dispatch Class
 8. Save application
