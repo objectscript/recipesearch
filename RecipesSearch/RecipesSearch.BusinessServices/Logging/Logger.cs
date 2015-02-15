@@ -6,6 +6,8 @@ namespace RecipesSearch.BusinessServices.Logging
 {
     public static class Logger
     {
+        private static object _lock = new {};
+
         private static readonly DatabaseContext DbContext = new DatabaseContext();            
 
         public static void LogError(string description, Exception exception)
@@ -34,7 +36,11 @@ namespace RecipesSearch.BusinessServices.Logging
                 CreatedDate = DateTime.UtcNow,
                 Type = type
             });
-            DbContext.SaveChanges();
+
+            lock (_lock)
+            {
+                DbContext.SaveChanges(); 
+            }          
         }
     }
 }

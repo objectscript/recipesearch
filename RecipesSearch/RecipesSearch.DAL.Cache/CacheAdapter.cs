@@ -30,7 +30,7 @@ namespace RecipesSearch.DAL.Cache
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.Add("URL", sitePage.URL);
             command.Parameters.Add("Content", sitePage.Content);
-            command.Parameters.Add("Keyword", sitePage.Keyword);
+            command.Parameters.Add("Keywords", sitePage.Keywords);
 
             var siteIdParemeter = new CacheParameter("SiteId", CacheDbType.Int);
             siteIdParemeter.Value = sitePage.SiteID;

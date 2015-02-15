@@ -32,6 +32,10 @@
                             @Html.LabelFor(model => model.LoggingEnabled)
                             @Html.CheckBoxFor(model => model.LoggingEnabled)
                         </div>
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.EnhancedKeywordProcessing)
+                            @Html.CheckBoxFor(model => model.EnhancedKeywordProcessing)
+                        </div>
                         <div class="right">
                             <input type="submit" class="btn btn-primary" value="Update config" />
                         </div>

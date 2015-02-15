@@ -25,7 +25,8 @@ namespace RecipesSearch.DAL.SqlServer.Migrations
             context.Configs.RemoveRange(context.Configs);
             context.Configs.Add(new Config
             {
-                LoggingEnabled = true,
+                LoggingEnabled = false,
+                EnhancedKeywordProcessing = false,
                 CrawlTimeoutSeconds = 0,
                 MaxCrawlDepth = 10000,
                 MaxPagesToCrawl = 10000,

@@ -18,6 +18,9 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Logging Enabled")]
         public bool LoggingEnabled { get; set; }
 
+        [Display(Name = "Keyword processing using iKnow")]
+        public bool EnhancedKeywordProcessing { get; set; }
+
         [Required(ErrorMessage = "Field is required")]
         [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
         [Display(Name = "Maximum count of pages to crawl per site")]
@@ -41,6 +44,7 @@ namespace RecipesSearch.WebApplication.ViewModels
             return new Config
             {
                 Id = viewModel.Id,
+                EnhancedKeywordProcessing = viewModel.EnhancedKeywordProcessing,
                 LoggingEnabled = viewModel.LoggingEnabled,
                 MaxCrawlDepth = viewModel.MaxCrawlDepth,
                 MaxPagesToCrawl = viewModel.MaxPagesToCrawl,
@@ -54,6 +58,7 @@ namespace RecipesSearch.WebApplication.ViewModels
             return new ConfigViewModel
             {
                 Id = enity.Id,
+                EnhancedKeywordProcessing = enity.EnhancedKeywordProcessing,
                 LoggingEnabled = enity.LoggingEnabled,
                 MaxCrawlDepth = enity.MaxCrawlDepth,
                 MaxPagesToCrawl = enity.MaxPagesToCrawl,

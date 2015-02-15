@@ -10,7 +10,7 @@ namespace RecipesSearch.Data.Models
     {
         public int SiteID { get; set; }
         public string URL { get; set; }
-        public string Keyword { get; set; }
+        public string Keywords { get; set; }
         public string Content { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }

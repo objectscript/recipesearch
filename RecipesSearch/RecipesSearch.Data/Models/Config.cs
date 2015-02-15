@@ -10,9 +10,9 @@ namespace RecipesSearch.Data.Models
 {
     public class Config : Entity
     {
-        [Required]
-        [DefaultValue(false)]
         public bool LoggingEnabled { get; set; }
+
+        public bool EnhancedKeywordProcessing { get; set; }
 
         public int MaxPagesToCrawl { get; set; }
 

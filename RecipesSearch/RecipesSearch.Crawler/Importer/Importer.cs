@@ -120,7 +120,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
                 var siteToCrawl = _sitesQueue.First();
                 try
                 {
-                    var pageSaver = new PageSaver(siteToCrawl.Id);
+                    var pageSaver = new PageSaver(siteToCrawl.Id, crawlerConfig);
                     _currentCrawlingHistoryItem = new CrawlingHistoryItem
                     {
                         SiteId = siteToCrawl.Id,

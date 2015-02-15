@@ -95,6 +95,10 @@
       <Project>{3075b2de-512a-4bfa-96c9-b49d11a6dc3c}</Project>
       <Name>RecipesSearch.BusinessServices</Name>
     </ProjectReference>
+    <ProjectReference Include="..\RecipesSearch.CacheService\RecipesSearch.CacheService.csproj">
+      <Project>{4181c673-b57a-4db6-a0de-6f5813cc587a}</Project>
+      <Name>RecipesSearch.CacheService</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RecipesSearch.Data\RecipesSearch.Data.csproj">
       <Project>{f4257151-8806-4a0e-8e8b-9fe49ff98b47}</Project>
       <Name>RecipesSearch.Data</Name>

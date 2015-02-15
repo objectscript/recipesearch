@@ -71,6 +71,10 @@
     <Compile Include="Migrations\201502011042226_IsStoppedForCrawlingHistory.Designer.cs">
       <DependentUpon>201502011042226_IsStoppedForCrawlingHistory.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201502151208522_AddedKeywordProcessingSettingForCrawlerConfig.cs" />
+    <Compile Include="Migrations\201502151208522_AddedKeywordProcessingSettingForCrawlerConfig.Designer.cs">
+      <DependentUpon>201502151208522_AddedKeywordProcessingSettingForCrawlerConfig.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -89,6 +93,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201502011042226_IsStoppedForCrawlingHistory.resx">
       <DependentUpon>201502011042226_IsStoppedForCrawlingHistory.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201502151208522_AddedKeywordProcessingSettingForCrawlerConfig.resx">
+      <DependentUpon>201502151208522_AddedKeywordProcessingSettingForCrawlerConfig.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RecipesSearch.CacheService
+namespace RecipesSearch.CacheService.Models
 {
-    public class Class1
+    class KeywordResponse
     {
+        public string Keywords { get; set; }
     }
 }
