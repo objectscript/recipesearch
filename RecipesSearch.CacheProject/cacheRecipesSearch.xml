@@ -154,7 +154,7 @@ GROUP BY SiteId</SqlQuery>
 <Implementation><![CDATA[
 	set keywords = %request.Get("keywords", "")
 	try {
-    	do ##class(REST.KeywordProcessor).GetProccessedKeyword(keywords)
+    	do ##class(REST.KeywordsProcessor).GetProccessedKeyword(keywords)
 	} catch err {
     	write err.AsSystemError()
     }
