@@ -8,7 +8,7 @@ using RecipesSearch.Data.Views;
 
 namespace RecipesSearch.BusinessServices.PageStorage
 {
-    public interface IPageStorage
+    public interface IPageStorage : IDisposable
     {
         bool SaveSitePage(SitePage sitePage);
 

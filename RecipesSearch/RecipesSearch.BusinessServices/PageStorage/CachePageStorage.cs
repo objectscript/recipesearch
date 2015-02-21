@@ -64,5 +64,10 @@ namespace RecipesSearch.BusinessServices.PageStorage
                 return false;
             }
         }
+
+        public void Dispose()
+        {
+            _cacheAdapter.Dispose();
+        }
     }
 }

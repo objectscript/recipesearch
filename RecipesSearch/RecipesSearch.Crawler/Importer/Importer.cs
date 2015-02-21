@@ -120,28 +120,30 @@ namespace RecipesSearch.SitePagesImporter.Importer
                 var siteToCrawl = _sitesQueue.First();
                 try
                 {
-                    var pageSaver = new PageSaver(siteToCrawl.Id, crawlerConfig);
-                    _currentCrawlingHistoryItem = new CrawlingHistoryItem
+                    using (var pageSaver = new PageSaver(siteToCrawl.Id, crawlerConfig))
                     {
-                        SiteId = siteToCrawl.Id,
-                        StardDate = DateTime.Now.ToUniversalTime()
-                    };
+                        _currentCrawlingHistoryItem = new CrawlingHistoryItem
+                        {
+                            SiteId = siteToCrawl.Id,
+                            StardDate = DateTime.Now.ToUniversalTime()
+                        };
 
-                    _crawlerCancellationTokenSource = new CancellationTokenSource();
-                    _currentCrawler = new RecipesCrawler(siteToCrawl.URL, pageSaver, new Configuration(crawlerConfig));
-                    _currentCrawler.Crawl(_crawlerCancellationTokenSource);
+                        _crawlerCancellationTokenSource = new CancellationTokenSource();
+                        _currentCrawler = new RecipesCrawler(siteToCrawl.URL, pageSaver, new Configuration(crawlerConfig));
+                        _currentCrawler.Crawl(_crawlerCancellationTokenSource);
 
-                    _currentCrawlingHistoryItem.EndDate = DateTime.Now.ToUniversalTime();
-                    _currentCrawlingHistoryItem.IsStopped = _crawlerCancellationTokenSource.IsCancellationRequested;
-                    _currentCrawlingHistoryItem.CrawledPagesCount = _currentCrawler.CrawledPages;
-                    _crawlingHistoryRepository.SaveCrawlingHistoryItem(_currentCrawlingHistoryItem);
+                        _currentCrawlingHistoryItem.EndDate = DateTime.Now.ToUniversalTime();
+                        _currentCrawlingHistoryItem.IsStopped = _crawlerCancellationTokenSource.IsCancellationRequested;
+                        _currentCrawlingHistoryItem.CrawledPagesCount = _currentCrawler.CrawledPages;
+                        _crawlingHistoryRepository.SaveCrawlingHistoryItem(_currentCrawlingHistoryItem);
 
-                    if (_importerCancellationTokenSource.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                        if (_importerCancellationTokenSource.IsCancellationRequested)
+                        {
+                            return;
+                        }
 
-                    _crawledPages += _currentCrawler.CrawledPages;
+                        _crawledPages += _currentCrawler.CrawledPages;
+                    }                  
                 }
                 catch (Exception exception)
                 {

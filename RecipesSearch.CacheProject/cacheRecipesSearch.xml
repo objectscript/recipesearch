@@ -1,6 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1 (Build 220)" ts="2015-02-18 19:51:56">
-<Project name="RecipesSearch" LastModified="2015-02-18 19:51:56.16218" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
+<Export generator="Cache" version="25" zv="Cache for UNIX (SUSE Linux Enterprise Server for x86-64) 2015.2 (Build 563U)" ts="2015-02-21 15:49:30">
+<Class name="REST.KeywordProcessResult">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63598,70105.310223</TimeChanged>
+<TimeCreated>63598,41194.381073</TimeCreated>
+
+<Property name="Keywords">
+<Type>%String</Type>
+</Property>
+</Class>
+
+
+<Class name="REST.KeywordsProcessor">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63601,71442.471948</TimeChanged>
+<TimeCreated>63598,70110.477535</TimeCreated>
+
+<Method name="GetProccessedKeyword">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>keywords:%String</FormalSpec>
+<Implementation><![CDATA[
+	set result = ##class(REST.KeywordProcessResult).%New()
+	
+	// TODO: add processing
+	set result.Keywords = keywords
+	
+	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(result)
+]]></Implementation>
+</Method>
+</Class>
+
+
+
+
+<Class name="REST.SearchEngine">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63598,73707.199772</TimeChanged>
+<TimeCreated>63598,70157.596857</TimeCreated>
+
+<Method name="SearchPages">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String,startIndex:%Integer,pageSize:%Integer</FormalSpec>
+<Implementation><![CDATA[
+	// TODO: Implement real pagination
+	set sqlSquery = "SELECT TOP "_pageSize_" Content,Keywords,SiteId,URL,CreatedDate, ModifiedDate"
+	_" FROM RecipesSearch.SitePage"
+	_" WHERE Keywords LIKE '%"_query_"%'"
+
+	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlSquery)
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="REST.iKnow">
+<Super>%CSP.REST</Super>
+<TimeChanged>63604,56797.015159</TimeChanged>
+<TimeCreated>63584,64787.957361</TimeCreated>
+
+<XData name="UrlMap">
+<Data><![CDATA[
+<Routes>
+ <Route Url="/processKeywords" Method="GET" Call="ProcessKeyword"/>
+ <Route Url="/doSearch" Method="GET" Call="Search"/>
+ </Routes>
+]]></Data>
+</XData>
+
+<Method name="ProcessKeyword">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set keywords = %request.Get("keywords", "")
+	try {
+    	do ##class(REST.KeywordsProcessor).GetProccessedKeyword(keywords)
+	} catch err {
+    	write err.AsSystemError()
+    }
+		
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Search">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set query = %request.Get("query", "")
+	set startIndex = %request.Get("startIndex", "0")
+	set pageSize = %request.Get("pageSize", "25")
+	
+	try {
+    	do ##class(REST.SearchEngine).SearchPages(query, startIndex, pageSize)
+	} catch err {
+    	write err.AsSystemError()
+    }
+		
+	quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Project name="RecipesSearch" LastModified="2015-02-21 15:46:21.299388" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
   <Items>
     <ProjectItem name="REST" type="PKG"></ProjectItem>
     <ProjectItem name="RecipesSearch.SitePage" type="CLS"></ProjectItem>
@@ -131,107 +233,5 @@ GROUP BY SiteId</SqlQuery>
 </Value>
 </Data>
 </Storage>
-</Class>
-
-
-<Class name="REST.iKnow">
-<Super>%CSP.REST</Super>
-<TimeChanged>63601,71408.417026</TimeChanged>
-<TimeCreated>63584,64787.957361</TimeCreated>
-
-<XData name="UrlMap">
-<Data><![CDATA[
-<Routes>
- <Route Url="/processKeywords" Method="GET" Call="ProcessKeyword"/>
- <Route Url="/search" Method="GET" Call="Search"/>
- </Routes>
-]]></Data>
-</XData>
-
-<Method name="ProcessKeyword">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set keywords = %request.Get("keywords", "")
-	try {
-    	do ##class(REST.KeywordsProcessor).GetProccessedKeyword(keywords)
-	} catch err {
-    	write err.AsSystemError()
-    }
-		
-	quit $$$OK
-]]></Implementation>
-</Method>
-
-<Method name="Search">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set query = %request.Get("query", "")
-	set startIndex = %request.Get("startIndex", "0")
-	set pageSize = %request.Get("pageSize", "25")
-	
-	try {
-    	do ##class(REST.SearchEngine).SearchPages(query, startIndex, pageSize)
-	} catch err {
-    	write err.AsSystemError()
-    }
-		
-	quit $$$OK
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="REST.KeywordProcessResult">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63598,70105.310223</TimeChanged>
-<TimeCreated>63598,41194.381073</TimeCreated>
-
-<Property name="Keywords">
-<Type>%String</Type>
-</Property>
-</Class>
-
-
-<Class name="REST.KeywordsProcessor">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63601,71442.471948</TimeChanged>
-<TimeCreated>63598,70110.477535</TimeCreated>
-
-<Method name="GetProccessedKeyword">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>keywords:%String</FormalSpec>
-<Implementation><![CDATA[
-	set result = ##class(REST.KeywordProcessResult).%New()
-	
-	// TODO: add processing
-	set result.Keywords = keywords
-	
-	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(result)
-]]></Implementation>
-</Method>
-</Class>
-
-
-
-
-<Class name="REST.SearchEngine">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63598,73707.199772</TimeChanged>
-<TimeCreated>63598,70157.596857</TimeCreated>
-
-<Method name="SearchPages">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,startIndex:%Integer,pageSize:%Integer</FormalSpec>
-<Implementation><![CDATA[
-	// TODO: Implement real pagination
-	set sqlSquery = "SELECT TOP "_pageSize_" Content,Keywords,SiteId,URL,CreatedDate, ModifiedDate"
-	_" FROM RecipesSearch.SitePage"
-	_" WHERE Keywords LIKE '%"_query_"%'"
-
-	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlSquery)
-]]></Implementation>
-</Method>
 </Class>
 </Export>

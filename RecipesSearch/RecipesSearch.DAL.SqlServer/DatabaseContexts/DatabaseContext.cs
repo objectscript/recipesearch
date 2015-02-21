@@ -1,4 +1,5 @@
 ﻿using System.Data.Entity;
+using RecipesSearch.DAL.SqlServer.Migrations;
 using RecipesSearch.Data.Models;
 using RecipesSearch.Data.Models.Logging;
 

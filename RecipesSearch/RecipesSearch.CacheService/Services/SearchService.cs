@@ -11,7 +11,7 @@ namespace RecipesSearch.CacheService.Services
 {
     public class SearchService : CacheServiceBase
     {
-        private const string Endpoint = "/iknow/search";
+        private const string Endpoint = "/iknow/doSearch";
 
         public List<SitePage> SearchByQuery(string query, int pageNumber, int pageSize)
         {

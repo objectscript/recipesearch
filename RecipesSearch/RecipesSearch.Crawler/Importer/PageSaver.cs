@@ -12,7 +12,7 @@ using RecipesSearch.Data.Models;
 
 namespace RecipesSearch.SitePagesImporter.Importer
 {
-    class PageSaver
+    class PageSaver : IDisposable
     {
         private readonly int _siteId;
 
@@ -47,6 +47,11 @@ namespace RecipesSearch.SitePagesImporter.Importer
             }
 
             _pageStorage.SaveSitePage(sitePage);
+        }
+
+        public void Dispose()
+        {
+            _pageStorage.Dispose();
         }
     }
 }
