@@ -1,3 +1,7 @@
+# Demo environment
+- URL - http://recipes.somee.com/
+- Admin account - admin/admin
+
 # How to setup Cache REST service:
 1. Go to System Administration -> Security -> Applications -> Web Applications
 2. Create a new Web Application
