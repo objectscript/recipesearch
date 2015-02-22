@@ -47,10 +47,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\SearchResponse.cs" />
-    <Compile Include="Models\KeywordResponse.cs" />
     <Compile Include="Services\CacheServiceBase.cs" />
     <Compile Include="Services\SearchService.cs" />
-    <Compile Include="Services\KeywordProcessingService.cs" />
     <Compile Include="Utils\RestHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

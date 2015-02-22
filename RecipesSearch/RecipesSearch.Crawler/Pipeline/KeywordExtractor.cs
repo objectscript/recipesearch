@@ -13,13 +13,6 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
 {
     class KeywordExtractor : IPageProcessor
     {
-        private readonly bool _enhancedKeywordProcessingEnabled;
-
-        public KeywordExtractor(bool enhancedKeywordProcessingEnabled)
-        {
-            _enhancedKeywordProcessingEnabled = enhancedKeywordProcessingEnabled;
-        }
-
         public void ProcessContent(SitePage sitePage, CrawledPage crawledPage)
         {
             if (crawledPage.HtmlDocument == null || crawledPage.HtmlDocument.DocumentNode == null)
@@ -42,12 +35,6 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
             }
 
             var keywords = keywordsTag.Attributes["content"].Value;
-
-            if (_enhancedKeywordProcessingEnabled && !String.IsNullOrEmpty(keywords))
-            {
-                var keywordsProcessingService = new KeywordsProcessingService();
-                keywords = keywordsProcessingService.ProcessKeywords(keywords);
-            }
 
             sitePage.Keywords = keywords;
         }

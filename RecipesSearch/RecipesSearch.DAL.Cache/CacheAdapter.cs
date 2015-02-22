@@ -24,7 +24,7 @@ namespace RecipesSearch.DAL.Cache
             _cacheConnection.Open();
         }
 
-        public bool AddSitePage(SitePage sitePage)
+        public bool AddSitePage(SitePage sitePage, bool enableKeywordsProcessing)
         {
             var command = new CacheCommand("RecipesSearch.SitePage_Upsert", _cacheConnection);
             command.CommandType = CommandType.StoredProcedure;
@@ -35,6 +35,10 @@ namespace RecipesSearch.DAL.Cache
             var siteIdParemeter = new CacheParameter("SiteId", CacheDbType.Int);
             siteIdParemeter.Value = sitePage.SiteID;
             command.Parameters.Add(siteIdParemeter);
+
+            var processKeywordsParemeter = new CacheParameter("ProcessKeywords", CacheDbType.Bit);
+            processKeywordsParemeter.Value = enableKeywordsProcessing;
+            command.Parameters.Add(processKeywordsParemeter);
 
             return command.ExecuteNonQuery() != 0;
         }

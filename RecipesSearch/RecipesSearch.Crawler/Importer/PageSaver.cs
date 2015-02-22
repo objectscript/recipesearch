@@ -15,17 +15,19 @@ namespace RecipesSearch.SitePagesImporter.Importer
     class PageSaver : IDisposable
     {
         private readonly int _siteId;
+        private readonly bool _keywordsProcessingEnabled;
 
         private readonly List<IPageProcessor> _pageProcessors = new List<IPageProcessor>();
         private readonly CachePageStorage _pageStorage = new CachePageStorage();
 
-        public PageSaver(int siteId, Config crawlerConfig)
+        public PageSaver(int siteId, bool keywordsProcessingEnabled)
         {
             _siteId = siteId;
+            _keywordsProcessingEnabled = keywordsProcessingEnabled;
 
             _pageProcessors.AddRange(new IPageProcessor[]
             {
-                new KeywordExtractor(crawlerConfig.EnhancedKeywordProcessing), 
+                new KeywordExtractor(), 
                 new Preprocessor(),            
                 new Parser()
             });
@@ -46,7 +48,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
                 pageProcessor.ProcessContent(sitePage, crawledPage);
             }
 
-            _pageStorage.SaveSitePage(sitePage);
+            _pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled);
         }
 
         public void Dispose()
