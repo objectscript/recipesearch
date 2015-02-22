@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for UNIX (SUSE Linux Enterprise Server for x86-64) 2015.2 (Build 563U)" ts="2015-02-21 15:49:30">
-<Class name="REST.KeywordProcessResult">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63598,70105.310223</TimeChanged>
-<TimeCreated>63598,41194.381073</TimeCreated>
-
-<Property name="Keywords">
-<Type>%String</Type>
-</Property>
-</Class>
-
-
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 563U)" ts="2015-02-22 12:01:35">
 <Class name="REST.KeywordsProcessor">
 <Super>%RegisteredObject</Super>
 <TimeChanged>63601,71442.471948</TimeChanged>
@@ -55,32 +44,16 @@
 
 <Class name="REST.iKnow">
 <Super>%CSP.REST</Super>
-<TimeChanged>63604,56797.015159</TimeChanged>
+<TimeChanged>63605,43018.414956</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
 
 <XData name="UrlMap">
 <Data><![CDATA[
 <Routes>
- <Route Url="/processKeywords" Method="GET" Call="ProcessKeyword"/>
  <Route Url="/doSearch" Method="GET" Call="Search"/>
  </Routes>
 ]]></Data>
 </XData>
-
-<Method name="ProcessKeyword">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set keywords = %request.Get("keywords", "")
-	try {
-    	do ##class(REST.KeywordsProcessor).GetProccessedKeyword(keywords)
-	} catch err {
-    	write err.AsSystemError()
-    }
-		
-	quit $$$OK
-]]></Implementation>
-</Method>
 
 <Method name="Search">
 <ClassMethod>1</ClassMethod>
@@ -102,17 +75,18 @@
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-02-21 15:46:21.299388" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
+<Project name="RecipesSearch" LastModified="2015-02-22 12:01:35.499678" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
   <Items>
     <ProjectItem name="REST" type="PKG"></ProjectItem>
     <ProjectItem name="RecipesSearch.SitePage" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipesSearch.StringAnalyzer" type="CLS"></ProjectItem>
   </Items>
 </Project>
 
 
 <Class name="RecipesSearch.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63598,75239.4657</TimeChanged>
+<TimeChanged>63605,42638.785384</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -158,16 +132,26 @@
 <Method name="Upsert">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),Keywords:%String(MAXLEN=1000),SiteId:%Integer</FormalSpec>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	set keywordsAnalyzed = ##class(RecipesSearch.StringAnalyzer).GetEntitiesInText(Keywords)
+	do ##class(RecipesSearch.SitePage).UpsertSQL(URL, Content,keywordsAnalyzed,SiteId)
+]]></Implementation>
+</Method>
+
+<Method name="UpsertSQL">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),Keywords:%String(MAXLEN=1000),SiteId:%Integer</FormalSpec>
 <Language>tsql</Language>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF EXISTS(SELECT * FROM RecipesSearch.SitePage WHERE URL = @URL AND SiteId = @SiteId) THEN BEGIN
 		UPDATE RecipesSearch.SitePage SET Content = @Content, Keywords = @Keywords, ModifiedDate = GETUTCDATE()
 		WHERE URL = @URL AND SiteId = @SiteId;
-	END ELSE BEGIN
+END ELSE BEGIN
 		INSERT INTO RecipesSearch.SitePage(SiteId, URL, Content, Keywords, CreatedDate, ModifiedDate) 
 			VALUES(@SiteId, @URL, @Content, @Keywords, GETUTCDATE(), GETUTCDATE());
-	END
+END
 ]]></Implementation>
 </Method>
 
@@ -233,5 +217,49 @@ GROUP BY SiteId</SqlQuery>
 </Value>
 </Data>
 </Storage>
+</Class>
+
+
+<Class name="RecipesSearch.StringAnalyzer">
+<TimeChanged>63605,42142.792914</TimeChanged>
+<TimeCreated>63605,42142.792914</TimeCreated>
+
+<Method name="GetEntitiesInText">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+        set dname = "RecipesDomain"
+    if (##class(%iKnow.Domain).Exists(dname)) {
+           set domoref=##class(%iKnow.Domain).Open(dname)
+           set stat=domoref.DropData()
+           if 'stat {
+                   write "DropData error ",$System.Status.DisplayError(stat)
+                   quit
+           }
+    } else {
+           set domoref=##class(%iKnow.Domain).%New(dname)
+           do domoref.%Save()
+        }
+       
+        set domId=domoref.Id
+             
+        set myloader = ##class(%iKnow.Source.Loader).%New(domId)
+        do myloader.BufferSource("ref", text)
+        do myloader.ProcessBuffer()
+       
+        do ##class(%iKnow.Queries.EntityAPI).GetTop(.result,domId,1,50)
+                 
+        set i=1
+        set result = ""
+        while $data(result(i)) {
+           set liststr = $listtostring(result(i))
+           set str = $Piece(liststr, ",", 2)
+           set result = str_" "_result
+       set i=i+1
+    }
+    return result
+]]></Implementation>
+</Method>
 </Class>
 </Export>
