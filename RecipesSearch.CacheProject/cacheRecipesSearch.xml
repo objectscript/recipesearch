@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 563U)" ts="2015-02-22 12:48:39">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 563U)" ts="2015-02-22 15:16:54">
 <Class name="REST.KeywordsProcessor">
 <Super>%RegisteredObject</Super>
 <TimeChanged>63601,71442.471948</TimeChanged>
@@ -24,7 +24,7 @@
 
 <Class name="REST.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63598,73707.199772</TimeChanged>
+<TimeChanged>63605,54276.938317</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
@@ -32,11 +32,32 @@
 <FormalSpec>query:%String,startIndex:%Integer,pageSize:%Integer</FormalSpec>
 <Implementation><![CDATA[
 	// TODO: Implement real pagination
-	set sqlSquery = "SELECT TOP "_pageSize_" Content,Keywords,SiteId,URL,CreatedDate, ModifiedDate"
+	set sqlQuery = "SELECT %NOLOCK TOP "_pageSize_" Content,Keywords,SiteId,URL,CreatedDate, ModifiedDate"
 	_" FROM RecipesSearch.SitePage"
-	_" WHERE Keywords LIKE '%"_query_"%'"
-
-	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlSquery)
+	
+	set queryParts =  ##class(RecipesSearch.StringAnalyzer).GetEntitiesInText(query)
+	
+	set queryParts = $LISTFROMSTRING(queryParts, " ")
+	
+	set predicate = ""
+	set i = 1
+	set listLength = $LISTLENGTH(queryParts) - 1
+	while (i <= listLength){
+		
+		if i '= 1{
+			set predicate = predicate_" AND "
+		}
+		
+		set predicate = predicate_"(Keywords [ '"_$LIST(queryParts, i)_"')"
+		
+		set i = i + 1
+	}
+	
+	set sqlQuery = sqlQuery_" WHERE "_predicate
+	
+	//write sqlQuery
+	
+	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
 ]]></Implementation>
 </Method>
 </Class>
@@ -75,7 +96,7 @@
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-02-22 12:01:35.499678" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
+<Project name="RecipesSearch" LastModified="2015-02-22 12:01:35.49715" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
   <Items>
     <ProjectItem name="REST" type="PKG"></ProjectItem>
     <ProjectItem name="RecipesSearch.SitePage" type="CLS"></ProjectItem>
