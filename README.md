@@ -12,9 +12,10 @@ Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will 
 
 #### Run database seed sproc
 - The seed procedure must be executed in order to populate initial data. Seed function - Data.Utils.Seed.Run(). E. g. you can call it from SQL using the following command:
-```
-call Data_Utils.Seed_Run()
-```
+
+  ```
+  call Data_Utils.Seed_Run()
+  ```
 
 #### Setup the Cache REST service:
 1. Go to System Administration -> Security -> Applications -> Web Applications
