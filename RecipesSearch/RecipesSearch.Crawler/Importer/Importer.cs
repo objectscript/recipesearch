@@ -20,6 +20,8 @@ namespace RecipesSearch.SitePagesImporter.Importer
         private CancellationTokenSource _crawlerCancellationTokenSource;
         private RecipesCrawler _currentCrawler;
         private CrawlingHistoryItem _currentCrawlingHistoryItem;
+        private Task _importerTask;
+        private SiteToCrawl _currentCrawledSite;
         private int _crawledPages;
 
         private readonly object _lock = new object();
@@ -28,7 +30,22 @@ namespace RecipesSearch.SitePagesImporter.Importer
 
         public List<SiteToCrawl> SitesQueue
         {
-            get { return (_sitesQueue ?? new List<SiteToCrawl>()).ToList(); }
+            get
+            {
+                if (_sitesQueue == null)
+                {
+                    return new List<SiteToCrawl>();
+                }
+
+                var queue = new List<SiteToCrawl>(_sitesQueue);
+                
+                if (_currentCrawledSite != null)
+                {
+                    queue.Insert(0, _currentCrawledSite);
+                }               
+
+                return queue;
+            }
         }
 
         private static Importer _instance;
@@ -75,7 +92,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
                 _sitesQueue = new List<SiteToCrawl>(sitesToCrawl);
                 _importerCancellationTokenSource = new CancellationTokenSource();
 
-                Task.Run((Action)CrawlSites, _importerCancellationTokenSource.Token);
+                _importerTask = Task.Run((Action)CrawlSites, _importerCancellationTokenSource.Token);
 
                 IsImportingInProgress = true;
             }
@@ -117,25 +134,31 @@ namespace RecipesSearch.SitePagesImporter.Importer
                     return;
                 }
 
-                var siteToCrawl = _sitesQueue.First();
                 try
                 {
-                    using (var pageSaver = new PageSaver(siteToCrawl.Id, crawlerConfig.EnhancedKeywordProcessing))
+                    _currentCrawledSite = _sitesQueue.First();
+
+                    lock (_lock)
+                    {
+                        _sitesQueue.RemoveAt(0);
+                    }
+
+                    using (var pageSaver = new PageSaver(_currentCrawledSite.Id, crawlerConfig.EnhancedKeywordProcessing))
                     {
                         _currentCrawlingHistoryItem = new CrawlingHistoryItem
                         {
-                            SiteId = siteToCrawl.Id,
+                            SiteId = _currentCrawledSite.Id,
                             StardDate = DateTime.Now.ToUniversalTime()
                         };
 
                         _crawlerCancellationTokenSource = new CancellationTokenSource();
-                        _currentCrawler = new RecipesCrawler(siteToCrawl.URL, pageSaver, new Configuration(crawlerConfig));
+                        _currentCrawler = new RecipesCrawler(_currentCrawledSite.URL, pageSaver, new Configuration(crawlerConfig));
                         _currentCrawler.Crawl(_crawlerCancellationTokenSource);
 
                         _currentCrawlingHistoryItem.EndDate = DateTime.Now.ToUniversalTime();
                         _currentCrawlingHistoryItem.IsStopped = _crawlerCancellationTokenSource.IsCancellationRequested;
                         _currentCrawlingHistoryItem.CrawledPagesCount = _currentCrawler.CrawledPages;
-                        _crawlingHistoryRepository.SaveCrawlingHistoryItem(_currentCrawlingHistoryItem);
+                        _crawlingHistoryRepository.SaveCrawlingHistoryItem(_currentCrawlingHistoryItem);                                      
 
                         if (_importerCancellationTokenSource.IsCancellationRequested)
                         {
@@ -148,17 +171,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
                 catch (Exception exception)
                 {
                     Logger.LogError(
-                        String.Format("SitePagesImporter.Importer.CrawlSites(). Failed to crawl site {0}", siteToCrawl.URL), exception);
-                }
-                finally
-                {
-                    lock (_lock)
-                    {
-                        if (_sitesQueue != null)
-                        {
-                            _sitesQueue.RemoveAt(0);
-                        }
-                    }
+                        String.Format("SitePagesImporter.Importer.CrawlSites(). Failed to crawl site {0}", _currentCrawledSite.URL), exception);
                 }
             }
 
@@ -174,8 +187,8 @@ namespace RecipesSearch.SitePagesImporter.Importer
 
             _importerCancellationTokenSource.Cancel();
             _crawlerCancellationTokenSource.Cancel();
-            
-            ResetParameters();
+
+            Task.WaitAll(_importerTask);
         }
 
         public void StopCurrentSiteImporting()
@@ -183,10 +196,12 @@ namespace RecipesSearch.SitePagesImporter.Importer
             if (IsImportingInProgress)
             {
                 _crawlerCancellationTokenSource.Cancel();
+                _currentCrawledSite = null;
 
-                //TODO: Revisit
-                // Wait for worker thread to remove item from queue
-                Thread.Sleep(2000);
+                if (_sitesQueue == null || _sitesQueue.Count == 0)
+                {
+                    Task.WaitAll(_importerTask);
+                }
             }
         }
 
@@ -197,6 +212,9 @@ namespace RecipesSearch.SitePagesImporter.Importer
             IsImportingInProgress = false;
             _sitesQueue = null;
             _crawlerCancellationTokenSource = null;
+            _currentCrawlingHistoryItem = null;
+            _currentCrawledSite = null;
+            _importerTask = null;
         }
     }
 }

@@ -18,25 +18,32 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
             if (crawledPage.HtmlDocument == null || crawledPage.HtmlDocument.DocumentNode == null)
             {
                 return;
-
             }
-            var keywordsTags = crawledPage.HtmlDocument.DocumentNode.SelectNodes("//meta[@name='keywords']");
 
-            if (keywordsTags == null)
+            var keywords = GetMetaTagContent(crawledPage, "keywords");
+            var description = GetMetaTagContent(crawledPage, "description");
+            sitePage.Keywords = String.Format("{0}; {1}", keywords, description);
+        }
+
+        private string GetMetaTagContent(CrawledPage crawledPage, string tagName)
+        {
+            var tags = crawledPage.HtmlDocument.DocumentNode.SelectNodes(String.Format("//meta[@name='{0}']", tagName));
+
+            if (tags == null)
             {
-                return;
+                return String.Empty;
             }
 
-            var keywordsTag = keywordsTags.FirstOrDefault();
-            
-            if (keywordsTag == null)
+            var tag = tags.FirstOrDefault();
+
+            if (tag == null)
             {
-                return;
+                return String.Empty;
             }
 
-            var keywords = keywordsTag.Attributes["content"].Value;
+            var tagContent = tag.Attributes["content"].Value;
 
-            sitePage.Keywords = keywords;
+            return tagContent;
         }
     }
 }
