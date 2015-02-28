@@ -30,26 +30,26 @@ call Data_Utils.Seed_Run()
 Connections settings are located in the Web.Base.config of the RecipesSearch.WebApplication project. There are 2 settings group for now:
 
 - Connection string. It must have the following structure:
-```
-Server={{serverAddress}}; Port=1972; Namespace={{nameSpaceWithCacheProject}}; Password={{Password}}; User ID={{Username}};
-```
-By default connection string has the following values. You must change it if you imported Cache project to another Namespace (or if you are using other user)
-```
-Server=localhost; Port=1972; Namespace=DEV; Password=SYS; User ID=_SYSTEM;
-```
+  ```
+  Server={{serverAddress}}; Port=1972; Namespace={{nameSpaceWithCacheProject}}; Password={{Password}}; User ID={{Username}};
+  ```
+  By default connection string has the following values. You must change it if you imported Cache project to another Namespace (or if you are using other user)
+  ```
+  Server=localhost; Port=1972; Namespace=DEV; Password=SYS; User ID=_SYSTEM;
+  ```
 
 - REST configuration. There are 3 keys in the appSettings section which have the following structure:
-```
-<add key="BaseURL" value="http://{{serverAddress}}:57772" />
-<add key="Username" value="{{Username}}" />
-<add key="Password" value="{{Password}}" />
-```
-By default the localhost server address and the _SYSTEM user are used:
-```
-<add key="BaseURL" value="http://localhost:57772" />
-<add key="Username" value="_SYSTEM" />
-<add key="Password" value="SYS" />
-```
+  ```
+  <add key="BaseURL" value="http://{{serverAddress}}:57772" />
+  <add key="Username" value="{{Username}}" />
+  <add key="Password" value="{{Password}}" />
+  ```
+  By default the localhost server address and the _SYSTEM user are used:
+  ```
+  <add key="BaseURL" value="http://localhost:57772" />
+  <add key="Username" value="_SYSTEM" />
+  <add key="Password" value="SYS" />
+  ```
 
 #### Open Visual Studio solution, build and run the web application
 - Make sure RecipesSearch.WebApplication has been set as a startup project.
