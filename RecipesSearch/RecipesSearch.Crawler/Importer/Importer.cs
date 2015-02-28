@@ -189,6 +189,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
             _crawlerCancellationTokenSource.Cancel();
 
             Task.WaitAll(_importerTask);
+            ResetParameters();
         }
 
         public void StopCurrentSiteImporting()
