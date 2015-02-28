@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Web;
-using System.Reflection;
 
-namespace RecipesSearch.DAL.Cache
+namespace RecipesSearch.DAL.Cache.Utilities
 {
     public class ObjectMapper
     {

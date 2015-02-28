@@ -16,7 +16,6 @@ using RecipesSearch.WebApplication.ViewModels;
 
 namespace RecipesSearch.WebApplication.Controllers
 {
-    [Authorize]
     public class AdminController : Controller
     {
         private readonly ConfigRepository _configRepository = new ConfigRepository();

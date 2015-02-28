@@ -1,5 +1,477 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 563U)" ts="2015-02-22 15:16:54">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 563U)" ts="2015-02-28 12:56:46">
+<Class name="Data.Base.Entity">
+<Super>%Persistent</Super>
+<TimeChanged>63611,44290.858824</TimeChanged>
+<TimeCreated>63610,79980.536971</TimeCreated>
+
+<Property name="CreatedDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="ModifiedDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="IsActive">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Data.Base.EntityD</DataLocation>
+<DefaultData>EntityDefaultData</DefaultData>
+<IdLocation>^Data.Base.EntityD</IdLocation>
+<IndexLocation>^Data.Base.EntityI</IndexLocation>
+<StreamLocation>^Data.Base.EntityS</StreamLocation>
+<Data name="EntityDefaultData">
+<Structure>listnode</Structure>
+<Subscript/>
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>CreatedDate</Value>
+</Value>
+<Value name="3">
+<Value>ModifiedDate</Value>
+</Value>
+<Value name="4">
+<Value>IsActive</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="Data.Config">
+<Super>Data.Base.Entity</Super>
+<TimeChanged>63611,44269.646674</TimeChanged>
+<TimeCreated>63610,79444.886551</TimeCreated>
+
+<Property name="LoggingEnabled">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="EnhancedKeywordProcessing">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="MaxPagesToCrawl">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="MaxCrawlDepth">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="CrawlTimeoutSeconds">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>ConfigDefaultData</DefaultData>
+<Data name="ConfigDefaultData">
+<Subscript>"Config"</Subscript>
+<Value name="1">
+<Value>LoggingEnabled</Value>
+</Value>
+<Value name="2">
+<Value>EnhancedKeywordProcessing</Value>
+</Value>
+<Value name="3">
+<Value>MaxPagesToCrawl</Value>
+</Value>
+<Value name="4">
+<Value>MaxCrawlDepth</Value>
+</Value>
+<Value name="5">
+<Value>CrawlTimeoutSeconds</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="Data.CrawlingHistoryItem">
+<Super>Data.Base.Entity</Super>
+<TimeChanged>63611,45537.303607</TimeChanged>
+<TimeCreated>63610,86227.669281</TimeCreated>
+
+<Property name="SiteId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="StardDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="EndDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="CrawledPagesCount">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="IsStopped">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
+<ForeignKey name="SiteToCrawl">
+<Properties>SiteId</Properties>
+<ReferencedClass>Data.SiteToCrawl</ReferencedClass>
+</ForeignKey>
+
+<Method name="ClearAllHistory">
+<ClassMethod>1</ClassMethod>
+<Language>tsql</Language>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[	UPDATE Data.CrawlingHistoryItem SET IsActive = 0
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>CrawlingHistoryItemDefaultData</DefaultData>
+<Data name="CrawlingHistoryItemDefaultData">
+<Subscript>"CrawlingHistoryItem"</Subscript>
+<Value name="1">
+<Value>SiteId</Value>
+</Value>
+<Value name="2">
+<Value>StardDate</Value>
+</Value>
+<Value name="3">
+<Value>EndDate</Value>
+</Value>
+<Value name="4">
+<Value>CrawledPagesCount</Value>
+</Value>
+<Value name="5">
+<Value>IsStopped</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="Data.SearchSettings">
+<Super>Data.Base.Entity</Super>
+<TimeChanged>63611,44277.610193</TimeChanged>
+<TimeCreated>63610,79681.607063</TimeCreated>
+
+<Property name="ResultsOnPage">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>SearchSettingsDefaultData</DefaultData>
+<Data name="SearchSettingsDefaultData">
+<Subscript>"SearchSettings"</Subscript>
+<Value name="1">
+<Value>ResultsOnPage</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="Data.SitePage">
+<Super>%Persistent</Super>
+<TimeChanged>63611,45578.960096</TimeChanged>
+<TimeCreated>63581,84906.169887</TimeCreated>
+
+<Property name="URL">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="255"/>
+</Property>
+
+<Property name="Content">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="Keywords">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Property name="SiteId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="CreatedDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="ModifiedDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<ForeignKey name="SiteToCrawl">
+<Properties>SiteId</Properties>
+<ReferencedClass>Data.SiteToCrawl</ReferencedClass>
+</ForeignKey>
+
+<Index name="MainIDX">
+<PrimaryKey>1</PrimaryKey>
+<Properties>SiteId,URL</Properties>
+</Index>
+
+<Index name="KeywordsIDX">
+<Properties>Keywords</Properties>
+</Index>
+
+<Method name="Upsert">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),Keywords:%String(MAXLEN=1000),SiteId:%Integer,ProcessKeywords:%Boolean</FormalSpec>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	IF ProcessKeywords{
+		set keywordsAnalyzed = ##class(iKnow.StringAnalyzer).GetEntitiesInText(Keywords)
+	}		
+	ELSE {
+		set keywordsAnalyzed = Keywords
+	}
+
+	do ##class(Data.SitePage).UpsertSQL(URL, Content, keywordsAnalyzed, SiteId)
+]]></Implementation>
+</Method>
+
+<Method name="UpsertSQL">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),Keywords:%String(MAXLEN=1000),SiteId:%Integer</FormalSpec>
+<Language>tsql</Language>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	IF EXISTS(SELECT * FROM SitePage WHERE URL = @URL AND SiteId = @SiteId) THEN BEGIN
+		UPDATE SitePage SET Content = @Content, Keywords = @Keywords, ModifiedDate = GETUTCDATE()
+		WHERE URL = @URL AND SiteId = @SiteId;
+END ELSE BEGIN
+		INSERT INTO SitePage(SiteId, URL, Content, Keywords, CreatedDate, ModifiedDate) 
+			VALUES(@SiteId, @URL, @Content, @Keywords, GETUTCDATE(), GETUTCDATE());
+END
+]]></Implementation>
+</Method>
+
+<Method name="DeleteRecordsForSiteId">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>SiteId:%Integer</FormalSpec>
+<Language>tsql</Language>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[	DELETE FROM SitePage WHERE SiteID = @SiteId;
+]]></Implementation>
+</Method>
+
+<Method name="DeleteSitesRecords">
+<ClassMethod>1</ClassMethod>
+<Language>tsql</Language>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[	DELETE FROM SitePage;
+]]></Implementation>
+</Method>
+
+<Query name="GetRecordsBySiteId">
+<Type>%SQLQuery</Type>
+<SqlName>SitePage_GetRecordsBySiteId</SqlName>
+<SqlProc>1</SqlProc>
+<SqlQuery>SELECT SiteId AS SiteId, COUNT(*) AS PageCount
+FROM SitePage
+GROUP BY SiteId</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+<Parameter name="SELECTMODE" value="RUNTIME"/>
+</Query>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Data.SitePageD</DataLocation>
+<DefaultData>SitePageDefaultData</DefaultData>
+<IdLocation>^Data.SitePageD</IdLocation>
+<IndexLocation>^Data.SitePageI</IndexLocation>
+<StreamLocation>^Data.SitePageS</StreamLocation>
+<Data name="SitePageDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>URL</Value>
+</Value>
+<Value name="3">
+<Value>Content</Value>
+</Value>
+<Value name="4">
+<Value>Keywords</Value>
+</Value>
+<Value name="5">
+<Value>SiteId</Value>
+</Value>
+<Value name="6">
+<Value>CreatedDate</Value>
+</Value>
+<Value name="7">
+<Value>ModifiedDate</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="Data.SiteToCrawl">
+<Super>Data.Base.Entity</Super>
+<TimeChanged>63611,44281.596303</TimeChanged>
+<TimeCreated>63610,79732.940998</TimeCreated>
+
+<Property name="Name">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Property name="URL">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Property name="ConfigId">
+<Type>%Integer</Type>
+</Property>
+
+<ForeignKey name="Config">
+<Properties>ConfigId</Properties>
+<ReferencedClass>Data.Config</ReferencedClass>
+</ForeignKey>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DefaultData>SiteToCrawlDefaultData</DefaultData>
+<Data name="SiteToCrawlDefaultData">
+<Subscript>"SiteToCrawl"</Subscript>
+<Value name="1">
+<Value>Name</Value>
+</Value>
+<Value name="2">
+<Value>URL</Value>
+</Value>
+<Value name="3">
+<Value>ConfigId</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="Data.Utils.Seed">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63611,45637.458884</TimeChanged>
+<TimeCreated>63611,44219.144767</TimeCreated>
+
+<Method name="Run">
+<ClassMethod>1</ClassMethod>
+<Language>tsql</Language>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	// Seed crawler config
+	IF NOT EXISTS(SELECT * FROM Data.Config) THEN BEGIN
+		INSERT INTO Data.Config(LoggingEnabled, EnhancedKeywordProcessing, MaxPagesToCrawl, MaxCrawlDepth, CrawlTimeoutSeconds, IsActive, CreatedDate, ModifiedDate) 
+		VALUES(0, 1, 10000, 10000, 0, 1, GETUTCDATE(), GETUTCDATE());
+DECLARE @ConfigId AS INT;
+SELECT TOP 1 @ConfigId = Id FROM Data.Config;
+
+// Seed sites to crawl		
+INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId, IsActive, CreatedDate, ModifiedDate) 
+		VALUES('say7', 'http://www.say7.info/', @ConfigId, 1, GETUTCDATE(), GETUTCDATE());
+INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId, IsActive, CreatedDate, ModifiedDate) 
+		VALUES('povarenok', 'http://www.povarenok.ru/', @ConfigId, 1, GETUTCDATE(), GETUTCDATE());END
+	
+	// Delete crawling history
+	DELETE FROM Data.CrawlingHistoryItem
+	
+	// Seed search settings
+	IF NOT EXISTS(SELECT * FROM Data.SearchSettings) THEN BEGIN
+		INSERT INTO Data.SearchSettings(ResultsOnPage, IsActive, CreatedDate, ModifiedDate) 
+		VALUES(25, 1, GETUTCDATE(), GETUTCDATE());END
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="Logging.LogRecord">
+<Super>%Persistent</Super>
+<TimeChanged>63611,46480.868979</TimeChanged>
+<TimeCreated>63611,44722.841798</TimeCreated>
+
+<Property name="Type">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="Description">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Exception">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Property name="CreatedDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Logging.LogRecordD</DataLocation>
+<DefaultData>LogRecordDefaultData</DefaultData>
+<IdLocation>^Logging.LogRecordD</IdLocation>
+<IndexLocation>^Logging.LogRecordI</IndexLocation>
+<StreamLocation>^Logging.LogRecordS</StreamLocation>
+<Data name="LogRecordDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>MaxPagesToCrawl</Value>
+</Value>
+<Value name="3">
+<Value>Description</Value>
+</Value>
+<Value name="4">
+<Value>Exception</Value>
+</Value>
+<Value name="5">
+<Value>CreatedDate</Value>
+</Value>
+<Value name="6">
+<Value>Type</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
 <Class name="REST.KeywordsProcessor">
 <Super>%RegisteredObject</Super>
 <TimeChanged>63601,71442.471948</TimeChanged>
@@ -24,7 +496,7 @@
 
 <Class name="REST.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63605,54276.938317</TimeChanged>
+<TimeChanged>63611,43975.36614</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
@@ -33,9 +505,9 @@
 <Implementation><![CDATA[
 	// TODO: Implement real pagination
 	set sqlQuery = "SELECT %NOLOCK TOP "_pageSize_" Content,Keywords,SiteId,URL,CreatedDate, ModifiedDate"
-	_" FROM RecipesSearch.SitePage"
+	_" FROM Data.SitePage"
 	
-	set queryParts =  ##class(RecipesSearch.StringAnalyzer).GetEntitiesInText(query)
+	set queryParts =  ##class(iKnow.StringAnalyzer).GetEntitiesInText(query)
 	
 	set queryParts = $LISTFROMSTRING(queryParts, " ")
 	
@@ -96,160 +568,25 @@
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-02-22 12:01:35.49715" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
+<Project name="RecipesSearch" LastModified="2015-02-28 12:39:44.358103" Target="##class(RecipesSearch.SitePage).Upsert(&quot;123&quot;, 2343333333333333333333333333333333333333333333333333333333333333333333333333333333333&quot;, &quot;&quot;,1)" TargetType="0">
   <Items>
     <ProjectItem name="REST" type="PKG"></ProjectItem>
-    <ProjectItem name="RecipesSearch.SitePage" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipesSearch.StringAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="iKnow.StringAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="Data.Config" type="CLS"></ProjectItem>
+    <ProjectItem name="Data.CrawlingHistoryItem" type="CLS"></ProjectItem>
+    <ProjectItem name="Data.SearchSettings" type="CLS"></ProjectItem>
+    <ProjectItem name="Data.SitePage" type="CLS"></ProjectItem>
+    <ProjectItem name="Data.SiteToCrawl" type="CLS"></ProjectItem>
+    <ProjectItem name="Data.Utils.Seed" type="CLS"></ProjectItem>
+    <ProjectItem name="Data.Base.Entity" type="CLS"></ProjectItem>
+    <ProjectItem name="Logging.LogRecord" type="CLS"></ProjectItem>
   </Items>
 </Project>
 
 
-<Class name="RecipesSearch.SitePage">
-<Super>%Persistent</Super>
-<TimeChanged>63605,45964.599095</TimeChanged>
-<TimeCreated>63581,84906.169887</TimeCreated>
-
-<Property name="URL">
-<Type>%String</Type>
-<Required>1</Required>
-<Parameter name="MAXLEN" value="255"/>
-</Property>
-
-<Property name="Content">
-<Type>%String</Type>
-<Parameter name="MAXLEN" value="100000"/>
-</Property>
-
-<Property name="Keywords">
-<Type>%String</Type>
-<Parameter name="MAXLEN" value="1000"/>
-</Property>
-
-<Property name="SiteId">
-<Type>%Integer</Type>
-<Required>1</Required>
-</Property>
-
-<Property name="CreatedDate">
-<Type>%DateTime</Type>
-<Required>1</Required>
-</Property>
-
-<Property name="ModifiedDate">
-<Type>%DateTime</Type>
-<Required>1</Required>
-</Property>
-
-<Index name="MainIDX">
-<PrimaryKey>1</PrimaryKey>
-<Properties>SiteId,URL</Properties>
-</Index>
-
-<Index name="KeywordsIDX">
-<Properties>Keywords</Properties>
-</Index>
-
-<Method name="Upsert">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),Keywords:%String(MAXLEN=1000),SiteId:%Integer,ProcessKeywords:%Boolean</FormalSpec>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[
-	IF ProcessKeywords{
-		set keywordsAnalyzed = ##class(RecipesSearch.StringAnalyzer).GetEntitiesInText(Keywords)
-	}		
-	ELSE {
-		set keywordsAnalyzed = Keywords
-	}
-
-	do ##class(RecipesSearch.SitePage).UpsertSQL(URL, Content, keywordsAnalyzed, SiteId)
-]]></Implementation>
-</Method>
-
-<Method name="UpsertSQL">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),Keywords:%String(MAXLEN=1000),SiteId:%Integer</FormalSpec>
-<Language>tsql</Language>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[
-	IF EXISTS(SELECT * FROM RecipesSearch.SitePage WHERE URL = @URL AND SiteId = @SiteId) THEN BEGIN
-		UPDATE RecipesSearch.SitePage SET Content = @Content, Keywords = @Keywords, ModifiedDate = GETUTCDATE()
-		WHERE URL = @URL AND SiteId = @SiteId;
-END ELSE BEGIN
-		INSERT INTO RecipesSearch.SitePage(SiteId, URL, Content, Keywords, CreatedDate, ModifiedDate) 
-			VALUES(@SiteId, @URL, @Content, @Keywords, GETUTCDATE(), GETUTCDATE());
-END
-]]></Implementation>
-</Method>
-
-<Method name="DeleteRecordsForSiteId">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>SiteId:%Integer</FormalSpec>
-<Language>tsql</Language>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[	DELETE FROM RecipesSearch.SitePage WHERE SiteID = @SiteId;
-]]></Implementation>
-</Method>
-
-<Method name="DeleteSitesRecords">
-<ClassMethod>1</ClassMethod>
-<Language>tsql</Language>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[	DELETE FROM RecipesSearch.SitePage;
-]]></Implementation>
-</Method>
-
-<Query name="GetRecordsBySiteId">
-<Type>%SQLQuery</Type>
-<SqlName>SitePage_GetRecordsBySiteId</SqlName>
-<SqlProc>1</SqlProc>
-<SqlQuery>SELECT SiteId AS SiteId, COUNT(*) AS PageCount
-FROM SitePage
-GROUP BY SiteId</SqlQuery>
-<Parameter name="CONTAINID" value="1"/>
-<Parameter name="SELECTMODE" value="RUNTIME"/>
-</Query>
-
-<Storage name="Default">
-<Type>%Library.CacheStorage</Type>
-<DataLocation>^RecipesSearch.SitePageD</DataLocation>
-<DefaultData>SitePageDefaultData</DefaultData>
-<IdLocation>^RecipesSearch.SitePageD</IdLocation>
-<IndexLocation>^RecipesSearch.SitePageI</IndexLocation>
-<StreamLocation>^RecipesSearch.SitePageS</StreamLocation>
-<Data name="SitePageDefaultData">
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-<Value name="2">
-<Value>URL</Value>
-</Value>
-<Value name="3">
-<Value>Content</Value>
-</Value>
-<Value name="4">
-<Value>Keyword</Value>
-</Value>
-<Value name="5">
-<Value>SiteId</Value>
-</Value>
-<Value name="6">
-<Value>CreatedDate</Value>
-</Value>
-<Value name="7">
-<Value>ModifiedDate</Value>
-</Value>
-<Value name="8">
-<Value>Keywords</Value>
-</Value>
-</Data>
-</Storage>
-</Class>
-
-
-<Class name="RecipesSearch.StringAnalyzer">
-<TimeChanged>63605,42142.792914</TimeChanged>
-<TimeCreated>63605,42142.792914</TimeCreated>
+<Class name="iKnow.StringAnalyzer">
+<TimeChanged>63610,80153.007685</TimeChanged>
+<TimeCreated>63610,80153.007685</TimeCreated>
 
 <Method name="GetEntitiesInText">
 <ClassMethod>1</ClassMethod>

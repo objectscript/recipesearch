@@ -9,27 +9,27 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
     {
         public SiteToCrawl SaveSiteToCrawl(SiteToCrawl siteToCrawl)
         {
-            return SaveEntity(siteToCrawl, _dbContext.SitesToCrawl);
+            return SaveEntity(siteToCrawl);
         }
 
         public List<SiteToCrawl> GetSitesToCrawl()
         {
-            return GetEntities(_dbContext.SitesToCrawl);
+            return GetEntities<SiteToCrawl>();
         }
 
         public SiteToCrawl GetSiteToCrawl(int siteId)
         {
-            return GetEntityById(siteId, _dbContext.SitesToCrawl);
+            return GetEntityById<SiteToCrawl>(siteId);
         }
 
         public bool RemoveSiteToCrawl(int id)
         {
-            return DeleteEntity(id, _dbContext.SitesToCrawl);
+            return DeleteEntity<SiteToCrawl>(id);
         }
 
         public List<SiteToCrawl> GetSitesToCrawlForConfig(int configId)
         {
-            return GetEntities(_dbContext.SitesToCrawl)
+            return GetEntities<SiteToCrawl>()
                 .Where(siteToCrawl => siteToCrawl.ConfigId == configId)
                 .ToList();
         }

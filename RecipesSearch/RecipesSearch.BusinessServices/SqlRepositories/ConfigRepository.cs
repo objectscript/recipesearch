@@ -9,12 +9,12 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
     {
         public SearchSettings SaveSearchSettings(SearchSettings searchSettings)
         {
-            return SaveEntity(searchSettings, _dbContext.SearchSettings);
+            return SaveEntity(searchSettings);
         }
 
         public SearchSettings GetSearchSettings()
         {
-            return GetEntities(_dbContext.SearchSettings).First();
+            return GetEntities<SearchSettings>().First();
         }
     }
 }

@@ -1,30 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using RecipesSearch.Data.Framework;
 using RecipesSearch.Data.Models.Base;
 
 namespace RecipesSearch.Data.Models
 {
+    [CachePackage(Constants.DefaultCachePackage)]
     public class CrawlingHistoryItem : Entity
     {
-        [Required]
         public int SiteId { get; set; }
 
-        [Required]
         public DateTime StardDate { get; set; }
 
-        [Required]
         public DateTime EndDate { get; set; }
 
-        [Required]
         public int CrawledPagesCount { get; set; }
         
-        [Required]
         public bool IsStopped { get; set; }
 
+        [NotMapped]
         public DateTime LocalStartDate
         {
             get
@@ -33,6 +27,7 @@ namespace RecipesSearch.Data.Models
             }
         }
 
+        [NotMapped]
         public DateTime LocalEndDate
         {
             get
@@ -41,7 +36,7 @@ namespace RecipesSearch.Data.Models
             }
         }
 
-        [ForeignKey("SiteId")]
-        public virtual SiteToCrawl SiteToCrawl { get; set; }
+        [NotMapped]
+        public SiteToCrawl SiteToCrawl { get; set; }
     }
 }

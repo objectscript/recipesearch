@@ -195,7 +195,6 @@ namespace RecipesSearch.SitePagesImporter.Importer
             _crawledPages = 0;
             _currentCrawler = null;
             IsImportingInProgress = false;
-            _currentCrawlingHistoryItem = null;
             _sitesQueue = null;
             _crawlerCancellationTokenSource = null;
         }

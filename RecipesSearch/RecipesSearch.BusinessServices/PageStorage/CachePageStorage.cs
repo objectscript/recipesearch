@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.DAL.Cache;
+using RecipesSearch.DAL.Cache.Adapters;
 using RecipesSearch.Data.Models;
 using RecipesSearch.Data.Views;
 
@@ -12,7 +13,7 @@ namespace RecipesSearch.BusinessServices.PageStorage
 {
     public class CachePageStorage : IPageStorage
     {
-        private readonly CacheAdapter _cacheAdapter = new CacheAdapter();
+        private readonly SitePageAdapter _cacheAdapter = new SitePageAdapter();
         public bool SaveSitePage(SitePage sitePage, bool processKeywords)
         {
             try

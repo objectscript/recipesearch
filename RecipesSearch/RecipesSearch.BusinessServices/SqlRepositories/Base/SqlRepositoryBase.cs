@@ -1,76 +1,79 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using RecipesSearch.BusinessServices.Logging;
-using RecipesSearch.DAL.SqlServer.DatabaseContexts;
+using RecipesSearch.DAL.Cache.Adapters.Base;
 using RecipesSearch.Data.Models.Base;
-using RecipesSearch.Data.Models.Base.Errors;
 
 namespace RecipesSearch.BusinessServices.SqlRepositories.Base
 {
     public class SqlRepositoryBase
     {
-        protected readonly DatabaseContext _dbContext;
-
-        protected SqlRepositoryBase()
-        {
-            _dbContext = new DatabaseContext();
-        }
-
-        protected T SaveEntity<T>(T entity, DbSet<T> table) where T : Entity, new() 
+        protected T SaveEntity<T>(T entity) where T : Entity, new() 
         {
             try
             {
-                if (entity.Id != 0)
+                using (var cacheAdapter = new CacheAdapter())
                 {
-                    var original = table.FirstOrDefault(ent => ent.Id == entity.Id);
-                    if (original != null)
+                    if (entity.Id != 0)
                     {
-                        entity.ModifiedDate = DateTime.Now.ToUniversalTime();
-                        entity.CreatedDate = original.ModifiedDate;
+                        var original = cacheAdapter.GetEntityById<T>(entity.Id);
+                        if (original != null)
+                        {
+                            entity.ModifiedDate = DateTime.Now.ToUniversalTime();
+                            entity.CreatedDate = original.CreatedDate;
 
-                        _dbContext.Entry(original).CurrentValues.SetValues(entity);
-                        _dbContext.SaveChanges();
-                        return table.FirstOrDefault(ent => ent.Id == entity.Id);
+                            cacheAdapter.UpdateEntity(entity);
+
+                            return cacheAdapter.GetEntityById<T>(entity.Id);
+                        }
+                        return null;
                     }
-                    return AddError(new T(), StandardErrors.EntityNotFoundError);
-                }
-                else
-                {
-                    table.Add(entity);
-                    _dbContext.SaveChanges();
-                    return table.FirstOrDefault(ent => ent.Id == entity.Id);
-                }
+                    else
+                    {
+                        entity.CreatedDate = DateTime.Now.ToUniversalTime();
+                        entity.ModifiedDate = entity.CreatedDate;
+
+                        cacheAdapter.InsertEntity(entity);
+
+                        return cacheAdapter.GetEntityById<T>(entity.Id);
+                    }
+                }           
             }
             catch (Exception exception)
             {
                 Logger.LogError(String.Format("SqlRepositoryBase.SaveEntity<{0}> failed", typeof(T)), exception);
-                return AddError(new T(), StandardErrors.GeneralError);
+                return null;
             }      
         }
 
-        protected T GetEntityById<T>(int id, DbSet<T> table) where T : Entity, new()
+        protected T GetEntityById<T>(int id) where T : Entity, new()
         {
             try
             {
-                return table.FirstOrDefault(entity => entity.Id == id && entity.IsActive);
+                using (var cacheAdapter = new CacheAdapter())
+                {
+                    return cacheAdapter.GetEntityById<T>(id);
+                }
             }
             catch (Exception exception)
             {
                 Logger.LogError(String.Format("SqlRepositoryBase.GetEntityById<{0}> failed", typeof(T)), exception);
-                return AddError(new T(), StandardErrors.GeneralError);
+                return null;
             }
         }
 
-        protected List<T> GetEntities<T>(DbSet<T> table) where T : Entity
+        protected List<T> GetEntities<T>() where T : Entity, new()
         {
             try
             {
-                return table
-                    .Where(entity=>entity.IsActive)
-                    .OrderByDescending(entity=>entity.Id)
-                    .ToList();
+                using (var cacheAdapter = new CacheAdapter())
+                {
+                    return cacheAdapter
+                        .GetEntities<T>()
+                        .OrderByDescending(entity => entity.Id)
+                        .ToList();
+                }
             }
             catch (Exception exception)
             {
@@ -79,31 +82,20 @@ namespace RecipesSearch.BusinessServices.SqlRepositories.Base
             }
         }
 
-        protected bool DeleteEntity<T>(int id, DbSet<T> table) where T : Entity
+        protected bool DeleteEntity<T>(int id) where T : Entity
         {
             try
             {
-                var entity = table.FirstOrDefault(ent => ent.Id == id && ent.IsActive);
-                if (entity != null)
+                using (var cacheAdapter = new CacheAdapter())
                 {
-                    entity.IsActive = false;
+                    return cacheAdapter.DeleteEntity<T>(id);
                 }
-
-                _dbContext.SaveChanges();
-                return true;
             }
             catch (Exception exception)
             {
                 Logger.LogError(String.Format("SqlRepositoryBase.DeleteEntity<{0}> failed", typeof(T)), exception);
                 return false;
             }
-        }
-
-        protected T AddError<T>(T entity, Error error) where T : Entity
-        {
-            entity.Errors = entity.Errors ?? new List<Error>();
-            entity.Errors.Add(error);
-            return entity;
         }
     }
 }

@@ -5,25 +5,23 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RecipesSearch.Data.Framework;
+using RecipesSearch.Data.Models.Base;
 
 namespace RecipesSearch.Data.Models.Logging
 {
-    public class LogRecord
+    [CachePackage(Constants.LoggingCachePackage)]
+    public class LogRecord : IEntity
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         
         public LogRecordType Type { get; set; }
         
-        [Required]
         public string Description { get; set; }
         
         public string Exception { get; set; }
         
-        public string ExceptionStackTrace { get; set; }
-        
-        [Required]
         public DateTime CreatedDate { get; set; }
     }
 }

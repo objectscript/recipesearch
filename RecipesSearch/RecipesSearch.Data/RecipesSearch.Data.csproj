@@ -40,10 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Framework\CachePackageAttribute.cs" />
+    <Compile Include="Framework\Constants.cs" />
     <Compile Include="Models\Base\Entity.cs" />
-    <Compile Include="Models\Base\Errors\Error.cs" />
-    <Compile Include="Models\Base\Errors\ErrorCode.cs" />
-    <Compile Include="Models\Base\Errors\StandardErrors.cs" />
     <Compile Include="Models\Base\IEntity.cs" />
     <Compile Include="Models\SearchSettings.cs" />
     <Compile Include="Models\CrawlingHistoryItem.cs" />

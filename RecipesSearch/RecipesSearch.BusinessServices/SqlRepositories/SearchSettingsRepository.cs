@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using RecipesSearch.DAL.Cache.Adapters.Base;
 using RecipesSearch.Data.Models;
 using RecipesSearch.BusinessServices.SqlRepositories.Base;
 
@@ -9,9 +10,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
     {
         public Config SaveConfig(Config config)
         {
-            // Don't update crawled sites here
-            config.SitesToCrawl = _dbContext.SitesToCrawl.Where(siteToCrawl => siteToCrawl.ConfigId == config.Id).ToList();
-            return SaveEntity(config, _dbContext.Configs);
+            return SaveEntity(config);
         }       
 
         public Config GetConfig()
@@ -21,11 +20,18 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
 
         private List<Config> GetConfigs()
         {
-            var configs = GetEntities(_dbContext.Configs);
-            foreach (var config in configs)
+            var configs = GetEntities<Config>();
+            using (var cacheAdapter = new CacheAdapter())
             {
-                config.SitesToCrawl = config.SitesToCrawl.Where(siteToCrawl => siteToCrawl.IsActive).ToList();
+                foreach (var config in configs)
+                {
+                    config.SitesToCrawl = cacheAdapter
+                        .GetEntities<SiteToCrawl>()
+                        .Where(siteToCrawl => siteToCrawl.ConfigId == config.Id)
+                        .ToList();
+                }
             }
+            
             return configs;
         }
     }

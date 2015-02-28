@@ -1,14 +1,19 @@
 ﻿using System;
-using RecipesSearch.DAL.SqlServer.DatabaseContexts;
+using RecipesSearch.DAL.Cache.Adapters.Base;
 using RecipesSearch.Data.Models.Logging;
 
 namespace RecipesSearch.BusinessServices.Logging
 {
     public static class Logger
     {
+        private readonly static CacheAdapter CacheAdapter;
         private static object _lock = new {};
 
-        private static readonly DatabaseContext DbContext = new DatabaseContext();            
+        static Logger()
+        {
+            // Maintain one app connection per AppDomain for logger
+            CacheAdapter = new CacheAdapter();
+        }
 
         public static void LogError(string description, Exception exception)
         {
@@ -28,19 +33,18 @@ namespace RecipesSearch.BusinessServices.Logging
         {
             description = description ?? exception.ToString();
 
-            DbContext.LogRecords.Add(new LogRecord
+            var logRecord = new LogRecord
             {
                 Description = description,
                 Exception = exception != null ? exception.ToString() : null,
-                ExceptionStackTrace = exception != null ? exception.StackTrace : null,
                 CreatedDate = DateTime.UtcNow,
                 Type = type
-            });
+            };
 
             lock (_lock)
             {
-                DbContext.SaveChanges(); 
-            }          
+                CacheAdapter.InsertEntity(logRecord);    
+            }                 
         }
     }
 }
