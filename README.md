@@ -1,8 +1,22 @@
-# Demo environment
-- URL - http://recipes.somee.com/
-- Admin account - admin/admin
+Main goal of this project is to provide enhanced functionality for recipes search. It uses iKnow to analyze recipes text, finds similar recipes and groups them before show to user.
 
-# How to setup Cache REST service:
+Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will be always working)
+
+# Dev Environment Setup Guide
+#### Install necessary software
+- Visual Studio 2012/2013
+- Cache 2015.2 (with iKnow license)
+
+#### Import and compile Cache project
+- Main Cache project (cacheRecipesSearch.xml) is located in the RecipesSearch.CacheProject folder.
+
+#### Run database seed sproc
+- The seed procedure must be executed in order to populate initial data. Seed function - Data.Utils.Seed.Run(). E. g. you can call it from SQL using the following command:
+```
+call Data_Utils.Seed_Run()
+```
+
+#### Setup the Cache REST service:
 1. Go to System Administration -> Security -> Applications -> Web Applications
 2. Create a new Web Application
 3. Enter "iKnow" as a name
@@ -11,3 +25,31 @@
 6. Add password to Allowed Authentication Methods
 7. Set REST.iKnow as Dispatch Class
 8. Save application
+
+#### Ensure Cache connection settings are valid
+Connections settings are located in the Web.Base.config of the RecipesSearch.WebApplication project. There are 2 settings group for now:
+
+- Connection string. It must have the following structure:
+```
+Server={{serverAddress}}; Port=1972; Namespace={{nameSpaceWithCacheProject}}; Password={{Password}}; User ID={{Username}};
+```
+By default connection string has the following values. You must change it if you imported Cache project to another Namespace (or if you are using other user)
+```
+Server=localhost; Port=1972; Namespace=DEV; Password=SYS; User ID=_SYSTEM;
+```
+
+- REST configuration. There are 3 keys in the appSettings section which have the following structure:
+```
+<add key="BaseURL" value="http://{{serverAddress}}:57772" />
+<add key="Username" value="{{Username}}" />
+<add key="Password" value="{{Password}}" />
+```
+By default the localhost server address and the _SYSTEM user are used:
+```
+<add key="BaseURL" value="http://localhost:57772" />
+<add key="Username" value="_SYSTEM" />
+<add key="Password" value="SYS" />
+```
+
+#### Open Visual Studio solution, build and run the web application
+- Make sure RecipesSearch.WebApplication has been set as a startup project.
