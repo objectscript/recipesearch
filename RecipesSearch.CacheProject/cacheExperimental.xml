@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1 (Build 220)" ts="2015-02-18 21:33:42">
-<Project name="Experimental" LastModified="2015-02-18 21:18:20.641627">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-01 13:13:10">
+<Project name="Experimental" LastModified="2015-03-01 12:37:34.333561">
   <Items>
     <ProjectItem name="RecipesSearch.PageAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipesSearch.TextAnalyzer" type="CLS"></ProjectItem>
   </Items>
 </Project>
 
@@ -97,128 +98,60 @@
 </Class>
 
 
-<Class name="RecipesSearch.SitePage">
-<Super>%Persistent</Super>
-<TimeChanged>63598,75239.4657</TimeChanged>
-<TimeCreated>63581,84906.169887</TimeCreated>
+<Class name="RecipesSearch.TextAnalyzer">
+<TimeChanged>63612,47578.475531</TimeChanged>
+<TimeCreated>63612,45341.232156</TimeCreated>
 
-<Property name="URL">
-<Type>%String</Type>
-<Required>1</Required>
-<Parameter name="MAXLEN" value="255"/>
-</Property>
-
-<Property name="Content">
-<Type>%String</Type>
-<Parameter name="MAXLEN" value="100000"/>
-</Property>
-
-<Property name="Keywords">
-<Type>%String</Type>
-<Parameter name="MAXLEN" value="1000"/>
-</Property>
-
-<Property name="SiteId">
-<Type>%Integer</Type>
-<Required>1</Required>
-</Property>
-
-<Property name="CreatedDate">
-<Type>%DateTime</Type>
-<Required>1</Required>
-</Property>
-
-<Property name="ModifiedDate">
-<Type>%DateTime</Type>
-<Required>1</Required>
-</Property>
-
-<Index name="MainIDX">
-<PrimaryKey>1</PrimaryKey>
-<Properties>SiteId,URL</Properties>
-</Index>
-
-<Index name="KeywordsIDX">
-<Properties>Keywords</Properties>
-</Index>
-
-<Method name="Upsert">
+<Method name="GetEntitiesInText">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),Keywords:%String(MAXLEN=1000),SiteId:%Integer</FormalSpec>
-<Language>tsql</Language>
-<SqlProc>1</SqlProc>
+<FormalSpec>text:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	IF EXISTS(SELECT * FROM RecipesSearch.SitePage WHERE URL = @URL AND SiteId = @SiteId) THEN BEGIN
-		UPDATE RecipesSearch.SitePage SET Content = @Content, Keywords = @Keywords, ModifiedDate = GETUTCDATE()
-		WHERE URL = @URL AND SiteId = @SiteId;
-	END ELSE BEGIN
-		INSERT INTO RecipesSearch.SitePage(SiteId, URL, Content, Keywords, CreatedDate, ModifiedDate) 
-			VALUES(@SiteId, @URL, @Content, @Keywords, GETUTCDATE(), GETUTCDATE());
-	END
+	#Include %IKPublic
+	
+	set cfgname = "Russian"
+	if ##class(%iKnow.Configuration).Exists(cfgname) {
+       set cfg=##class(%iKnow.Configuration).Open(cfgname)
+    } else {
+	   set cfg=##class(%iKnow.Configuration).%New(cfgname,0,$LISTBUILD("ru"),"",1)
+	   set cfg.StemmingConfig = "DEFAULT"
+	   do cfg.%Save()
+	}
+
+    set dname = "RecipesAnalyzer"
+    if (##class(%iKnow.Domain).Exists(dname)) {
+	    set domoref=##class(%iKnow.Domain).Open(dname)
+        set stat=domoref.DropData()
+        if 'stat {
+           write "DropData error ",$System.Status.DisplayError(stat)
+           quit
+        }
+    } else {
+        set domoref=##class(%iKnow.Domain).%New(dname)
+        do domoref.SetParameter($$$IKPSTEMMING,1) 
+        do domoref.SetParameter($$$IKPDEFAULTCONFIG,cfgname)
+        do domoref.%Save()
+    }
+       
+    set domId=domoref.Id
+             
+    set myloader = ##class(%iKnow.Source.Loader).%New(domId)
+    do myloader.BufferSource("ref", text)
+    do myloader.ProcessBuffer()
+       
+    do ##class(%iKnow.Queries.EntityAPI).GetTop(.result,domId,1,50)
+                 
+    set i=1
+    set result = ""
+    while $data(result(i)) {
+       set liststr = $listtostring(result(i))
+       write liststr,!
+       set str = $Piece(liststr, ",", 2)
+       set result = str_" "_result
+       set i=i+1
+    }
+    return result
 ]]></Implementation>
 </Method>
-
-<Method name="DeleteRecordsForSiteId">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>SiteId:%Integer</FormalSpec>
-<Language>tsql</Language>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[	DELETE FROM RecipesSearch.SitePage WHERE SiteID = @SiteId;
-]]></Implementation>
-</Method>
-
-<Method name="DeleteSitesRecords">
-<ClassMethod>1</ClassMethod>
-<Language>tsql</Language>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[	DELETE FROM RecipesSearch.SitePage;
-]]></Implementation>
-</Method>
-
-<Query name="GetRecordsBySiteId">
-<Type>%SQLQuery</Type>
-<SqlName>SitePage_GetRecordsBySiteId</SqlName>
-<SqlProc>1</SqlProc>
-<SqlQuery>SELECT SiteId AS SiteId, COUNT(*) AS PageCount
-FROM SitePage
-GROUP BY SiteId</SqlQuery>
-<Parameter name="CONTAINID" value="1"/>
-<Parameter name="SELECTMODE" value="RUNTIME"/>
-</Query>
-
-<Storage name="Default">
-<Type>%Library.CacheStorage</Type>
-<DataLocation>^RecipesSearch.SitePageD</DataLocation>
-<DefaultData>SitePageDefaultData</DefaultData>
-<IdLocation>^RecipesSearch.SitePageD</IdLocation>
-<IndexLocation>^RecipesSearch.SitePageI</IndexLocation>
-<StreamLocation>^RecipesSearch.SitePageS</StreamLocation>
-<Data name="SitePageDefaultData">
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-<Value name="2">
-<Value>URL</Value>
-</Value>
-<Value name="3">
-<Value>Content</Value>
-</Value>
-<Value name="4">
-<Value>Keyword</Value>
-</Value>
-<Value name="5">
-<Value>SiteId</Value>
-</Value>
-<Value name="6">
-<Value>CreatedDate</Value>
-</Value>
-<Value name="7">
-<Value>ModifiedDate</Value>
-</Value>
-<Value name="8">
-<Value>Keywords</Value>
-</Value>
-</Data>
-</Storage>
 </Class>
 </Export>
