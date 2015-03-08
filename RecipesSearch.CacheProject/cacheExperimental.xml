@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-01 13:13:10">
-<Project name="Experimental" LastModified="2015-03-01 12:37:34.333561">
-  <Items>
-    <ProjectItem name="RecipesSearch.PageAnalyzer" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipesSearch.TextAnalyzer" type="CLS"></ProjectItem>
-  </Items>
-</Project>
-
-
-<Class name="RecipesSearch.PageAnalyzer">
-<TimeChanged>63601,76220.36313</TimeChanged>
-<TimeCreated>63598,76265.28244</TimeCreated>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-01 13:49:12">
+<Class name="Experimental.PageAnalyzer">
+<Super>%Persistent</Super>
+<TimeChanged>63612,49595.274184</TimeChanged>
+<TimeCreated>63612,49594.660203</TimeCreated>
 
 <Method name="GetEntitiesById">
 <ClassMethod>1</ClassMethod>
@@ -84,12 +77,14 @@
 
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
-<DataLocation>^RecipesSearch.PageAnalyzerD</DataLocation>
+<DataLocation>^Experimental.PageAnalyzerD</DataLocation>
 <DefaultData>PageAnalyzerDefaultData</DefaultData>
-<IdLocation>^RecipesSearch.PageAnalyzerD</IdLocation>
-<IndexLocation>^RecipesSearch.PageAnalyzerI</IndexLocation>
-<StreamLocation>^RecipesSearch.PageAnalyzerS</StreamLocation>
+<IdLocation>^Experimental.PageAnalyzerD</IdLocation>
+<IndexLocation>^Experimental.PageAnalyzerI</IndexLocation>
+<StreamLocation>^Experimental.PageAnalyzerS</StreamLocation>
 <Data name="PageAnalyzerDefaultData">
+<Structure>listnode</Structure>
+<Subscript/>
 <Value name="1">
 <Value>%%CLASSNAME</Value>
 </Value>
@@ -98,9 +93,18 @@
 </Class>
 
 
-<Class name="RecipesSearch.TextAnalyzer">
-<TimeChanged>63612,47578.475531</TimeChanged>
-<TimeCreated>63612,45341.232156</TimeCreated>
+<Project name="Experimental" LastModified="2015-03-01 13:47:59.409411">
+  <Items>
+    <ProjectItem name="Experimental.PageAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="Experimental.TextAnalyzer" type="CLS"></ProjectItem>
+  </Items>
+</Project>
+
+
+<Class name="Experimental.TextAnalyzer">
+<Super>%Persistent</Super>
+<TimeChanged>63612,49650.638075</TimeChanged>
+<TimeCreated>63612,49650.300759</TimeCreated>
 
 <Method name="GetEntitiesInText">
 <ClassMethod>1</ClassMethod>
@@ -153,5 +157,21 @@
     return result
 ]]></Implementation>
 </Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Experimental.TextAnalyzerD</DataLocation>
+<DefaultData>TextAnalyzerDefaultData</DefaultData>
+<IdLocation>^Experimental.TextAnalyzerD</IdLocation>
+<IndexLocation>^Experimental.TextAnalyzerI</IndexLocation>
+<StreamLocation>^Experimental.TextAnalyzerS</StreamLocation>
+<Data name="TextAnalyzerDefaultData">
+<Structure>listnode</Structure>
+<Subscript/>
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+</Data>
+</Storage>
 </Class>
 </Export>
