@@ -23,6 +23,9 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Required]
         public int ConfigId { get; set; }
 
+        [Display(Name = "Parser")]
+        public string ParserId { get; set; }
+
         public static SiteToCrawl GetEntity(SiteToCrawlViewModel toCrawlViewModel)
         {
             return new SiteToCrawl
@@ -30,7 +33,8 @@ namespace RecipesSearch.WebApplication.ViewModels
                 Id = toCrawlViewModel.Id,
                 Name = toCrawlViewModel.Name,
                 URL = toCrawlViewModel.URL,
-                ConfigId = toCrawlViewModel.ConfigId
+                ConfigId = toCrawlViewModel.ConfigId,
+                ParserId = toCrawlViewModel.ParserId
             };
         }
 
@@ -41,7 +45,8 @@ namespace RecipesSearch.WebApplication.ViewModels
                 Id = enity.Id,
                 Name = enity.Name,
                 URL = enity.URL,
-                ConfigId = enity.ConfigId
+                ConfigId = enity.ConfigId,
+                ParserId = enity.ParserId
             };
         }
     }

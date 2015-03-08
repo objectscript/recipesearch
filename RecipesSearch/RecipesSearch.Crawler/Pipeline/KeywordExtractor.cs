@@ -13,7 +13,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
 {
     class KeywordExtractor : IPageProcessor
     {
-        public void ProcessContent(SitePage sitePage, CrawledPage crawledPage)
+        public void ProcessContent(SitePage sitePage, CrawledPage crawledPage, SiteToCrawl site)
         {
             if (crawledPage.HtmlDocument == null || crawledPage.HtmlDocument.DocumentNode == null)
             {

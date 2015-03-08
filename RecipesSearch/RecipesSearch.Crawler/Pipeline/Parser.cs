@@ -12,8 +12,18 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
 {
     class Parser : IPageProcessor
     {
-        public void ProcessContent(SitePage sitePage, CrawledPage crawledPage)
+        public void ProcessContent(SitePage sitePage, CrawledPage crawledPage, SiteToCrawl site)
         {
+            var parser = ParsersResolver.GetParserById(site.ParserId);
+
+            if (parser == null)
+            {
+                return;
+            }
+            
+            string recipeName = String.Empty;
+            sitePage.Content = parser.ParseContent(crawledPage, ref recipeName);
+            sitePage.RecipeName = recipeName;
         }
     }
 }

@@ -14,6 +14,8 @@ namespace RecipesSearch.Data.Models
 
         public string Keywords { get; set; }
 
+        public string RecipeName { get; set; }
+
         public string Content { get; set; }
 
         [NotMapped]

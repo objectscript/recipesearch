@@ -80,10 +80,14 @@
     <Compile Include="Crawler\Configuration.cs" />
     <Compile Include="Crawler\RecipesCrawler.cs" />
     <Compile Include="Importer\PageSaver.cs" />
+    <Compile Include="Pipeline\Base\BaseParser.cs" />
     <Compile Include="Pipeline\Base\IPageProcessor.cs" />
     <Compile Include="Importer\Importer.cs" />
+    <Compile Include="Pipeline\Base\ParsersResolver.cs" />
     <Compile Include="Pipeline\Parser.cs" />
     <Compile Include="Pipeline\KeywordExtractor.cs" />
+    <Compile Include="Pipeline\Parsers\GotovimDoma.cs" />
+    <Compile Include="Pipeline\Parsers\RecipeSchemaParser.cs" />
     <Compile Include="Pipeline\Preprocessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

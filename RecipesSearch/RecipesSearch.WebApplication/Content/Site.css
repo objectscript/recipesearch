@@ -87,13 +87,17 @@
     text-align: center;
 }
 .admin .settings .crawled-sites .table .name-col{
-    width: 30%;
+    width: 25%;
 }
 .admin .settings .crawled-sites .table .url-col{
-    width: 60%;
+    width: 40%;
 }
 .admin .settings .crawled-sites .table .action-col{
     width: 10%;
+    text-align: center;
+}
+.admin .settings .crawled-sites .table .parser-col{
+    width: 25%;
     text-align: center;
 }
 .admin .settings .crawled-sites .table .action-col .btn {

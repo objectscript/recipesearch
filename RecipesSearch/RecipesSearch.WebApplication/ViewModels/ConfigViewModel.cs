@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RecipesSearch.Data.Models;
+using RecipesSearch.SitePagesImporter.Pipeline.Base;
 
 namespace RecipesSearch.WebApplication.ViewModels
 {

@@ -11,6 +11,6 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
 {
     interface IPageProcessor
     {
-        void ProcessContent(SitePage sitePage, CrawledPage crawledPage);
+        void ProcessContent(SitePage sitePage, CrawledPage crawledPage, SiteToCrawl site);
     }
 }

@@ -16,5 +16,7 @@ namespace RecipesSearch.Data.Models
         public string URL { get; set; }
 
         public int ConfigId { get; set; }
+
+        public string ParserId { get; set; }
     }
 }

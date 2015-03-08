@@ -52,6 +52,7 @@
                             <tr>
                                 <th class="name-col">Name</th>
                                 <th class="url-col">Url</th>
+                                <th class="parser-col">Parser</th>
                                 <th class="action-col"></th>
                             </tr>
                         <tbody>
@@ -61,6 +62,9 @@
                                     <td class="name-col">@siteToCrawl.Name</td>
                                     <td class="url-col">
                                         <a href="@siteToCrawl.URL" target="_blank">@siteToCrawl.URL</a>
+                                    </td>
+                                    <td class="parser-col">
+                                       @(String.IsNullOrEmpty(siteToCrawl.ParserId) ? "<No parser>" : siteToCrawl.ParserId)
                                     </td>
                                     <td class="action-col">
                                         @Html.Partial("_PostButton", new PostButtonModel

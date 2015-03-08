@@ -24,7 +24,8 @@ namespace RecipesSearch.DAL.Cache.Adapters
 
             command.Parameters.Add("URL", sitePage.URL);
             command.Parameters.Add("Content", sitePage.Content);
-            command.Parameters.Add("Keywords", sitePage.Keywords);
+            command.Parameters.Add("RecipeName", sitePage.RecipeName);
+            command.Parameters.Add("Keywords", sitePage.Keywords);          
 
             var siteIdParemeter = new CacheParameter("SiteId", CacheDbType.Int);
             siteIdParemeter.Value = sitePage.SiteID;

@@ -14,15 +14,15 @@ namespace RecipesSearch.SitePagesImporter.Importer
 {
     class PageSaver : IDisposable
     {
-        private readonly int _siteId;
+        private readonly SiteToCrawl _siteToCrawl;
         private readonly bool _keywordsProcessingEnabled;
 
         private readonly List<IPageProcessor> _pageProcessors = new List<IPageProcessor>();
         private readonly CachePageStorage _pageStorage = new CachePageStorage();
 
-        public PageSaver(int siteId, bool keywordsProcessingEnabled)
+        public PageSaver(SiteToCrawl siteToCrawl,  bool keywordsProcessingEnabled)
         {
-            _siteId = siteId;
+            _siteToCrawl = siteToCrawl;
             _keywordsProcessingEnabled = keywordsProcessingEnabled;
 
             _pageProcessors.AddRange(new IPageProcessor[]
@@ -37,7 +37,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
         {
             var sitePage = new SitePage
             {
-                SiteID = _siteId,
+                SiteID = _siteToCrawl.Id,
                 URL = crawledPage.Uri.ToString(),
                 Content = crawledPage.Content.Text,
                 Keywords = String.Empty
@@ -45,10 +45,14 @@ namespace RecipesSearch.SitePagesImporter.Importer
 
             foreach (var pageProcessor in _pageProcessors)
             {
-                pageProcessor.ProcessContent(sitePage, crawledPage);
+                pageProcessor.ProcessContent(sitePage, crawledPage, _siteToCrawl);
             }
 
-            _pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled);
+            // Do not save empty string; e.g. rejected by parser
+            if (!String.IsNullOrEmpty(sitePage.Content))
+            {
+                _pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled);
+            }          
         }
 
         public void Dispose()

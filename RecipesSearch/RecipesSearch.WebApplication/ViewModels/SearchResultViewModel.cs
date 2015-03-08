@@ -12,6 +12,7 @@ namespace RecipesSearch.WebApplication.ViewModels
 {
     public class SearchResultViewModel
     {
+        public string Name { get; set; }
         public string URL { get; set; }
         public string Content { get; set; }
 
@@ -19,6 +20,7 @@ namespace RecipesSearch.WebApplication.ViewModels
         {
             URL = enity.URL;
             Content = enity.Content;
+            Name = String.IsNullOrEmpty(enity.RecipeName) ? enity.URL : enity.RecipeName;
         }
     }
 }
