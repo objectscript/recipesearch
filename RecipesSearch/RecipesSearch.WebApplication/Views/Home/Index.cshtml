@@ -1,7 +1,8 @@
 ﻿@{
     ViewBag.Title = "Search";
 }
-@model List<RecipesSearch.WebApplication.ViewModels.SearchResultViewModel>
+@model RecipesSearch.WebApplication.ViewModels.SearchViewModel
+
 <div class="search-results">
     <div class="container-fluid results-list">
         @if (Model == null)
@@ -14,7 +15,7 @@
                 </div>
             </div>
         }
-        else if (Model.Count == 0)
+        else if (Model.ResultItems.Count == 0)
         {
             <div class="row">
                 <div class="col-md-6">
@@ -26,7 +27,7 @@
         }
         else
         {
-            foreach (var searchResult in Model)
+            foreach (var searchResult in Model.ResultItems)
             {
                 <div class="row">
                     <div class="col-md-8">
@@ -43,6 +44,28 @@
                     </div>
                 </div>
             }
+            var totalPageCount = Model.TotalCount/Model.ResultsOnPage + (Model.TotalCount%Model.ResultsOnPage != 0 ? 1 : 0);
+                      
+            <nav>
+                <ul class="pagination">
+                    <li class="@(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <a href="/Home/Index?query=@Model.CurrentQuery&pageNumber=@(Model.CurrentPage - 1)" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= totalPageCount; ++i)
+                    {
+                        <li class="@(Model.CurrentPage == i ? "active" : "")">
+                            <a href="/Home/Index?query=@Model.CurrentQuery&pageNumber=@i">@i</a>
+                        </li>
+                    }
+                    <li class="@(Model.CurrentPage == totalPageCount ? "disabled" : "")">
+                        <a href="/Home/Index?query=@Model.CurrentQuery&pageNumber=@(Model.CurrentPage + 1)" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         }
     </div>
 </div>

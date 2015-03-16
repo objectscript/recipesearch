@@ -9,6 +9,10 @@ namespace RecipesSearch.CacheService.Models
 {
     class SearchResponse
     {
-        public IEnumerable<SitePage> Children;
+        public IEnumerable<SitePage> Items;
+
+        public int TotalCount { get; set; }
+
+        public int PageNumber { get; set; }
     }
 }

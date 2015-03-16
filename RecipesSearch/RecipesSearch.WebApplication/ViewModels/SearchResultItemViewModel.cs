@@ -10,13 +10,13 @@ using RecipesSearch.Data.Models;
 
 namespace RecipesSearch.WebApplication.ViewModels
 {
-    public class SearchResultViewModel
+    public class SearchResultItemViewModel
     {
         public string Name { get; set; }
         public string URL { get; set; }
         public string Content { get; set; }
 
-        public SearchResultViewModel(SitePage enity)
+        public SearchResultItemViewModel(SitePage enity)
         {
             URL = enity.URL;
             Content = enity.Content;

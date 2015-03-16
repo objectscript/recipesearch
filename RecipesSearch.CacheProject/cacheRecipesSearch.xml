@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-08 22:25:05">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-16 21:55:29">
 <Class name="Data.Base.Entity">
 <Super>%Persistent</Super>
 <TimeChanged>63611,44290.858824</TimeChanged>
@@ -547,7 +547,7 @@ GROUP BY SiteId</SqlQuery>
 <Package name="Logging" sqlname="Logging"/>
 
 
-<Project name="RecipesSearch" LastModified="2015-03-08 22:24:55.173569">
+<Project name="RecipesSearch" LastModified="2015-03-16 21:52:18.02229">
   <Items>
     <ProjectItem name="Data" type="PKG"></ProjectItem>
     <ProjectItem name="Logging" type="PKG"></ProjectItem>
@@ -559,7 +559,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.iKnow">
 <Super>%CSP.REST</Super>
-<TimeChanged>63605,43018.414956</TimeChanged>
+<TimeChanged>63627,76491.955747</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
 
 <XData name="UrlMap">
@@ -575,11 +575,11 @@ GROUP BY SiteId</SqlQuery>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	set query = %request.Get("query", "")
-	set startIndex = %request.Get("startIndex", "0")
+	set pageNumber = %request.Get("pageNumber", "1")
 	set pageSize = %request.Get("pageSize", "25")
 	
 	try {
-    	do ##class(REST.SearchEngine).SearchPages(query, startIndex, pageSize)
+    	do ##class(REST.SearchEngine).SearchPages(query, pageNumber, pageSize)
 	} catch err {
     	write err.AsSystemError()
     }
@@ -590,39 +590,82 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="REST.KeywordsProcessor">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63601,71442.471948</TimeChanged>
-<TimeCreated>63598,70110.477535</TimeCreated>
 
-<Method name="GetProccessedKeyword">
+
+<Class name="REST.Search.SearchResult">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63627,76763.925557</TimeChanged>
+<TimeCreated>63627,74813.171587</TimeCreated>
+
+<Property name="Items">
+<Type>Data.SitePage</Type>
+<Collection>list</Collection>
+</Property>
+
+<Property name="TotalCount">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="PageNumber">
+<Type>%Integer</Type>
+</Property>
+
+<Method name="PopulateFromResultSet">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>keywords:%String</FormalSpec>
+<FormalSpec>result:%Library.ResultSet,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
+<ReturnType>%Library.ResultSet</ReturnType>
 <Implementation><![CDATA[
-	set result = ##class(REST.KeywordProcessResult).%New()
 	
-	// TODO: add processing
-	set result.Keywords = keywords
+	// TODO: make it more performant
+	set startIndex = (pageNumber - 1) * pageSize + 1
 	
-	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(result)
+	set searchResults = ##class(REST.Search.SearchResult).%New()
+	set searchResults.Items = ##class(%ListOfObjects).%New()
+	
+	set count = 0
+    while (result.Next()) 
+    { 
+    	set count = count + 1 
+		continue:(count < startIndex) 
+        
+        if (count >= (startIndex + pageSize)) 
+        {  
+			continue
+        } 
+        
+        set sitePage = ##class(Data.SitePage).%New() 
+        set sitePage.Content = result.Data("Content") 
+        set sitePage.SiteId = result.Data("SiteId") 
+        set sitePage.URL = result.Data("URL") 
+        set sitePage.Keywords = result.Data("Keywords") 
+        set sitePage.ModifiedDate = result.Data("ModifiedDate") 
+        set sitePage.CreatedDate = result.Data("CreatedDate") 
+        set sitePage.RecipeName = result.Data("RecipeName") 
+        
+        set tSC = searchResults.Items.Insert(sitePage) 
+        
+	}
+    
+   	set searchResults.PageNumber = pageNumber
+	set searchResults.TotalCount = count
+	
+	return searchResults
 ]]></Implementation>
 </Method>
 </Class>
 
 
-
-
 <Class name="REST.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63619,79401.929242</TimeChanged>
+<TimeChanged>63627,76472.625477</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,startIndex:%Integer,pageSize:%Integer</FormalSpec>
+<FormalSpec>query:%String,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
 <Implementation><![CDATA[
 	// TODO: Implement real pagination
-	set sqlQuery = "SELECT %NOLOCK TOP "_pageSize_" Content,Keywords,SiteId,URL,RecipeName,CreatedDate, ModifiedDate"
+	set sqlQuery = "SELECT %NOLOCK Content,Keywords,SiteId,URL,RecipeName,CreatedDate, ModifiedDate"
 	_" FROM Data.SitePage"
 	
 	set queryParts =  ##class(iKnow.StringAnalyzer).GetEntitiesInText(query)
@@ -643,11 +686,15 @@ GROUP BY SiteId</SqlQuery>
 		set i = i + 1
 	}
 	
-	set sqlQuery = sqlQuery_" WHERE "_predicate
-	
-	//write sqlQuery
-	
-	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
+	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"
+		
+	set result = ##class(%Library.ResultSet).%New() 
+	set tSC = result.Prepare(sqlQuery) 
+    set tSC = result.Execute()
+     
+    set searchResult = ##class(REST.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
+
+	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(searchResult)
 ]]></Implementation>
 </Method>
 </Class>

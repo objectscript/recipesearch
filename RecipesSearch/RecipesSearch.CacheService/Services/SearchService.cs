@@ -13,19 +13,20 @@ namespace RecipesSearch.CacheService.Services
     {
         private const string Endpoint = "/iknow/doSearch";
 
-        public List<SitePage> SearchByQuery(string query, int pageNumber, int pageSize)
+        public List<SitePage> SearchByQuery(string query, int pageNumber, int pageSize, out int totalCount)
         {
             var url = ServiceBase + Endpoint;
             var parameters = new Dictionary<string, string>
             {
                 {"query", Uri.EscapeDataString(query)},
-                {"startIndex", (pageNumber * pageSize).ToString()},
+                {"pageNumber", pageNumber.ToString()},
                 {"pageSize", pageSize.ToString()},
             };
 
             var respose = RestHelper.MakeRequest<SearchResponse>(url, RestHelper.HttpVerb.GET, parameters, null);
 
-            return respose.Children.ToList();
+            totalCount = respose.TotalCount;
+            return respose.Items.ToList();
         }
     }
 }

@@ -14,7 +14,7 @@ namespace RecipesSearch.WebApplication.Controllers
         private readonly SearchProvider _searchProvider = new SearchProvider();
         private readonly SearchSettingsRepository _searchSettingsRepository = new SearchSettingsRepository();
 
-        public ActionResult Index(string query, int pageNumber = 0)
+        public ActionResult Index(string query, int pageNumber = 1)
         {
             var searchSettings = _searchSettingsRepository.GetSearchSettings();
 
@@ -22,11 +22,22 @@ namespace RecipesSearch.WebApplication.Controllers
 
             if (!string.IsNullOrEmpty(query))
             {
+                int totalCount;
                 var searchResult = _searchProvider
-                    .SearchByQuery(query, pageNumber, searchSettings.ResultsOnPage)
-                    .Select(result => new SearchResultViewModel(result))
-                    .ToList();               
-                return View(searchResult);
+                    .SearchByQuery(query, pageNumber, searchSettings.ResultsOnPage, out totalCount)
+                    .Select(result => new SearchResultItemViewModel(result))
+                    .ToList();
+
+                var searchViewModel = new SearchViewModel
+                {
+                    ResultItems = searchResult,
+                    TotalCount = totalCount,
+                    ResultsOnPage = searchSettings.ResultsOnPage,
+                    CurrentPage = pageNumber,
+                    CurrentQuery = query
+                };
+
+                return View(searchViewModel);
             } 
 
             return View();
