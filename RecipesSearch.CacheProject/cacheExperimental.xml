@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-01 13:49:12">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-16 07:43:55">
 <Class name="Experimental.PageAnalyzer">
 <Super>%Persistent</Super>
 <TimeChanged>63612,49595.274184</TimeChanged>
@@ -93,7 +93,7 @@
 </Class>
 
 
-<Project name="Experimental" LastModified="2015-03-01 13:47:59.409411">
+<Project name="Experimental" LastModified="2015-03-16 07:27:29.879363">
   <Items>
     <ProjectItem name="Experimental.PageAnalyzer" type="CLS"></ProjectItem>
     <ProjectItem name="Experimental.TextAnalyzer" type="CLS"></ProjectItem>
@@ -103,7 +103,7 @@
 
 <Class name="Experimental.TextAnalyzer">
 <Super>%Persistent</Super>
-<TimeChanged>63612,49650.638075</TimeChanged>
+<TimeChanged>63627,27614.481977</TimeChanged>
 <TimeCreated>63612,49650.300759</TimeCreated>
 
 <Method name="GetEntitiesInText">
@@ -158,6 +158,16 @@
 ]]></Implementation>
 </Method>
 
+<Method name="StemText">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
+	return stemmer.StemWord(text)
+]]></Implementation>
+</Method>
+
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
 <DataLocation>^Experimental.TextAnalyzerD</DataLocation>
@@ -166,8 +176,6 @@
 <IndexLocation>^Experimental.TextAnalyzerI</IndexLocation>
 <StreamLocation>^Experimental.TextAnalyzerS</StreamLocation>
 <Data name="TextAnalyzerDefaultData">
-<Structure>listnode</Structure>
-<Subscript/>
 <Value name="1">
 <Value>%%CLASSNAME</Value>
 </Value>
