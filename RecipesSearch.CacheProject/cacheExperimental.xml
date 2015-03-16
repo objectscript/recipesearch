@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-16 07:43:55">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-16 22:16:59">
 <Class name="Experimental.PageAnalyzer">
 <Super>%Persistent</Super>
-<TimeChanged>63612,49595.274184</TimeChanged>
+<TimeChanged>63627,80126.299905</TimeChanged>
 <TimeCreated>63612,49594.660203</TimeCreated>
 
 <Method name="GetEntitiesById">
@@ -13,7 +13,7 @@
 	#sqlcompile SELECT = odbc
 	&sql(declare byid cursor for
 	      select Content
-          from RecipesSearch.SitePage
+          from Data.SitePage
           where ID = :id)
     &sql(open byid)
 	set dname = "RecipesDomain"
@@ -83,8 +83,6 @@
 <IndexLocation>^Experimental.PageAnalyzerI</IndexLocation>
 <StreamLocation>^Experimental.PageAnalyzerS</StreamLocation>
 <Data name="PageAnalyzerDefaultData">
-<Structure>listnode</Structure>
-<Subscript/>
 <Value name="1">
 <Value>%%CLASSNAME</Value>
 </Value>
@@ -93,7 +91,7 @@
 </Class>
 
 
-<Project name="Experimental" LastModified="2015-03-16 07:27:29.879363">
+<Project name="Experimental" LastModified="2015-03-16 22:14:53.370511">
   <Items>
     <ProjectItem name="Experimental.PageAnalyzer" type="CLS"></ProjectItem>
     <ProjectItem name="Experimental.TextAnalyzer" type="CLS"></ProjectItem>
