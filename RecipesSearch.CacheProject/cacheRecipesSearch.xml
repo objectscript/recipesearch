@@ -1,5 +1,569 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-16 21:55:29">
+<Class name="%Text.Russian">
+<Description><![CDATA[
+See <CLASS>%Text.Text</CLASS>
+<p>
+The <CLASS>%Text.Russian</CLASS> class implements the Russian language-specific lemmatization algorithm,
+initializes the language-specific list of noise words and loads Russian morphological dictionary.
+<p class=MsoNormal>© Н.А.Шестакова, 2007 </p>
+]]></Description>
+<Super>%Text.Text</Super>
+<TimeChanged>63628,40410.843032</TimeChanged>
+<TimeCreated>60696,37781.22329</TimeCreated>
+
+<Parameter name="DEBUG">
+<Description><![CDATA[
+<PARAMETER>DEBUG</PARAMETER>  #2: включает запись несловарных лемм в ^CacheTempMorpho("PRE",словоформа)=лемма <BR> ]]></Description>
+<Default>0</Default>
+</Parameter>
+
+<Parameter name="SOURCELANGUAGE">
+<Default>ru</Default>
+</Parameter>
+
+<Parameter name="DICTIONARY">
+<Default>9</Default>
+</Parameter>
+
+<Parameter name="NOISEWORDS100">
+<Description>
+Список шумовых слов (стоп-слов), наиболее часто встречающихся в языке, которые лишь "раздувают" индексы и практически ничего не дают при полнотекстовом поиске. Список взят с http://forum.searchengines.ru/showthread.php?postid=7670 и http://snowball.tartarus.org/algorithms/russian/stop.txt
+и несколько модифицирован (добавлены словоформы). На сайте, рекомендованном в описании %Text.Text (http://www.ranks.nl/stopwords/), русский язык отсутствует.</Description>
+<Default>а без будто бы быть в вдруг ведь весь во вот впрочем все всегда всего вы г где год да даже два для до должный ее ей если есть еще ж же за зачем здесь и из или им иногда их к каждый как какой ко когда который кто куда лет ли либо между многий много многое можно мой мочь мы на над надо наконец наш не нельзя несколько нет ни нибудь никак никогда ничто но ну о об один однако он она они оно опять от очень перед по под потом потому про раз разве с сам самый свой</Default>
+</Parameter>
+
+<Parameter name="NOISEWORDS200">
+<Default>себя сегодня сейчас со совсем та так также таки такой там твой те теперь то тогда тоже только тот три ту тут тута ты у уж хороший хорошо хоть хотя чей через что чтоб чтобы чуть этот я</Default>
+</Parameter>
+
+<Parameter name="NGRAMLEN">
+<Description><![CDATA[
+Список шумовых слов (стоп-слов), наиболее часто встречающихся в языке, которые лишь "раздувают" индексы и практически ничего не дают при полнотекстовом поиске. Список взят с http://forum.searchengines.ru/showthread.php?postid=7670 и http://snowball.tartarus.org/algorithms/russian/stop.txt
+и несколько модифицирован (добавлены словоформы). На сайте, рекомендованном в описании %Text.Text (http://www.ranks.nl/stopwords/), русский язык отсутствует.
+Параметр сознательно установлен в 1, т.к. это открывает возможность поиска словосочетаний, которая теряется при NGRAMLEN>1. Поясню на примере: <br>
+SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINS ('челюстно-лицевого')<br>при NGRAMLEN=2 найдет все тексты, содержащие формы слов "челюстный" и "лицевой" в любых комбинациях,<br>
+а при NGRAMLEN=1 - лишь те тексты, которые содержат словосочетания, состоящие из форм слов "челюстный" и "лицевой" (вне зависимости от наличия дефиса, который считается разделителем).<br>
+Т.е., будут найдены тексты, содержащие "челюстно лицевой", "челюстно-лицевого" и т.д., но не "челюстной нерв лицевого отдела".<br>
+Заметим, что возможность поиска всех комбинаций заданных слов по-прежнему сохраняется:<br>
+SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('челюстно','лицевого')<br>
+При желании вы, конечно, можете задать NGRAMLEN=2, учтите только, что объем индексов при этом существенно возрастет (в разы).]]></Description>
+<Default>1</Default>
+</Parameter>
+
+<Method name="stemWord">
+<Description><![CDATA[
+<METHOD>stemWord</METHOD> - метод лемматизации на основе словаря.
+<br>На входе: 
+<li>b – словоформа</li>
+<br>На выходе:
+<li>возвращаемое значение (а также параметр b) – лемма</li>
+<li>lb - список ($list) всех возможных вариантов лемм, полученных в результате анализа словоформы b.</li>]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&b:%String,&lb:%String]]></FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+#; лемматизируем только кириллицу (возможно с дефисами)!
+	if ($length(b)<..#MINWORDLEN) || ($translate(b,"абвгдежзийклмнопрстуфхцчшщъыьэюяё-")'="") set lb=$listbuild(b) quit b
+	set lem=""
+	set lb=""
+	set k=$length(b) 
+	set b=$translate(b, "ё", "е") ;меняем ё на е
+	#; Проверяем наличие слова в словаре
+	if $data(^Dict(b)) {
+    	for {
+    		set lem=$order(^Dict(b, lem))
+    		quit:(lem="")
+    		set lb=lb_$listbuild($get(^Lemma(lem)))
+    		}
+		}	
+	#; Обработка слов с дефисом
+	elseif $length(b, "-")>1 {
+		set:($data(^Dict($piece(b, "-", 1)_$piece(b, "-", 2, $length(b, "-"))))) b=..stemWord($piece(b, "-", 1)_$piece(b, "-", 2, $length(b, "-")), .lb)
+		quit:(lb'="") b
+		set lpart=..stemWord($piece(b, "-", 1), .lp)
+		set rpart=..stemWord($piece(b, "-", 2, $length(b, "-")), .rp)
+		for i=1:1:$listlength(lp) {
+			for j=1:1:$listlength(rp) {
+				set lb=lb_$listbuild($list(lp, i)_"-"_$list(rp, j))
+				}			
+			}
+		}
+	#; Если не оказалось в словаре, выполняем процедуру предсказания		
+	else {	
+		set lb=..Prediction(b) 			
+		}
+    #;set b=lb ; выдаём список лемм для данной словоформы
+	set b=$list(lb, $listlength(lb)) ;выдаём последнюю лемму из списка
+	quit b
+]]></Implementation>
+</Method>
+
+<Method name="Prediction">
+<Description>
+Предсказание незнакомых слов</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&b:%String]]></FormalSpec>
+<Private>1</Private>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set lb=..Normalword(b)
+	if lb="" {
+		set lem=""
+		set k=$length(b)
+		set sc=0 
+		for i=2:1:k { ;отсекаем от слова пошагово по букве с начала
+			if (i=k-1)&&(sc=0)&&(..ends(b, k, 2, "ой", .j)) {
+				set lb=lb_$listbuild($extract(b, 1, j))
+				set sc=1
+				}
+			if (i=k)&&(sc=0)&&(..ends(b, k, 1, "о", .j)) {
+				set lb=lb_$listbuild(b)
+				set sc=1
+				}
+			quit:(sc=1)
+			set stemend=$extract(b, i-1, i-1)
+			if ..cons(stemend)=1 {
+				set cons="cons"
+				}
+			elseif ..cons(stemend)=0 {
+				set cons="vow"
+				}	
+			set psfl=$extract(b, i, k)
+			if $data(^Predict(cons, psfl))=10 {
+				for {
+					set lem=$order(^Predict(cons, psfl, lem))
+					quit:(lem="")
+					set fl=$get(^Predict(cons, psfl, lem))
+					if fl="#" {
+						set fl=""
+						}
+					set lb=lb_$listbuild($extract(b, 1, i-1)_fl)
+					}
+				set sc=1					
+				}
+			}
+		if (sc=0) { // окончание пустое! // &&(..ends(b, k, 0, "",.j)) {
+			set lb=lb_$listbuild(b)
+			}
+		}
+#if ..#DEBUG#2
+	set ^CacheTempMorpho("PRE",b)=lb
+#endif
+    quit lb
+]]></Implementation>
+</Method>
+
+<Method name="cons">
+<Description>
+Процедура проверки, является ли буква согласной</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>k</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+	quit:("аеёиоуыэюяАЕЁИОУЫЭЮЯ#"[k) 0
+	quit 1
+]]></Implementation>
+</Method>
+
+<Method name="Normalword">
+<Description>
+Процедура проверки, имеет ли слово продуктивный префикс или продуктивный суффикс</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>b</FormalSpec>
+<Private>1</Private>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set lem=""
+	set lb=""
+	set k=$length(b)
+	set j=""
+	if (($extract(b, 1, 2)="не")||($extract(b, 1, 2)="ре")||($extract(b, 1, 2)="за")||($extract(b, 1, 2)="до")||($extract(b, 1, 2)="де")||($extract(b, 1, 2)="по"))&&(k'=2)&&(($data(^Dict($extract(b, 3, k))))) {
+	    for {
+    		set lem=$order(^Dict($extract(b, 3, k), lem))
+    		quit:(lem="")
+    		set lb=lb_$listbuild($extract(b, 1, 2)_$get(^Lemma(lem)))
+    		}
+    	set b=lb	
+	    quit b
+	}
+	if (($extract(b, 1, 3)="суб")||($extract(b, 1, 3)="нео")||($extract(b, 1, 3)="без")||($extract(b, 1, 3)="меж")||($extract(b, 1, 3)="дез")||($extract(b, 1, 3)="пан")||($extract(b, 1, 3)="пра")||($extract(b, 1, 3)="все")||($extract(b, 1, 3)="вне")||($extract(b, 1, 3)="дис")||($extract(b, 1, 3)="бес")||($extract(b, 1, 3)="дву"))&&(k'=3)&&(($data(^Dict($extract(b, 4, k))))) {
+	    for {
+    		set lem=$order(^Dict($extract(b, 4, k), lem))
+    		quit:(lem="")
+    		set lb=lb_$listbuild($extract(b, 1, 3)_$get(^Lemma(lem)))
+    		}
+    	set b=lb	
+	    quit b
+	}
+	if (($extract(b, 1, 4)="анти")||($extract(b, 1, 4)="обще")||($extract(b, 1, 4)="пост")||($extract(b, 1, 4)="пред")||($extract(b, 1, 4)="полу")||($extract(b, 1, 4)="пере")||($extract(b, 1, 4)="само")||($extract(b, 1, 4)="поли")||($extract(b, 1, 4)="одно")||($extract(b, 1, 4)="архи")||($extract(b, 1, 4)="пара")||($extract(b, 1, 4)="недо")||($extract(b, 1, 4)="мета")||($extract(b, 1, 4)="мало")||($extract(b, 1, 4)="мини")||($extract(b, 1, 4)="гипо")||($extract(b, 1, 4)="двух")||($extract(b, 1, 4)="грам")||($extract(b, 1, 4)="пери"))&&(k'=4)&&(($data(^Dict($extract(b, 5, k))))) {
+	    for {
+    		set lem=$order(^Dict($extract(b, 5, k), lem))
+    		quit:(lem="")
+    		set lb=lb_$listbuild($extract(b, 1, 4)_$get(^Lemma(lem)))
+    		}
+    	set b=lb
+	    quit b
+	}
+	if (($extract(b, 1, 5)="после")||($extract(b, 1, 5)="небез")||($extract(b, 1, 5)="микро")||($extract(b, 1, 5)="контр")||($extract(b, 1, 5)="сверх")||($extract(b, 1, 5)="квази")||($extract(b, 1, 5)="супер")||($extract(b, 1, 5)="много")||($extract(b, 1, 5)="макро")||($extract(b, 1, 5)="гипер")||($extract(b, 1, 5)="разно")||($extract(b, 1, 5)="около")||($extract(b, 1, 5)="низко")||($extract(b, 1, 5)="интер"))&&(k'=5)&&(($data(^Dict($extract(b, 6, k))))) {
+	    for {
+    		set lem=$order(^Dict($extract(b, 6, k), lem))
+    		quit:(lem="")
+    		set lb=lb_$listbuild($extract(b, 1, 5)_$get(^Lemma(lem)))
+    		}
+    	set b=lb
+	    quit b
+	}
+	if (($extract(b,1,6)="псевдо")||($extract(b,1,6)="ультра")||($extract(b,1,6)="внутри")||($extract(b,1,6)="экстра")||($extract(b,1,6)="мульти")||($extract(b,1,6)="энтеро"))&&(k'=6)&&(($data(^Dict($extract(b, 7, k))))) {
+	    for {
+    		set lem=$order(^Dict($extract(b, 7, k), lem))
+    		quit:(lem="")
+    		set lb=lb_$listbuild($extract(b, 1, 6)_$get(^Lemma(lem)))
+    		}
+    	set b=lb
+	    quit b
+	}
+	if ($extract(b,1,7)="противо")&&(k'=7)&&(($data(^Dict($extract(b, 8, k))))) {
+		for {
+    		set lem=$order(^Dict($extract(b, 8, k), lem))
+    		quit:(lem="")
+    		set lb=lb_$listbuild($extract(b, 1, 7)_$get(^Lemma(lem)))
+    		}
+    	set b=lb
+	    quit b
+	}
+	if ..ends(b, k, 4, "ость", .j)||..ends(b, k, 4, "ости", .j)||..ends(b, k, 5, "остью", .j)||..ends(b, k, 5, "остей", .j)||..ends(b, k, 5, "остям", .j)||..ends(b, k, 6, "остями", .j)||..ends(b, k, 5, "остях", .j) {
+		set b=lb_$listbuild($extract(b, 1, j)_"ость")
+		quit b
+	}
+	if ..ends(b, k, 4, "тель", .j)||..ends(b, k, 4, "теля", .j)||..ends(b, k, 4, "телю", .j)||..ends(b, k, 5, "телем", .j)||..ends(b, k, 4, "теле", .j)||..ends(b, k, 4, "тели", .j)||..ends(b, k, 5, "телей", .j)||..ends(b, k, 5, "телям", .j)||..ends(b, k, 6, "телями", .j)||..ends(b, k, 5, "телях", .j) {
+		set b=lb_$listbuild($extract(b, 1, j)_"тель")
+		quit b
+	}
+	if ..ends(b, k, 4, "ство", .j)||..ends(b, k, 4, "ства", .j)||..ends(b, k, 4, "ству", .j)||..ends(b, k, 5, "ством", .j)||..ends(b, k, 4, "стве", .j)||..ends(b, k, 4, "ства", .j)||..ends(b, k, 3, "ств", .j)||..ends(b, k, 5, "ствам", .j)||..ends(b, k, 6, "ствами", .j)||..ends(b, k, 5, "ствах", .j) {
+		set b=lb_$listbuild($extract(b, 1, j)_"ство")
+		quit b
+	}
+	if ..ends(b, k, 2, "ий", .j)||..ends(b, k, 3, "ого", .j)||..ends(b, k, 3, "ому", .j)||..ends(b, k, 2, "им", .j)||..ends(b, k, 2, "ом", .j)||..ends(b, k, 2, "ое", .j)||..ends(b, k, 2, "ая", .j)||..ends(b, k, 2, "ой", .j)||..ends(b, k, 2, "ую", .j)||..ends(b, k, 2, "ие", .j)||..ends(b, k, 2, "их", .j)||..ends(b, k, 2, "им", .j)||..ends(b, k, 3, "ими", .j) {
+		if ($extract(b, j)="к") {
+		    set b=lb_$listbuild($extract(b, 1, j)_"ий")
+		    quit b
+		}
+	}
+	if ..ends(b, k, 2, "ий", .j)||..ends(b, k, 3, "его", .j)||..ends(b, k, 3, "ему", .j)||..ends(b, k, 2, "им", .j)||..ends(b, k, 2, "ем", .j)||..ends(b, k, 2, "ее", .j)||..ends(b, k, 2, "ая", .j)||..ends(b, k, 2, "ей", .j)||..ends(b, k, 2, "ую", .j)||..ends(b, k, 2, "ие", .j)||..ends(b, k, 2, "их", .j)||..ends(b, k, 2, "им", .j)||..ends(b, k, 3, "ими", .j) {
+		if ($extract(b, j-1, j)="ющ")||($extract(b, j-1, j)="ящ")||($extract(b, j-1, j)="ущ")||($extract(b, j-1, j)="ащ") {
+		    set b=lb_$listbuild($extract(b, 1, j)_"ий")
+		    quit b
+		}
+	}
+	if ..ends(b, k, 2, "ия", .j)||..ends(b, k, 2, "ии", .j)||..ends(b, k, 2, "ию", .j)||..ends(b, k, 3, "ией", .j)||..ends(b, k, 2, "ий", .j)||..ends(b, k, 3, "иям", .j)||..ends(b, k, 4, "иями", .j)||..ends(b, k, 3, "иях", .j)||..ends(b, k, 2, "ие", .j)||..ends(b, k, 3, "ием", .j) {
+		if ($extract(b,j-2, j)="фоб")||($extract(b, j)="г")||($extract(b,j-1, j)="ид")||($extract(b, j)="з")||($extract(b, j)="к")||($extract(b,j-2, j)="фил")||($extract(b, j)="м")||($extract(b,j-2, j)="ман")||($extract(b,j-1, j)="оп")||($extract(b,j-5, j)="бактер")||($extract(b,j-3, j)="метр")||($extract(b,j-1, j)="ур")||($extract(b, j)="с")||($extract(b, j-2,j)="пат")||($extract(b,j-3, j)="дент")||($extract(b, j)="ф")||($extract(b, j)="х")||($extract(b, j)="ц") {
+		    set b=lb_$listbuild($extract(b, 1, j)_"ия")
+		    quit b
+			}
+		if ($extract(b,j-1, j)="ан")||($extract(b, j-1, j)="ен")||($extract(b, j-2, j)="ств") {
+			set b=lb_$listbuild($extract(b, 1, j)_"ие")
+			quit b
+			}
+		else {
+			set b=lb_$listbuild($extract(b, 1, j)_"ия")
+			quit b
+		}
+	}
+	if ..ends(b, k, 1, "а", .j)||..ends(b, k, 2, "ом", .j)||..ends(b, k, 1, "е", .j)||..ends(b, k, 1, "ы", .j)||..ends(b, k, 2, "ов", .j)||..ends(b, k, 2, "ам", .j)||..ends(b, k, 3, "ами", .j)||..ends(b, k, 2, "ах", .j)||..ends(b, k, 2, "ой", .j)||..ends(b, k, 2, "ей", .j) {
+		if ($extract(b, j-1, j)="ид")||($extract(b, j-1, j)="аз")||($extract(b, j-1, j)="ез")||($extract(b, j-1, j)="оз")||($extract(b, j-1, j)="ал")||($extract(b, j-1, j)="ил")||($extract(b, j-1, j)="ол")||($extract(b, j-2, j)="изм")||($extract(b, j-1, j)="ан")||($extract(b, j-1, j)="ен")||($extract(b, j-2, j)="ген")||($extract(b, j-1, j)="ин")||($extract(b, j-4, j)="штейн")||($extract(b, j-1, j)="он")||($extract(b, j-2, j)="сон")||($extract(b, j-3, j)="скоп")||($extract(b, j-1, j)="ер")||($extract(b, j-2, j)="тор")||($extract(b, j-1, j)="ат")||($extract(b, j-1, j)="ит")||($extract(b, j-2, j)="ист") {
+		#;if ($e(b, j-1, j)="ид")||($e(b, j-1, j)="аз")||($e(b, j-1, j)="ёз")||($e(b, j-1, j)="ез")||($e(b, j-1, j)="оз")||($e(b, j-1, j)="ал")||($e(b, j-1, j)="ил")||($e(b, j-1, j)="ол")||($e(b, j-2, j)="изм")||($e(b, j-1, j)="ан")||($e(b, j-1, j)="ен")||($e(b, j-2, j)="ген")||($e(b, j-1, j)="ин")||($e(b, j-4, j)="штейн")||($e(b, j-1, j)="он")||($e(b, j-2, j)="сон")||($e(b, j-3, j)="скоп")||($e(b, j-1, j)="ер")||($e(b, j-1, j)="ёр")||($e(b, j-2, j)="тор")||($e(b, j-1, j)="ат")||($e(b, j-1, j)="ит")||($e(b, j-2, j)="ист") {
+			set b=lb_$listbuild($extract(b, 1, j))
+			quit b
+		}
+		if ($extract(b,j-1,j)="ом")||($extract(b,j-1,j)="ем")||($extract(b,j-2,j)="азм")||($extract(b, j-4, j)="грамм")||($extract(b,j-1,j)="иц") {
+		#;if ($e(b,j-1,j)="ом")||($e(b,j-1,j)="ём")||($e(b,j-1,j)="ем")||($e(b,j-2,j)="азм")||($e(b, j-4, j)="грамм")||($e(b,j-1,j)="иц") {			
+			set b=lb_$listbuild($extract(b, 1, j)_"а")
+			quit b
+		}
+	}
+	if ..ends(b, k, 1, "а", .j)||..ends(b, k, 2, "ом", .j)||..ends(b, k, 1, "е", .j)||..ends(b, k, 2, "ов", .j)||..ends(b, k, 2, "ам", .j)||..ends(b, k, 3, "ами", .j)||..ends(b, k, 2, "ах", .j)||..ends(b, k, 2, "ой", .j)||..ends(b, k, 2, "ей", .j)||..ends(b, k, 1, "и",.j) {
+		if ($extract(b, j-2, j)="инг")||($extract(b, j-3, j)="берг")||($extract(b, j-1, j)="ик") {
+			set b=lb_$listbuild($extract(b, 1, j))
+			quit b
+		}
+	}
+	if ..ends(b, k, 2, "ея", .j)||..ends(b, k, 2, "еи", .j)||..ends(b, k, 2, "ею", .j)||..ends(b, k, 3, "еей", .j)||..ends(b, k, 2, "ей", .j)||..ends(b, k, 3, "еям", .j)||..ends(b, k, 4, "еями", .j)||..ends(b, k, 3, "еях", .j)||..ends(b, k, 2, "ее", .j) {
+		if ($extract(b, j)="р") {
+		    set b=lb_$listbuild($extract(b, 1, j)_"ея")
+		    quit b
+		}
+	}
+	if ..ends(b, k, 2, "ый", .j)||..ends(b, k, 3, "ого", .j)||..ends(b, k, 3, "ому", .j)||..ends(b, k, 2, "ым", .j)||..ends(b, k, 2, "ом", .j)||..ends(b, k, 2, "ое", .j)||..ends(b, k, 2, "ая", .j)||..ends(b, k, 2, "ой", .j)||..ends(b, k, 2, "ую", .j)||..ends(b, k, 2, "ые", .j)||..ends(b, k, 2, "ых", .j)||..ends(b, k, 2, "ым", .j)||..ends(b, k, 3, "ыми", .j) {
+		if ($extract(b, j-1,j)="ов")||($extract(b, j)="н")||($extract(b, j-2,j)="ист") {
+		    set b=lb_$listbuild($extract(b, 1, j)_"ый")
+		    quit b
+		}
+	}
+	if ..ends(b, k, 1, "у", .j)||..ends(b, k, 0, "",.j) {
+		if ($extract(b, j-2, j)="инг")||($extract(b, j-3, j)="берг")||($extract(b, j-1, j)="ид")||($extract(b, j-1, j)="аз")||($extract(b, j-1, j)="ез")||($extract(b, j-1, j)="оз")||($extract(b, j-1, j)="ик")||($extract(b, j-1, j)="ал")||($extract(b, j-1, j)="ил")||($extract(b, j-1, j)="ол")||($extract(b, j-2, j)="изм")||($extract(b, j-1, j)="ан")||($extract(b, j-1, j)="ен")||($extract(b, j-2, j)="ген")||($extract(b, j-1, j)="ин")||($extract(b, j-4, j)="штейн")||($extract(b, j-1, j)="он")||($extract(b, j-2, j)="сон")||($extract(b, j-3, j)="скоп")||($extract(b, j-1, j)="ер")||($extract(b, j-2, j)="тор")||($extract(b, j-1, j)="ат")||($extract(b, j-1, j)="ит")||($extract(b, j-2, j)="ист") {
+		#;if ($e(b, j-2, j)="инг")||($e(b, j-3, j)="берг")||($e(b, j-1, j)="ид")||($e(b, j-1, j)="аз")||($e(b, j-1, j)="ёз")||($e(b, j-1, j)="ез")||($e(b, j-1, j)="оз")||($e(b, j-1, j)="ик")||($e(b, j-1, j)="ал")||($e(b, j-1, j)="ил")||($e(b, j-1, j)="ол")||($e(b, j-2, j)="изм")||($e(b, j-1, j)="ан")||($e(b, j-1, j)="ен")||($e(b, j-2, j)="ген")||($e(b, j-1, j)="ин")||($e(b, j-4, j)="штейн")||($e(b, j-1, j)="он")||($e(b, j-2, j)="сон")||($e(b, j-3, j)="скоп")||($e(b, j-1, j)="ер")||($e(b, j-1, j)="ёр")||($e(b, j-2, j)="тор")||($e(b, j-1, j)="ат")||($e(b, j-1, j)="ит")||($e(b, j-2, j)="ист") {
+			set b=lb_$listbuild($extract(b, 1, j))
+			quit b
+		}
+		if ($extract(b,j-1,j)="ом")||($extract(b,j-1,j)="ем")||($extract(b,j-2,j)="азм")||($extract(b, j-4, j)="грамм")||($extract(b,j-1,j)="иц") {
+		#;if ($e(b,j-1,j)="ом")||($e(b,j-1,j)="ём")||($e(b,j-1,j)="ем")||($e(b,j-2,j)="азм")||($e(b, j-4, j)="грамм")||($e(b,j-1,j)="иц") {
+			set b=lb_$listbuild($extract(b, 1, j)_"а")
+			quit b
+		}
+	}			
+	quit ""
+]]></Implementation>
+</Method>
+
+<Method name="LoadDict">
+<Description><![CDATA[
+<METHOD>LoadDict</METHOD> - метод загрузки грамматического словаря из файла
+<br>На входе:
+<li>filename - полный путь к файлу словаря (http://www.aot.ru/download.php, Морф. словарь (русск.)) </li>
+<br>На выходе:
+<li>1 - успех, 0 - не удалось открыть файл.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+ 	set sc=..readDictionary(filename, .number)
+ 	if sc=1 { 
+ 		do ..inflections(filename)
+ 		do ..dictionarize(number)
+ 	}
+ 	quit sc
+]]></Implementation>
+</Method>
+
+<Method name="readDictionary">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[filename:%String,&number]]></FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	kill ^CacheTempPdgm1
+	kill ^CacheTempA1
+	close filename
+	open filename:("RK\CP1251\"):5 if '$test { quit 0 }
+		use filename
+		read stringnum
+		for i=1:1:stringnum {
+			read str
+			set ^CacheTempPdgm1(i)=..formatstr2(str)
+			}
+		
+		do {			
+			read str
+			} while '(str?6N) 
+		if str?6N {
+			set number=str	
+			for i=1:1:number {
+				read str
+				set ^CacheTempA1(i)=..formatstr(str)
+			}
+		}
+	close filename
+	quit 1
+]]></Implementation>
+</Method>
+
+<Method name="formatstr">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>string:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[
+ ;делаем из леммы список словоформ
+	set string=$zconvert(string ,"L")
+	set pdgm=$piece(string, " ",2)+1
+	set plist=^CacheTempPdgm1(pdgm)
+	set l=$listlength(plist) ;отбрасываем #
+	for j=1:1:l {
+		set $list(lstring, j)=$piece(string, " ",1) _ $list(plist, j)
+		if ($extract($list(lstring, j))="#")&&($extract($list(lstring, j), 2)'="") { 
+		set k=$list(lstring, j) 
+		set $extract(k)=""
+		set $list(lstring, j)=k 
+		}
+		}
+	quit lstring
+]]></Implementation>
+</Method>
+
+<Method name="formatstr2">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>string</FormalSpec>
+<Private>1</Private>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[
+ ; строку парадигмы приводим к списку окончаний
+	set string=$zconvert(string ,"L")
+	set lstring=$length(string, "*")
+	set paradigm=""
+	for j=1:1:lstring {
+		if $find($piece(string, "*", j), "%")'=0 {
+			set paradigm=paradigm_$listbuild($piece($piece(string, "*", j), "%", 2))
+		}
+		
+		}
+	quit paradigm
+]]></Implementation>
+</Method>
+
+<Method name="dictionarize">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>number</FormalSpec>
+<Private>1</Private>
+<Implementation><![CDATA[
+ ;все слова в своём глобале, словоформы в своём, 
+ ;С УЧЁТОМ ГРАММАТИЧЕСКОЙ НЕОДНОЗНАЧНОСТИ.
+	kill ^Lemma
+	kill ^Dict
+	if ($sortbegin(^Lemma)) {}
+	if ($sortbegin(^Dict)) {}
+	for i=1:1:number {
+		set wlist=^CacheTempA1(i)
+		set ^Lemma(i)=$list(wlist, 1)
+		set b=$listlength(wlist)
+		for j=1:1:b {
+			set ^Dict($translate($list(wlist, j), "ё","е"),i)=""
+			}
+	}
+	if ($sortend(^Lemma)) {}
+	if ($sortend(^Dict)) {}
+	kill ^CacheTempPdgm1
+	kill ^CacheTempA1
+]]></Implementation>
+</Method>
+
+<Method name="inflections">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+ 
+	kill ^Predict ;глобал для предсказания
+	if ($sortbegin(^Predict)) {}
+	close filename
+	open filename:("RK\CP1251\")
+		use filename
+		do {			
+			read str
+			} while '(str?6N) 
+		if str?6N {
+			set number=str	
+			for i=1:1:number {
+				read str
+				set stem=$piece(str, " ", 1)
+				set l=$length(stem)
+				set k=$piece(str, " ", 2)
+				if ..cons($extract(stem, l))=1 {		
+					if $data(a(k))=0 {
+						set a(k)=1
+						set array(i)=k
+						set letter(k)="cons"
+						}
+					else {
+						set b=$get(a(k))
+						set a(k)=b+1
+						if letter(k)="vow" {
+							set letter(k)="letter"
+							}
+						}
+					}
+				elseif ..cons($extract(stem, l))=0 {		
+					if $data(a(k))=0 {
+						set a(k)=1
+						set array(i)=k
+						set letter(k)="vow"
+						}
+					else {
+						set b=$get(a(k))
+						set a(k)=b+1
+						if letter(k)="cons" {
+							set letter(k)="letter"
+							}
+						}
+					}
+				}
+			}
+	close filename
+	for i=1:1:number {
+		set m=$get(array(i))
+		if $data(array(i))'=0, a(m)>247, letter(m)="cons"||"letter" {
+			set plist=$get(^CacheTempPdgm1(m+1))
+			set b=$listlength(plist)
+			for j=1:1:b {
+				if $list(plist, j)="" {
+					set $list(plist, j)="#"
+					}
+				}			
+			for j=1:1:b {
+				set d=$list(plist, 1)
+				set u=$list(plist, j)
+				set t=""			
+				for {
+					set sc=0
+					set t=$order(^Predict("cons", u, t))
+					quit:(t="")
+					if $get(^Predict("cons", u,t))=d, t<(a(m)) {
+						set ^Predict("cons", u, a(m))=d
+						kill ^Predict("cons", u,t)
+						set sc=1
+						quit
+						}
+					elseif $get(^Predict("cons", u,t))=d, t>=(a(m)) {
+						set sc=1
+						quit
+						}
+					}
+				if sc=0 {
+					set ^Predict("cons", u, a(m))=d
+					}
+				}
+			}
+		if $data(array(i))'=0, a(m)>247, letter(m)="vow"||"letter" {
+			set plist=$get(^CacheTempPdgm1(m+1))
+			set b=$listlength(plist)
+			for j=1:1:b {
+				if $list(plist, j)="" {
+					set $list(plist, j)="#"
+					}
+				}			
+			for j=1:1:b {
+				set d=$list(plist, 1)
+				set u=$list(plist, j)
+				set t=""			
+				for {
+					set sc=0
+					set t=$order(^Predict("vow", u, t))
+					quit:(t="")
+					if $get(^Predict("vow", u,t))=d, t<(a(m)) {
+						set ^Predict("vow", u, a(m))=d
+						kill ^Predict("vow", u,t)
+						set sc=1
+						quit
+						}
+					elseif $get(^Predict("vow", u,t))=d, t>=(a(m)) {
+						set sc=1
+						quit
+						}
+					}
+				if sc=0 {
+					set ^Predict("vow", u, a(m))=d
+					}
+				}
+			}
+ 		}
+	if ($sortend(^Predict)) {}
+]]></Implementation>
+</Method>
+</Class>
+
+
 <Class name="Data.Base.Entity">
 <Super>%Persistent</Super>
 <TimeChanged>63611,44290.858824</TimeChanged>
@@ -444,7 +1008,7 @@ GROUP BY SiteId</SqlQuery>
 
 
 <Class name="iKnow.StringAnalyzer">
-<TimeChanged>63610,80153.007685</TimeChanged>
+<TimeChanged>63627,80340.38753</TimeChanged>
 <TimeCreated>63610,80153.007685</TimeCreated>
 
 <Method name="GetEntitiesInText">
@@ -452,36 +1016,8 @@ GROUP BY SiteId</SqlQuery>
 <FormalSpec>text:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-        set dname = "RecipesDomain"
-    if (##class(%iKnow.Domain).Exists(dname)) {
-           set domoref=##class(%iKnow.Domain).Open(dname)
-           set stat=domoref.DropData()
-           if 'stat {
-                   write "DropData error ",$System.Status.DisplayError(stat)
-                   quit
-           }
-    } else {
-           set domoref=##class(%iKnow.Domain).%New(dname)
-           do domoref.%Save()
-        }
-       
-        set domId=domoref.Id
-             
-        set myloader = ##class(%iKnow.Source.Loader).%New(domId)
-        do myloader.BufferSource("ref", text)
-        do myloader.ProcessBuffer()
-       
-        do ##class(%iKnow.Queries.EntityAPI).GetTop(.result,domId,1,50)
-                 
-        set i=1
-        set result = ""
-        while $data(result(i)) {
-           set liststr = $listtostring(result(i))
-           set str = $Piece(liststr, ",", 2)
-           set result = str_" "_result
-       set i=i+1
-    }
-    return result
+    set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
+	return stemmer.StemWord(text)
 ]]></Implementation>
 </Method>
 </Class>
@@ -553,6 +1089,7 @@ GROUP BY SiteId</SqlQuery>
     <ProjectItem name="Logging" type="PKG"></ProjectItem>
     <ProjectItem name="REST" type="PKG"></ProjectItem>
     <ProjectItem name="iKnow" type="PKG"></ProjectItem>
+    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
   </Items>
 </Project>
 
@@ -587,6 +1124,398 @@ GROUP BY SiteId</SqlQuery>
 	quit $$$OK
 ]]></Implementation>
 </Method>
+</Class>
+
+
+<Class name="REST.JSONSerializer">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63598,45900.2243</TimeChanged>
+<TimeCreated>63598,45900.2243</TimeCreated>
+
+<Property name="Stream">
+<Type>%Stream.GlobalCharacter</Type>
+</Property>
+
+<Property name="Pretty">
+<Type>%Boolean</Type>
+<InitialExpression>0</InitialExpression>
+</Property>
+
+<Property name="Indent">
+<Type>%Integer</Type>
+<InitialExpression>0</InitialExpression>
+<Private>1</Private>
+</Property>
+
+<Property name="Deep">
+<Type>%Integer</Type>
+<Private>1</Private>
+</Property>
+
+<Property name="Last">
+<Type>%String</Type>
+<Private>1</Private>
+</Property>
+
+<Method name="SerialiseObject">
+<FormalSpec>obj:%RegisteredObject</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	// check if 'obj' is an object and get class name
+	If '$IsObject(obj) Quit $$$ERROR($$$GeneralError, "Not an object instance.")
+	
+	// look at all the class properties
+	Quit ..ObjectMembers(obj)
+]]></Implementation>
+</Method>
+
+<Method name="Boolean">
+<FormalSpec>bool:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If $IsValidNum(bool) {
+		Quit ..Write($Select(bool:"true", 1:"false"))
+	}
+	Set bool=$ZConvert(bool, "L")
+	Quit ..Write($Select(bool="true":"true", 1:"false"))
+]]></Implementation>
+</Method>
+
+<Method name="Number">
+<FormalSpec>num:%Numeric</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If num="" Quit ..Write("null")
+	Quit ..Write($Number(num))
+]]></Implementation>
+</Method>
+
+<Method name="String">
+<FormalSpec>str:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If str="" Quit ..Write("null")
+	Quit ..Write($Char(34)_..Escape(str)_$Char(34))
+]]></Implementation>
+</Method>
+
+<Method name="StartObject">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..Start("{")
+]]></Implementation>
+</Method>
+
+<Method name="NewMember">
+<FormalSpec>str:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..New(str)
+]]></Implementation>
+</Method>
+
+<Method name="EndObject">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..End("}")
+]]></Implementation>
+</Method>
+
+<Method name="StartArray">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..Start("[")
+]]></Implementation>
+</Method>
+
+<Method name="NewElement">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..New()
+]]></Implementation>
+</Method>
+
+<Method name="EndArray">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..End("]")
+]]></Implementation>
+</Method>
+
+<Method name="Start">
+<FormalSpec>str</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If ..Pretty {
+		If '((..Last=":") || (..Last=" ")) {
+			If ..Indent Do ..Stream.WriteLine()
+			Do ..Write($Justify("", ..Indent))
+		}
+		Quit ..Write(str_" ", 2)
+	}
+	Quit ..Write(str_" ")
+]]></Implementation>
+</Method>
+
+<Method name="New">
+<FormalSpec>str</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If '((..Last="{") || (..Last="[")) Do ..Write(", ")
+	If ..Pretty {
+		Do ..Stream.WriteLine()
+		Do ..Write($Justify("", ..Indent))
+	}
+	If $Data(str) {
+		Do ..String(str)
+		Quit ..Write(": ")
+	}
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="End">
+<FormalSpec>str</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	If ..Pretty {
+		Do ..WriteLine("", -2)
+		Quit ..Write($Justify("", ..Indent)_str)
+	}
+	Quit ..Write(" "_str)
+]]></Implementation>
+</Method>
+
+<Method name="Write">
+<FormalSpec>str:%String,ind:%Integer</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set ..Last=$Extract(str, $Length(str)-1)
+	If $Data(ind) Set ..Indent=..Indent+ind
+	Quit ..Stream.Write(str)
+]]></Implementation>
+</Method>
+
+<Method name="WriteLine">
+<FormalSpec>str:%String,ind:%Integer</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set ..Last=$Extract(str, $Length(str)-1)
+	If $Data(ind) Set ..Indent=..Indent+ind
+	Quit ..Stream.WriteLine(str)
+]]></Implementation>
+</Method>
+
+<Method name="Escape">
+<FormalSpec>str:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	/*
+		http://www.json.org/
+	
+		" - quotation mark (34)
+		b - backspace (8)
+		f - formfeed (12)
+		n - newline (10)
+		r - carriage return (13)
+		t - horizontal tab (9)
+	*/
+	For list="\\", "//", $C(34)_$C(34), $C(8)_"b", $C(12)_"f", $C(10)_"n", $C(13)_"r", $C(9)_"t" {
+		While (str'="") && (str[$Extract(list)) {
+			Set str=$Piece(str, $Extract(list))_$Char(2,3)_$Piece(str, $Extract(list), 2, 999)
+		}
+		If str[$Char(3) Set str=$Translate(str, $Char(2, 3), "\"_$Extract(list, 2))
+	}
+	
+	// return 'escaped' value
+	Quit str
+]]></Implementation>
+</Method>
+
+<Method name="ObjectMembers">
+<FormalSpec>obj:%RegisteredObject,key:%String=""</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+	// [Documentation] > [Development Guides] > [Using Cache Objects] > [Class Definition Classes]
+	// http://docs.intersystems.com/cache20102/csp/docbook/DocBook.UI.Page.cls?KEY=GOBJ_classdef
+	
+	// check stream size
+	If ..Stream.Size>1048576 Quit $$$ERROR($$$GeneralError, "Stream is too large (over a MB).")
+
+	// start a JSON object
+	Do ..StartObject()
+	
+	// define the fully qualified class name
+	Set classname=obj.%ClassName(1)
+
+	// output object id if a persistent class
+	// (class types: persistent, serial, stream, datatype)
+	Set type=##class(%Dictionary.CompiledClass).%OpenId(classname).ClassType
+	If type="persistent" {
+		Set id=obj.%Id()
+		Do ..NewMember("ID")
+		Do $Case($IsValidNum(id), 1:..Number(id), :..String(id))
+	}
+
+	// new JSON object member (if collection)
+	If $Length(key) {
+		Do ..NewMember(obj.%ClassName()_"_Key")
+		Do $Case($IsValidNum(key), 1:..Number(key), :..String(key))
+	}
+	
+	// instantiate the relevant class definition object
+	Set cdef=##class(%Dictionary.ClassDefinition).%OpenId(classname)
+
+	// work through the class properties
+	Set count = cdef.Properties.Count()
+	For i=1:1:count {
+		
+		// define property object
+		Set prop=cdef.Properties.GetAt(i)
+		
+		// create a new object member
+		Do ..NewMember(prop.Name)
+		
+		// get property value
+		Set value=$Property(obj, prop.Name)
+		
+		// collection property?
+		Do $Case(prop.Collection, 
+			"list": ..ListCollection(obj, prop, value),
+			"array": ..ArrayCollection(obj, prop, value),
+			: ..ObjectProperty(obj, prop, value))
+		
+	}
+	
+	// end a JSON object
+	Do ..EndObject()
+	
+	// end of method
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ListCollection">
+<FormalSpec>obj:%RegisteredObject,prop:%RegisteredObject,value:%CacheString</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	// only start array if values present
+	Set count=value.Count()
+	If count {
+	
+		// start a JSON array
+		Do ..StartArray()
+	
+		// work through array
+		For i=1:1:count {
+		
+			// start new array element
+			Do ..NewElement()
+
+			// get the array entry
+			Set entry=$Method(value, "GetAt", i)
+		
+			// output property value
+			Do ..ObjectProperty(obj, prop, entry)
+		
+		}
+
+		// end a JSON array
+		Do ..EndArray()
+		
+	}
+	
+	// end of method
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ArrayCollection">
+<FormalSpec>obj:%RegisteredObject,prop:%RegisteredObject,value:%CacheString</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+	// only start array if values present
+	Set key=$Method(value, "Next", "")
+	If key'="" {
+	
+		// start a JSON array
+		Do ..StartArray()
+	
+		// work through array
+		While key'="" {
+		
+			// start new array element
+			Do ..NewElement()
+
+			// get the array entry
+			Set entry=$Method(value, "GetAt", key)
+		
+			// output property value
+			Do ..ObjectProperty(obj, prop, entry, key)
+		
+			// read next key
+			Set key=$Method(value, "Next", key)
+			
+		}
+
+		// end a JSON array
+		Do ..EndArray()
+		
+	}
+	
+	// end of method
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ObjectProperty">
+<FormalSpec>obj:%RegisteredObject,prop:%RegisteredObject,value:%CacheString,key:%String=""</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	// recurse if property value is an object
+	If $IsObject(value) {
+		Quit ..ObjectMembers(value, key)
+	}
+	
+	// not an object, so get data type
+	Set type=prop.Type
+	
+	// TODO: how do we test for LogicalToDisplay method on 'datatype' class properly?
+	If $Extract(type)="%", $Piece(type, ".")'="%Library" Set $Extract(type)="%Library."
+	Set mdef=##class(%Dictionary.MethodDefinition).%OpenId(type_"||LogicalToDisplay")
+	If type'["Integer", $IsObject(mdef) Set value=$Method(obj, prop.Name_"LogicalToDisplay", value)
+	
+	// output data type value
+	Quit $Case(type, 
+		"%Library.Boolean": ..Boolean(value), 
+		"%Library.Integer": ..Number(value),
+		"%Library.Numeric": ..Number(value),
+		"%Library.Float": ..Number(value),
+		"%Library.Double": ..Number(value),
+		"%Library.Currency": ..Number(value),
+		: ..String(value))
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="REST.KeywordProcessResult">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63598,70105.310223</TimeChanged>
+<TimeCreated>63598,41194.381073</TimeCreated>
+
+<Property name="Keywords">
+<Type>%String</Type>
+</Property>
 </Class>
 
 
