@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-17 23:10:31">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-03-18 20:32:27">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -965,7 +965,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63619,78151.578958</TimeChanged>
+<TimeChanged>63629,73652.720778</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1002,22 +1002,12 @@ GROUP BY SiteId</SqlQuery>
 		VALUES(25, 1, GETUTCDATE(), GETUTCDATE());END
 ]]></Implementation>
 </Method>
-</Class>
 
-
-
-
-<Class name="iKnow.StringAnalyzer">
-<TimeChanged>63627,80340.38753</TimeChanged>
-<TimeCreated>63610,80153.007685</TimeCreated>
-
-<Method name="GetEntitiesInText">
+<Method name="LoadDict">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>text:%String</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
-    set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
-	return stemmer.StemWord(text)
+<FormalSpec>filename:%String</FormalSpec>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[		do ##class(%Text.Russian).LoadDict(filename)
 ]]></Implementation>
 </Method>
 </Class>
@@ -1081,52 +1071,6 @@ GROUP BY SiteId</SqlQuery>
 
 
 <Package name="Logging" sqlname="Logging"/>
-
-
-<Project name="RecipesSearch" LastModified="2015-03-17 23:10:31.159992">
-  <Items>
-    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
-    <ProjectItem name="Data" type="PKG"></ProjectItem>
-    <ProjectItem name="Logging" type="PKG"></ProjectItem>
-    <ProjectItem name="REST" type="PKG"></ProjectItem>
-    <ProjectItem name="iKnow" type="PKG"></ProjectItem>
-  </Items>
-</Project>
-
-
-<Class name="REST.iKnow">
-<Super>%CSP.REST</Super>
-<TimeChanged>63627,76491.955747</TimeChanged>
-<TimeCreated>63584,64787.957361</TimeCreated>
-
-<XData name="UrlMap">
-<Data><![CDATA[
-<Routes>
- <Route Url="/doSearch" Method="GET" Call="Search"/>
- </Routes>
-]]></Data>
-</XData>
-
-<Method name="Search">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set query = %request.Get("query", "")
-	set pageNumber = %request.Get("pageNumber", "1")
-	set pageSize = %request.Get("pageSize", "25")
-	
-	try {
-    	do ##class(REST.SearchEngine).SearchPages(query, pageNumber, pageSize)
-	} catch err {
-    	write err.AsSystemError()
-    }
-		
-	quit $$$OK
-]]></Implementation>
-</Method>
-</Class>
-
-
 
 
 <Class name="REST.Search.SearchResult">
@@ -1232,6 +1176,68 @@ GROUP BY SiteId</SqlQuery>
     set searchResult = ##class(REST.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
 
 	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(searchResult)
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="REST.iKnow">
+<Super>%CSP.REST</Super>
+<TimeChanged>63627,76491.955747</TimeChanged>
+<TimeCreated>63584,64787.957361</TimeCreated>
+
+<XData name="UrlMap">
+<Data><![CDATA[
+<Routes>
+ <Route Url="/doSearch" Method="GET" Call="Search"/>
+ </Routes>
+]]></Data>
+</XData>
+
+<Method name="Search">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set query = %request.Get("query", "")
+	set pageNumber = %request.Get("pageNumber", "1")
+	set pageSize = %request.Get("pageSize", "25")
+	
+	try {
+    	do ##class(REST.SearchEngine).SearchPages(query, pageNumber, pageSize)
+	} catch err {
+    	write err.AsSystemError()
+    }
+		
+	quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Project name="RecipesSearch" LastModified="2015-03-18 20:32:27.946405">
+  <Items>
+    <ProjectItem name="Data" type="PKG"></ProjectItem>
+    <ProjectItem name="Logging" type="PKG"></ProjectItem>
+    <ProjectItem name="REST.Search.SearchResult" type="CLS"></ProjectItem>
+    <ProjectItem name="REST.SearchEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="REST.iKnow" type="CLS"></ProjectItem>
+    <ProjectItem name="iKnow.StringAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
+  </Items>
+</Project>
+
+
+<Class name="iKnow.StringAnalyzer">
+<TimeChanged>63627,80340.38753</TimeChanged>
+<TimeCreated>63610,80153.007685</TimeCreated>
+
+<Method name="GetEntitiesInText">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
+	return stemmer.StemWord(text)
 ]]></Implementation>
 </Method>
 </Class>
