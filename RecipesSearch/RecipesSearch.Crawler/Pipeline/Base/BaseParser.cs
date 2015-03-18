@@ -28,5 +28,9 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
             return String.Format(DelimiterFormat, GetTextBySelector(queryObject, selector));
         }
 
+        protected virtual bool IsElementExitsts(CQ queryObject, string selector)
+        {
+            return queryObject.Find(selector).Any();
+        }
     }
 }

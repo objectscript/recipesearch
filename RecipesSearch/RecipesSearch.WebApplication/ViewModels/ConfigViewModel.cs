@@ -19,7 +19,7 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Logging Enabled")]
         public bool LoggingEnabled { get; set; }
 
-        [Display(Name = "Keyword processing using iKnow")]
+        [Display(Name = "Stem keywords")]
         public bool EnhancedKeywordProcessing { get; set; }
 
         [Required(ErrorMessage = "Field is required")]

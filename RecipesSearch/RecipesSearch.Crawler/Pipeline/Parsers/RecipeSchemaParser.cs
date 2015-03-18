@@ -24,6 +24,13 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
                 return null;
             }
 
+            if (!IsElementExitsts(csQueryDocument, "[itemprop=description]")
+                && !IsElementExitsts(csQueryDocument, "[itemprop=ingredients]")
+                && !IsElementExitsts(csQueryDocument, "[itemprop=recipeInstructions]"))
+            {
+                return null;
+            }
+
             recipeName = GetTextBySelector(csQueryDocument, "[itemprop=name]");
 
             var recipe = new StringBuilder();
