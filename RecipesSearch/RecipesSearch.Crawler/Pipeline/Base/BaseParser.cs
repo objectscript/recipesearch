@@ -16,7 +16,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
 
         public abstract string Id { get; }
 
-        public abstract string ParseContent(CrawledPage crawledPage, ref string recipeName);
+        public abstract void ParseContent(CrawledPage crawledPage, SitePage sitePage);
 
         protected virtual string GetTextBySelector(CQ queryObject, string selector)
         {

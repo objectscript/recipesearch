@@ -23,9 +23,12 @@ namespace RecipesSearch.DAL.Cache.Adapters
             command.CommandType = CommandType.StoredProcedure;
 
             command.Parameters.Add("URL", sitePage.URL);
-            command.Parameters.Add("Content", sitePage.Content);
+            command.Parameters.Add("Keywords", sitePage.Keywords); 
             command.Parameters.Add("RecipeName", sitePage.RecipeName);
-            command.Parameters.Add("Keywords", sitePage.Keywords);          
+            command.Parameters.Add("Description", sitePage.Description ?? String.Empty);
+            command.Parameters.Add("Ingredients", sitePage.Ingredients);
+            command.Parameters.Add("RecipeInstructions", sitePage.RecipeInstructions);
+            command.Parameters.Add("AdditionalData", sitePage.AdditionalData ?? String.Empty);                    
 
             var siteIdParemeter = new CacheParameter("SiteId", CacheDbType.Int);
             siteIdParemeter.Value = sitePage.SiteID;

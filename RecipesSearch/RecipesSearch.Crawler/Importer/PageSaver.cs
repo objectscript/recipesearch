@@ -39,7 +39,6 @@ namespace RecipesSearch.SitePagesImporter.Importer
             {
                 SiteID = _siteToCrawl.Id,
                 URL = crawledPage.Uri.ToString(),
-                Content = crawledPage.Content.Text,
                 Keywords = String.Empty
             };
 
@@ -49,7 +48,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
             }
 
             // Do not save empty string; e.g. rejected by parser
-            if (!String.IsNullOrEmpty(sitePage.Content))
+            if (!String.IsNullOrEmpty(sitePage.Description) || !String.IsNullOrEmpty(sitePage.Ingredients) || !String.IsNullOrEmpty(sitePage.RecipeInstructions))
             {
                 _pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled);
             }          

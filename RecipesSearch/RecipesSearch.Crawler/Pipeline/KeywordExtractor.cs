@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Abot.Poco;
+using CsQuery.ExtensionMethods.Internal;
 using HtmlAgilityPack;
 using RecipesSearch.CacheService.Services;
 using RecipesSearch.SitePagesImporter.Pipeline.Base;
@@ -27,7 +28,10 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
 
         private string GetMetaTagContent(CrawledPage crawledPage, string tagName)
         {
-            var tags = crawledPage.HtmlDocument.DocumentNode.SelectNodes(String.Format("//meta[@name='{0}']", tagName));
+            var capitalizedTagName = tagName[0].ToUpper() + tagName.Substring(1);
+
+            var tags = crawledPage.HtmlDocument.DocumentNode.SelectNodes(
+                String.Format("//meta[@name='{0}' or @name='{1}']", tagName, capitalizedTagName));
 
             if (tags == null)
             {

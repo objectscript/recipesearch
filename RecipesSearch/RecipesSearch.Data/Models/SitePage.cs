@@ -16,7 +16,13 @@ namespace RecipesSearch.Data.Models
 
         public string RecipeName { get; set; }
 
-        public string Content { get; set; }
+        public string Description { get; set; }
+
+        public string Ingredients { get; set; }
+
+        public string RecipeInstructions { get; set; }
+
+        public string AdditionalData { get; set; }
 
         [NotMapped]
         public DateTime CreatedDate { get; set; }

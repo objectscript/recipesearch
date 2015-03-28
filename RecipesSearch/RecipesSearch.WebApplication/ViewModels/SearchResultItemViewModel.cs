@@ -13,13 +13,24 @@ namespace RecipesSearch.WebApplication.ViewModels
     public class SearchResultItemViewModel
     {
         public string Name { get; set; }
+
         public string URL { get; set; }
-        public string Content { get; set; }
+
+        public string Description { get; set; }
+
+        public string Ingredients { get; set; }
+
+        public string RecipeInstructions { get; set; }
+
+        public string AdditionalData { get; set; }
 
         public SearchResultItemViewModel(SitePage enity)
         {
             URL = enity.URL;
-            Content = enity.Content;
+            Description = enity.Description;
+            Ingredients = enity.Ingredients;
+            RecipeInstructions = enity.RecipeInstructions;
+            AdditionalData = enity.AdditionalData;
             Name = String.IsNullOrEmpty(enity.RecipeName) ? enity.URL : enity.RecipeName;
         }
     }

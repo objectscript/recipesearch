@@ -21,9 +21,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
                 return;
             }
             
-            string recipeName = String.Empty;
-            sitePage.Content = parser.ParseContent(crawledPage, ref recipeName);
-            sitePage.RecipeName = recipeName;
+            parser.ParseContent(crawledPage, sitePage);
         }
     }
 }

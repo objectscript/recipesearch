@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Abot.Poco;
+using RecipesSearch.Data.Models;
 using RecipesSearch.SitePagesImporter.Pipeline.Base;
 
 namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
@@ -15,25 +16,20 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
             get { return "GotovimDoma"; }
         }
 
-        public override string ParseContent(CrawledPage crawledPage, ref string recipeName)
+        public override void ParseContent(CrawledPage crawledPage, SitePage sitePage)
         {
             var csQueryDocument = crawledPage.CsQueryDocument;
 
             var recipeWrapper = csQueryDocument.Find("#wrapper > #content_wrapper > #content > .hrecipe");
             if (!recipeWrapper.Any())
             {
-                return null;
+                return;
             }
 
-            recipeName = GetTextBySelector(recipeWrapper, ".rcptitle.fn");
-
-            var recipe = new StringBuilder();
-            
-            recipe.Append(GetDelimitedTextBySelector(recipeWrapper, ".rcptitle.fn"));
-            recipe.Append(GetDelimitedTextBySelector(recipeWrapper, ".rcpstru"));
-            recipe.Append(GetDelimitedTextBySelector(recipeWrapper, ".instructions"));
-
-            return recipe.ToString();
+            sitePage.RecipeName = GetTextBySelector(recipeWrapper, ".rcptitle.fn");
+            sitePage.Ingredients = GetTextBySelector(recipeWrapper, ".rcpstru");
+            sitePage.RecipeInstructions = GetTextBySelector(recipeWrapper, ".instructions");
+            sitePage.Description = String.Empty;
         }                
     }
 }

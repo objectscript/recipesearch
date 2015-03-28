@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Abot.Poco;
+using RecipesSearch.Data.Models;
 using RecipesSearch.SitePagesImporter.Pipeline.Base;
 
 namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
@@ -15,33 +16,27 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
             get { return "RecipeSchema"; }
         }
 
-        public override string ParseContent(CrawledPage crawledPage, ref string recipeName)
+        public override void ParseContent(CrawledPage crawledPage, SitePage sitePage)
         {
             var csQueryDocument = crawledPage.CsQueryDocument;
 
             if (!csQueryDocument.Has("[itemtype=\"http://schema.org/Recipe\"]").Any())
             {
-                return null;
+                return;
             }
 
             if (!IsElementExitsts(csQueryDocument, "[itemprop=description]")
                 && !IsElementExitsts(csQueryDocument, "[itemprop=ingredients]")
                 && !IsElementExitsts(csQueryDocument, "[itemprop=recipeInstructions]"))
             {
-                return null;
+                return;
             }
 
-            recipeName = GetTextBySelector(csQueryDocument, "[itemprop=name]");
-
-            var recipe = new StringBuilder();
-
-            recipe.Append(GetDelimitedTextBySelector(csQueryDocument, "[itemprop=name]"));
-            recipe.Append(GetDelimitedTextBySelector(csQueryDocument, "[itemprop=summary]"));
-            recipe.Append(GetDelimitedTextBySelector(csQueryDocument, "[itemprop=description]"));
-            recipe.Append(GetDelimitedTextBySelector(csQueryDocument, "[itemprop=ingredients]"));
-            recipe.Append(GetDelimitedTextBySelector(csQueryDocument, "[itemprop=recipeInstructions]"));
-
-            return recipe.ToString();
+            sitePage.RecipeName = GetTextBySelector(csQueryDocument, "[itemprop=name]");
+            sitePage.Description = GetTextBySelector(csQueryDocument, "[itemprop=description]");
+            sitePage.Ingredients = GetTextBySelector(csQueryDocument, "[itemprop=ingredients]");
+            sitePage.RecipeInstructions = GetTextBySelector(csQueryDocument, "[itemprop=recipeInstructions]");
+            sitePage.AdditionalData = GetTextBySelector(csQueryDocument, "[itemprop=summary]");
         }
     }
 }

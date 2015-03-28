@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-03-18 20:32:27">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-03-28 13:15:46">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -762,7 +762,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63619,79590.560449</TimeChanged>
+<TimeChanged>63639,42795.372443</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -771,9 +771,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Parameter name="MAXLEN" value="255"/>
 </Property>
 
-<Property name="Content">
+<Property name="RecipeName">
 <Type>%String</Type>
-<Parameter name="MAXLEN" value="100000"/>
+<Parameter name="MAXLEN" value="100"/>
 </Property>
 
 <Property name="Keywords">
@@ -781,9 +781,24 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Parameter name="MAXLEN" value="1000"/>
 </Property>
 
-<Property name="RecipeName">
+<Property name="Description">
 <Type>%String</Type>
-<Parameter name="MAXLEN" value="100"/>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="Ingredients">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="RecipeInstructions">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="AdditionalData">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
 </Property>
 
 <Property name="SiteId">
@@ -817,7 +832,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="Upsert">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),RecipeName:%String(MAXLEN=100),Keywords:%String(MAXLEN=1000),SiteId:%Integer,ProcessKeywords:%Boolean</FormalSpec>
+<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),SiteId:%Integer,ProcessKeywords:%Boolean</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF ProcessKeywords{
@@ -827,22 +842,22 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 		set keywordsAnalyzed = Keywords
 	}
 
-	do ##class(Data.SitePage).UpsertSQL(URL, Content, RecipeName, keywordsAnalyzed, SiteId)
+	do ##class(Data.SitePage).UpsertSQL(URL, keywordsAnalyzed, RecipeName, Description,Ingredients,RecipeInstructions,AdditionalData,SiteId)
 ]]></Implementation>
 </Method>
 
 <Method name="UpsertSQL">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Content:%String(MAXLEN=100000),RecipeName:%String(MAXLEN=100),Keywords:%String(MAXLEN=1000),SiteId:%Integer</FormalSpec>
+<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),SiteId:%Integer</FormalSpec>
 <Language>tsql</Language>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF EXISTS(SELECT * FROM SitePage WHERE URL = @URL AND SiteId = @SiteId) THEN BEGIN
-		UPDATE SitePage SET Content = @Content, Keywords = @Keywords, RecipeName = @RecipeName, ModifiedDate = GETUTCDATE()
+		UPDATE SitePage SET AdditionalData = @AdditionalData,Description = @Description,Ingredients = @Ingredients,RecipeInstructions = @RecipeInstructions, Keywords = @Keywords, RecipeName = @RecipeName, ModifiedDate = GETUTCDATE()
 		WHERE URL = @URL AND SiteId = @SiteId;
 END ELSE BEGIN
-		INSERT INTO SitePage(SiteId, URL, Content, Keywords, RecipeName, CreatedDate, ModifiedDate) 
-			VALUES(@SiteId, @URL, @Content, @Keywords, @RecipeName, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO SitePage(SiteId, URL, Description,Ingredients,RecipeInstructions,AdditionalData, Keywords, RecipeName, CreatedDate, ModifiedDate) 
+			VALUES(@SiteId, @URL, @Description,@Ingredients,@RecipeInstructions,@AdditionalData, @Keywords, @RecipeName, GETUTCDATE(), GETUTCDATE());
 END
 ]]></Implementation>
 </Method>
@@ -906,6 +921,18 @@ GROUP BY SiteId</SqlQuery>
 </Value>
 <Value name="8">
 <Value>RecipeName</Value>
+</Value>
+<Value name="9">
+<Value>Description</Value>
+</Value>
+<Value name="10">
+<Value>Ingredients</Value>
+</Value>
+<Value name="11">
+<Value>RecipeInstructions</Value>
+</Value>
+<Value name="12">
+<Value>AdditionalData</Value>
 </Value>
 </Data>
 </Storage>
@@ -1075,7 +1102,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63627,76763.925557</TimeChanged>
+<TimeChanged>63639,45113.287378</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
@@ -1115,7 +1142,10 @@ GROUP BY SiteId</SqlQuery>
         } 
         
         set sitePage = ##class(Data.SitePage).%New() 
-        set sitePage.Content = result.Data("Content") 
+        set sitePage.Description = result.Data("Description") 
+        set sitePage.Ingredients = result.Data("Ingredients") 
+        set sitePage.RecipeInstructions = result.Data("RecipeInstructions")
+        set sitePage.AdditionalData = result.Data("AdditionalData") 
         set sitePage.SiteId = result.Data("SiteId") 
         set sitePage.URL = result.Data("URL") 
         set sitePage.Keywords = result.Data("Keywords") 
@@ -1138,15 +1168,14 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63628,83061.513807</TimeChanged>
+<TimeChanged>63639,45026.697378</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>query:%String,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
 <Implementation><![CDATA[
-	// TODO: Implement real pagination
-	set sqlQuery = "SELECT %NOLOCK Content,Keywords,SiteId,URL,RecipeName,CreatedDate, ModifiedDate"
+	set sqlQuery = "SELECT %NOLOCK Description,Ingredients,RecipeInstructions,AdditionalData,Keywords,SiteId,URL,RecipeName,CreatedDate, ModifiedDate"
 	_" FROM Data.SitePage"
 	
 	set queryParts =  ##class(iKnow.StringAnalyzer).GetEntitiesInText(query)
@@ -1216,13 +1245,13 @@ GROUP BY SiteId</SqlQuery>
 
 <Project name="RecipesSearch" LastModified="2015-03-18 20:32:27.946405">
   <Items>
+    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="Data" type="PKG"></ProjectItem>
     <ProjectItem name="Logging" type="PKG"></ProjectItem>
     <ProjectItem name="REST.Search.SearchResult" type="CLS"></ProjectItem>
     <ProjectItem name="REST.SearchEngine" type="CLS"></ProjectItem>
     <ProjectItem name="REST.iKnow" type="CLS"></ProjectItem>
     <ProjectItem name="iKnow.StringAnalyzer" type="CLS"></ProjectItem>
-    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
   </Items>
 </Project>
 
