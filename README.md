@@ -8,6 +8,7 @@ Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will 
 - Cache 2015.2 (with iKnow license)
 
 #### Import and compile Cache project
+- Allow import to the CACHELIB. Go to System Administration -> Configuration -> System Configuration -> Local Databases, then open CACHELIB, uncheck "Always Mount Read-Only" and save updated configuration.
 - Main Cache project (cacheRecipesSearch.xml) is located in the RecipesSearch.CacheProject folder.
 
 #### Run database seed sproc
@@ -16,12 +17,12 @@ Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will 
   ```
   call Data_Utils.Seed_Run()
   ```
-- To seed the stemming dictionary another seed procedure must be executed - Data.Utils.Seed.LoadDict(filename). Where 'filename' - path to the morphological dictionary (\RecipesSearch.CacheProject\morphs.mrd).
+- To seed the stemming dictionary another seed procedure must be executed - Data.Utils.Seed.LoadDict(filename). Where 'filename' - *full path* to the morphological dictionary (\RecipesSearch.CacheProject\morphs.mrd).
 
 #### Setup the Cache REST service:
 1. Go to System Administration -> Security -> Applications -> Web Applications
 2. Create a new Web Application
-3. Enter "iKnow" as a name
+3. Enter "\iKnow" as a name (slash at the beginning is important)
 4. Choose correct namespace
 5. Enable iKnow for this application
 6. Add password to Allowed Authentication Methods
