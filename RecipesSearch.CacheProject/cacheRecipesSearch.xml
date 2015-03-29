@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-03-29 13:58:15">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-03-29 20:26:03">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -762,7 +762,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63639,42795.372443</TimeChanged>
+<TimeChanged>63640,52287.952301</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -836,8 +836,16 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF ProcessKeywords{
-		set keywordsAnalyzed = ##class(iKnow.StringAnalyzer).GetEntitiesInText(Keywords)
-	}		
+		set keywordsList = ##class(iKnow.StringAnalyzer).GetEntitiesInText(Keywords)
+		set keywordsAnalyzed = ""
+		set i = 1
+		set listLength = $LISTLENGTH(keywordsList)
+		while (i <= listLength){		
+			set keywordsAnalyzed = keywordsAnalyzed_" "_$LIST(keywordsList, i)
+		
+			set i = i + 1
+		}
+	}	
 	ELSE {
 		set keywordsAnalyzed = Keywords
 	}
@@ -1228,7 +1236,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.Suggestion.SuggestionEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63640,45919.363348</TimeChanged>
+<TimeChanged>63640,73534.7955</TimeChanged>
 <TimeCreated>63640,44078.352651</TimeCreated>
 
 <Method name="SuggestRecipes">
@@ -1239,6 +1247,9 @@ GROUP BY SiteId</SqlQuery>
 	
 	set predicate = ##class(REST.PredicateBuilder).BuildPredicate(query)
 	
+	if predicate = ""{
+		set predicate = "(1 = 0)"
+	}
 	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"
 	
 	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
@@ -1298,17 +1309,17 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-03-29 12:21:20.353622">
+<Project name="RecipesSearch" LastModified="2015-03-29 12:21:20.353436">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="Data" type="PKG"></ProjectItem>
     <ProjectItem name="Logging" type="PKG"></ProjectItem>
+    <ProjectItem name="REST.PredicateBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="REST.Search.SearchEngine" type="CLS"></ProjectItem>
     <ProjectItem name="REST.Search.SearchResult" type="CLS"></ProjectItem>
+    <ProjectItem name="REST.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
     <ProjectItem name="REST.iKnow" type="CLS"></ProjectItem>
     <ProjectItem name="iKnow.StringAnalyzer" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.Search.SearchEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.PredicateBuilder" type="CLS"></ProjectItem>
   </Items>
 </Project>
 
