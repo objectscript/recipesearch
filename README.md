@@ -7,6 +7,14 @@ Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will 
 - Visual Studio 2012/2013
 - Cache 2015.2 (with iKnow license)
 
+#### Enable WCF http activation
+1. Click Start > Control Panel > Turn Windows features on or off.
+2. Click Next until the Select Features window appears.
+3. Expand .NET Framework 4.5 Features.
+4. Expand WCF Services.
+5. Select HTTP Activation and click Install.
+6. Follow the prompts and finish the installation.
+
 #### Import and compile Cache project
 - Allow import to the CACHELIB. Go to System Administration -> Configuration -> System Configuration -> Local Databases, then open CACHELIB, uncheck "Always Mount Read-Only" and save updated configuration.
 - Main Cache project (cacheRecipesSearch.xml) is located in the RecipesSearch.CacheProject folder.
