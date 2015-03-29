@@ -60,6 +60,10 @@ namespace RecipesSearch.SitePagesImporter.Importer
             }
         }
 
+        private Importer()
+        {
+        }
+
         public static Importer GetImporter()
         {
             if (_instance == null)
@@ -68,10 +72,6 @@ namespace RecipesSearch.SitePagesImporter.Importer
             }
 
             return _instance;
-        }
-
-        private Importer()
-        {
         }
 
         public void ImportData()
@@ -121,6 +121,34 @@ namespace RecipesSearch.SitePagesImporter.Importer
             }
 
             return true;
+        }
+
+        public void StopImporting()
+        {
+            if (!IsImportingInProgress)
+            {
+                return;
+            }
+
+            _importerCancellationTokenSource.Cancel();
+            _crawlerCancellationTokenSource.Cancel();
+
+            Task.WaitAll(_importerTask);
+            ResetParameters();
+        }
+
+        public void StopCurrentSiteImporting()
+        {
+            if (IsImportingInProgress)
+            {
+                _crawlerCancellationTokenSource.Cancel();
+                _currentCrawledSite = null;
+
+                if (_sitesQueue == null || _sitesQueue.Count == 0)
+                {
+                    Task.WaitAll(_importerTask);
+                }
+            }
         }
 
         private void CrawlSites()
@@ -176,34 +204,6 @@ namespace RecipesSearch.SitePagesImporter.Importer
             }
 
             ResetParameters();
-        }
-
-        public void StopImporting()
-        {
-            if (!IsImportingInProgress)
-            {
-                return;
-            }
-
-            _importerCancellationTokenSource.Cancel();
-            _crawlerCancellationTokenSource.Cancel();
-
-            Task.WaitAll(_importerTask);
-            ResetParameters();
-        }
-
-        public void StopCurrentSiteImporting()
-        {
-            if (IsImportingInProgress)
-            {
-                _crawlerCancellationTokenSource.Cancel();
-                _currentCrawledSite = null;
-
-                if (_sitesQueue == null || _sitesQueue.Count == 0)
-                {
-                    Task.WaitAll(_importerTask);
-                }
-            }
         }
 
         private void ResetParameters()

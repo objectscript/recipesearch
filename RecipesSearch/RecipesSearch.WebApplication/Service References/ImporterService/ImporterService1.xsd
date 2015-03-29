@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Models" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Models" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://localhost:10310/ImporterService.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Models.Base" />
+  <xs:complexType name="ArrayOfSiteToCrawl">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="SiteToCrawl" nillable="true" type="tns:SiteToCrawl" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfSiteToCrawl" nillable="true" type="tns:ArrayOfSiteToCrawl" />
+  <xs:complexType name="SiteToCrawl">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q1="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Models.Base" base="q1:Entity">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ConfigId" type="xs:int" />
+          <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="ParserId" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="URL" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="SiteToCrawl" nillable="true" type="tns:SiteToCrawl" />
+</xs:schema>

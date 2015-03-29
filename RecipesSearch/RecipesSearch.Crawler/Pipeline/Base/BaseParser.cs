@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,13 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
 
         protected virtual string GetTextBySelector(CQ queryObject, string selector)
         {
-            return queryObject.Find(selector).Text();        
+            var elements = queryObject.Find(selector);
+            var itemText = elements.Text();
+            if (String.IsNullOrWhiteSpace(itemText) && elements.HasAttr("content"))
+            {
+                itemText = elements.Attr("content");
+            }
+            return itemText;        
         }
 
         protected virtual string GetDelimitedTextBySelector(CQ queryObject, string selector)

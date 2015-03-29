@@ -17,11 +17,18 @@ namespace RecipesSearch.WebApplication
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            Logger.LogInfo("Application start.");
         }
 
         protected void Application_Error(object sender, EventArgs e)
         {
             Logger.LogError("Unhandler error.", Server.GetLastError());
+        }
+
+        protected void Application_End()
+        {
+            Logger.LogInfo("Application end.");
         }
     }
 }

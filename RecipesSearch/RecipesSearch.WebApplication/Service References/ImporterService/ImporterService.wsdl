@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="ImporterService" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="http://localhost:10310/ImporterService.svc?xsd=xsd0" namespace="http://tempuri.org/" />
+      <xsd:import schemaLocation="http://localhost:10310/ImporterService.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://localhost:10310/ImporterService.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Models" />
+      <xsd:import schemaLocation="http://localhost:10310/ImporterService.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Models.Base" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IImporterService_ImportAllSites_InputMessage">
+    <wsdl:part name="parameters" element="tns:ImportAllSites" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_ImportAllSites_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ImportAllSitesResponse" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_ImportSites_InputMessage">
+    <wsdl:part name="parameters" element="tns:ImportSites" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_ImportSites_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ImportSitesResponse" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_RemoveFromQueue_InputMessage">
+    <wsdl:part name="parameters" element="tns:RemoveFromQueue" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_RemoveFromQueue_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RemoveFromQueueResponse" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_StopImporting_InputMessage">
+    <wsdl:part name="parameters" element="tns:StopImporting" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_StopImporting_OutputMessage">
+    <wsdl:part name="parameters" element="tns:StopImportingResponse" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_StopCurrentSiteImporting_InputMessage">
+    <wsdl:part name="parameters" element="tns:StopCurrentSiteImporting" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_StopCurrentSiteImporting_OutputMessage">
+    <wsdl:part name="parameters" element="tns:StopCurrentSiteImportingResponse" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_IsImportingInProgress_InputMessage">
+    <wsdl:part name="parameters" element="tns:IsImportingInProgress" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_IsImportingInProgress_OutputMessage">
+    <wsdl:part name="parameters" element="tns:IsImportingInProgressResponse" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_SitesQueue_InputMessage">
+    <wsdl:part name="parameters" element="tns:SitesQueue" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_SitesQueue_OutputMessage">
+    <wsdl:part name="parameters" element="tns:SitesQueueResponse" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_CrawledPages_InputMessage">
+    <wsdl:part name="parameters" element="tns:CrawledPages" />
+  </wsdl:message>
+  <wsdl:message name="IImporterService_CrawledPages_OutputMessage">
+    <wsdl:part name="parameters" element="tns:CrawledPagesResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IImporterService">
+    <wsdl:operation name="ImportAllSites">
+      <wsdl:input wsaw:Action="http://tempuri.org/IImporterService/ImportAllSites" message="tns:IImporterService_ImportAllSites_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IImporterService/ImportAllSitesResponse" message="tns:IImporterService_ImportAllSites_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="ImportSites">
+      <wsdl:input wsaw:Action="http://tempuri.org/IImporterService/ImportSites" message="tns:IImporterService_ImportSites_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IImporterService/ImportSitesResponse" message="tns:IImporterService_ImportSites_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="RemoveFromQueue">
+      <wsdl:input wsaw:Action="http://tempuri.org/IImporterService/RemoveFromQueue" message="tns:IImporterService_RemoveFromQueue_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IImporterService/RemoveFromQueueResponse" message="tns:IImporterService_RemoveFromQueue_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="StopImporting">
+      <wsdl:input wsaw:Action="http://tempuri.org/IImporterService/StopImporting" message="tns:IImporterService_StopImporting_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IImporterService/StopImportingResponse" message="tns:IImporterService_StopImporting_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="StopCurrentSiteImporting">
+      <wsdl:input wsaw:Action="http://tempuri.org/IImporterService/StopCurrentSiteImporting" message="tns:IImporterService_StopCurrentSiteImporting_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IImporterService/StopCurrentSiteImportingResponse" message="tns:IImporterService_StopCurrentSiteImporting_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="IsImportingInProgress">
+      <wsdl:input wsaw:Action="http://tempuri.org/IImporterService/IsImportingInProgress" message="tns:IImporterService_IsImportingInProgress_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IImporterService/IsImportingInProgressResponse" message="tns:IImporterService_IsImportingInProgress_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="SitesQueue">
+      <wsdl:input wsaw:Action="http://tempuri.org/IImporterService/SitesQueue" message="tns:IImporterService_SitesQueue_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IImporterService/SitesQueueResponse" message="tns:IImporterService_SitesQueue_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="CrawledPages">
+      <wsdl:input wsaw:Action="http://tempuri.org/IImporterService/CrawledPages" message="tns:IImporterService_CrawledPages_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IImporterService/CrawledPagesResponse" message="tns:IImporterService_CrawledPages_OutputMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IImporterService" type="tns:IImporterService">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="ImportAllSites">
+      <soap:operation soapAction="http://tempuri.org/IImporterService/ImportAllSites" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ImportSites">
+      <soap:operation soapAction="http://tempuri.org/IImporterService/ImportSites" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RemoveFromQueue">
+      <soap:operation soapAction="http://tempuri.org/IImporterService/RemoveFromQueue" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="StopImporting">
+      <soap:operation soapAction="http://tempuri.org/IImporterService/StopImporting" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="StopCurrentSiteImporting">
+      <soap:operation soapAction="http://tempuri.org/IImporterService/StopCurrentSiteImporting" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="IsImportingInProgress">
+      <soap:operation soapAction="http://tempuri.org/IImporterService/IsImportingInProgress" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SitesQueue">
+      <soap:operation soapAction="http://tempuri.org/IImporterService/SitesQueue" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CrawledPages">
+      <soap:operation soapAction="http://tempuri.org/IImporterService/CrawledPages" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ImporterService">
+    <wsdl:port name="BasicHttpBinding_IImporterService" binding="tns:BasicHttpBinding_IImporterService">
+      <soap:address location="http://localhost:10310/ImporterService.svc" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

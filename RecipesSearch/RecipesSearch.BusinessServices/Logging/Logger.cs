@@ -19,6 +19,12 @@ namespace RecipesSearch.BusinessServices.Logging
         {
             LogRecord(description, exception, LogRecordType.Error);
         }
+
+        public static void LogInfo(string description)
+        {
+            LogRecord(description, null, LogRecordType.Info);
+        }
+
         public static void LogWarning(string description, Exception exception)
         {
             LogRecord(description,exception,LogRecordType.Warning);

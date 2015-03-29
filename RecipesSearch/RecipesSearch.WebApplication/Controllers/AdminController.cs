@@ -12,6 +12,7 @@ using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.Data.Views;
 using RecipesSearch.SitePagesImporter.Importer;
 using RecipesSearch.WebApplication.Enums;
+using RecipesSearch.WebApplication.ImporterService;
 using RecipesSearch.WebApplication.ViewModels;
 
 namespace RecipesSearch.WebApplication.Controllers
@@ -23,7 +24,8 @@ namespace RecipesSearch.WebApplication.Controllers
         private readonly CrawlingHistoryRepository _crawlingHistoryRepository = new CrawlingHistoryRepository();
         private readonly SearchSettingsRepository _searchSettingsRepository = new SearchSettingsRepository();
         private readonly SitePageManager _sitePageManager = new SitePageManager();
-        private readonly Importer _importer = Importer.GetImporter();
+
+        private readonly ImporterServiceClient _importer = new ImporterServiceClient();
 
         public ActionResult Config()
         {
@@ -40,11 +42,11 @@ namespace RecipesSearch.WebApplication.Controllers
             ViewBag.AdminPage = AdminPages.ControlPanel;
             return View(new CrawlerControlViewModel
             {
-                IsCrawlingStarted = _importer.IsImportingInProgress,
-                CrawledPages = _importer.CrawledPages,
+                IsCrawlingStarted = _importer.IsImportingInProgress(),
+                CrawledPages = _importer.CrawledPages(),
                 CrawlingHistory = crawlingHistory,
                 SitesInfo = sitesInfo ?? new List<SiteInfo>(),
-                SitesQueue = _importer.SitesQueue
+                SitesQueue = _importer.SitesQueue().ToList()
             });
         }
 
@@ -132,7 +134,7 @@ namespace RecipesSearch.WebApplication.Controllers
         {
             try
             {
-                _importer.ImportData();
+                _importer.ImportAllSites();
                 return Redirect("/Admin/Control");
             }
             catch (Exception ex)
@@ -208,7 +210,7 @@ namespace RecipesSearch.WebApplication.Controllers
             try
             {
                 var site = _sitesToCrawlRepository.GetSiteToCrawl(siteId);
-                _importer.ImportData(new[] { site });
+                _importer.ImportSites(new[] { site });
                 return Redirect("/Admin/Control");
             }
             catch (Exception ex)
