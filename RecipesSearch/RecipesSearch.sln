@@ -22,6 +22,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesSearch.CacheService", "RecipesSearch.CacheService\RecipesSearch.CacheService.csproj", "{4181C673-B57A-4DB6-A0DE-6F5813CC587A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesSearch.WebApplication", "RecipesSearch.WebApplication\RecipesSearch.WebApplication.csproj", "{83B67C8D-87E7-48C3-BFA8-EED44D016F74}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3353E1A1-63D6-43B3-938B-889FBE5F4661} = {3353E1A1-63D6-43B3-938B-889FBE5F4661}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesSearch.Data", "RecipesSearch.Data\RecipesSearch.Data.csproj", "{F4257151-8806-4A0E-8E8B-9FE49FF98B47}"
 EndProject
@@ -33,6 +36,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8BEDA0
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesSearch.SearchEngine", "RecipesSearch.SearchEngine\RecipesSearch.SearchEngine.csproj", "{3785D491-7BFC-429B-A8E3-CB84F83644F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesSearch.ImporterService", "RecipesSearch.ImporterService\RecipesSearch.ImporterService.csproj", "{3353E1A1-63D6-43B3-938B-889FBE5F4661}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +88,12 @@ Global
 		{3785D491-7BFC-429B-A8E3-CB84F83644F6}.Demo|Any CPU.Build.0 = Release|Any CPU
 		{3785D491-7BFC-429B-A8E3-CB84F83644F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3785D491-7BFC-429B-A8E3-CB84F83644F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3353E1A1-63D6-43B3-938B-889FBE5F4661}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3353E1A1-63D6-43B3-938B-889FBE5F4661}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3353E1A1-63D6-43B3-938B-889FBE5F4661}.Demo|Any CPU.ActiveCfg = Demo|Any CPU
+		{3353E1A1-63D6-43B3-938B-889FBE5F4661}.Demo|Any CPU.Build.0 = Demo|Any CPU
+		{3353E1A1-63D6-43B3-938B-889FBE5F4661}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3353E1A1-63D6-43B3-938B-889FBE5F4661}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -92,6 +103,7 @@ Global
 		{FA83A908-86E2-4E1F-A817-4E379F7BA611} = {5C693E0D-8CD4-412F-B5AB-11D259C29DD0}
 		{F4257151-8806-4A0E-8E8B-9FE49FF98B47} = {5C693E0D-8CD4-412F-B5AB-11D259C29DD0}
 		{7EF77B59-1700-4FFB-87EB-4048DC21DFE0} = {381759D9-3387-4497-8688-231FFD959D51}
+		{3353E1A1-63D6-43B3-938B-889FBE5F4661} = {381759D9-3387-4497-8688-231FFD959D51}
 		{3075B2DE-512A-4BFA-96C9-B49D11A6DC3C} = {36086542-0922-4F70-88F2-42E90D7AA4A7}
 		{3785D491-7BFC-429B-A8E3-CB84F83644F6} = {36086542-0922-4F70-88F2-42E90D7AA4A7}
 		{4181C673-B57A-4DB6-A0DE-6F5813CC587A} = {4E41D2A1-E5D9-4D15-B2A8-57E17B76277E}

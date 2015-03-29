@@ -10,6 +10,7 @@ namespace RecipesSearch.Data.Models.Logging
     {
         Error = 1,
         Warning = 2,
-        CrawlerInfo = 3
+        CrawlerInfo = 3,
+        Info = 4
     }
 }
