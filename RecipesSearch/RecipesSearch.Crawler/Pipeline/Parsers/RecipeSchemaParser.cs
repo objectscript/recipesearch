@@ -25,13 +25,6 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
                 return;
             }
 
-            if (!IsElementExitsts(csQueryDocument, "[itemprop=description]")
-                && !IsElementExitsts(csQueryDocument, "[itemprop=ingredients]")
-                && !IsElementExitsts(csQueryDocument, "[itemprop=recipeInstructions]"))
-            {
-                return;
-            }
-
             sitePage.RecipeName = GetTextBySelector(csQueryDocument, "[itemprop=name]");
             sitePage.Description = GetTextBySelector(csQueryDocument, "[itemprop=description]");
             sitePage.Ingredients = GetTextBySelector(csQueryDocument, "[itemprop=ingredients]");

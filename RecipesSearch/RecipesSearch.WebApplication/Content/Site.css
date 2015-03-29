@@ -152,3 +152,44 @@ form.post-button {
     width: 15%;
     text-align: center;
 }
+
+/* Typeahead */
+.tt-query,
+.tt-hint {
+    outline: none;
+}
+
+.tt-query { /* UPDATE: newer versions use tt-input instead of tt-query */
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+}
+
+.tt-hint {
+    color: #999
+}
+
+.tt-dropdown-menu {
+    width: 484px;
+    margin-top: 0;
+    padding: 5px 0;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 10px rgba(0,0,0,.2);
+    border-radius: 3px;
+}
+
+.tt-suggestion {
+    padding: 3px 10px;
+    font-size: 14px;
+    line-height: 14px;
+}
+
+.tt-suggestion:hover,
+.tt-suggestion.tt-cursor {
+    color: #fff;
+    background-color: #0097cf;
+    cursor: pointer;
+}
+
+.tt-suggestion p {
+    margin: 0;
+}

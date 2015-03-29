@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipes Search - @ViewBag.Title</title>
     @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
     <header>
@@ -23,9 +22,9 @@
                 </div>
 
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <form class="navbar-form navbar-left" role="search" action="/Home/Index">
+                    <form id="searchForm" class="navbar-form navbar-left" role="search" action="/Home/Index">
                         <div class="form-group">
-                            <input type="text" name="query" class="form-control" placeholder="Search" value="@ViewBag.SearchQuery">
+                            <input id="searchInput" type="text" autocomplete="off" name="query" class="form-control" placeholder="Search" value="@ViewBag.SearchQuery">
                         </div>
                         <button type="submit" class="btn btn-default">Go</button>
                     </form>

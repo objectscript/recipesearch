@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.SearchEngine.Search;
+using RecipesSearch.SearchEngine.Suggestion;
 using RecipesSearch.WebApplication.ViewModels;
 
 namespace RecipesSearch.WebApplication.Controllers
@@ -12,6 +13,7 @@ namespace RecipesSearch.WebApplication.Controllers
     public class HomeController : Controller
     {
         private readonly SearchProvider _searchProvider = new SearchProvider();
+        private readonly SuggestionProvider _suggestionProvider = new SuggestionProvider();
         private readonly SearchSettingsRepository _searchSettingsRepository = new SearchSettingsRepository();
 
         public ActionResult Index(string query, int pageNumber = 1)
@@ -41,6 +43,12 @@ namespace RecipesSearch.WebApplication.Controllers
             } 
 
             return View();
+        }
+
+        public JsonResult SuggestRecipe(string query, int count = 10)
+        {
+            var items = _suggestionProvider.SuggestByQuery(query, count);
+            return Json(items, JsonRequestBehavior.AllowGet);
         }
     }
 }
