@@ -8,5 +8,7 @@ namespace RecipesSearch.Data.Models
     public class SearchSettings : Entity
     {
         public int ResultsOnPage { get; set; }
+
+        public int SuggestionsCount { get; set; }
     }
 }

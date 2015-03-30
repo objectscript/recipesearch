@@ -45,9 +45,10 @@ namespace RecipesSearch.WebApplication.Controllers
             return View();
         }
 
-        public JsonResult SuggestRecipe(string query, int count = 10)
+        public JsonResult SuggestRecipe(string query)
         {
-            var items = _suggestionProvider.SuggestByQuery(query, count);
+            var searchSettings = _searchSettingsRepository.GetSearchSettings();
+            var items = _suggestionProvider.SuggestByQuery(query, searchSettings.SuggestionsCount);
             return Json(items, JsonRequestBehavior.AllowGet);
         }
     }

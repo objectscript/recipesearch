@@ -36,6 +36,19 @@ function initSearchTypeahed() {
     }
 }
 
+function initPagination(itemsOnPage, items, currentPage, currentQuery) {
+    $('.pagination-holder').pagination({
+        items: items,
+        itemsOnPage: itemsOnPage,
+        currentPage: currentPage,
+        cssStyle: 'compact-theme',
+        selectOnClick: false,
+        onPageClick: function (pageNumber) {
+            window.location.href = '/Home/Index?query=' + currentQuery + '&pageNumber=' + pageNumber;
+        }
+    });
+}
+
 // For SOMEE hosting
 function removeBanners() {
     var centers = $(document).find('center');

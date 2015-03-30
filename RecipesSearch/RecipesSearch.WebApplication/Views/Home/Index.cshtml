@@ -65,28 +65,14 @@
                     </div>
                 </div>
             }
-            var totalPageCount = Model.TotalCount / Model.ResultsOnPage + (Model.TotalCount % Model.ResultsOnPage != 0 ? 1 : 0);
 
-            <nav>
-                <ul class="pagination">
-                    <li class="@(Model.CurrentPage == 1 ? "disabled" : "")">
-                        <a href="/Home/Index?query=@Model.CurrentQuery&pageNumber=@(Model.CurrentPage - 1)" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    @for (int i = 1; i <= totalPageCount; ++i)
-                    {
-                        <li class="@(Model.CurrentPage == i ? "active" : "")">
-                            <a href="/Home/Index?query=@Model.CurrentQuery&pageNumber=@i">@i</a>
-                        </li>
-                    }
-                    <li class="@(Model.CurrentPage == totalPageCount ? "disabled" : "")">
-                        <a href="/Home/Index?query=@Model.CurrentQuery&pageNumber=@(Model.CurrentPage + 1)" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            <div class="pagination-holder"></div>
+
+            @section Scripts {
+                <script>
+                    initPagination(@Model.ResultsOnPage, @Model.TotalCount, @Model.CurrentPage, '@Model.CurrentQuery');
+                </script>
+            }
         }
     </div>
 </div>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-03-29 20:26:03">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-03-30 21:38:18">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -739,10 +739,15 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SearchSettings">
 <Super>Data.Base.Entity</Super>
-<TimeChanged>63611,44277.610193</TimeChanged>
+<TimeChanged>63641,74577.126839</TimeChanged>
 <TimeCreated>63610,79681.607063</TimeCreated>
 
 <Property name="ResultsOnPage">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="SuggestionsCount">
 <Type>%Integer</Type>
 <Required>1</Required>
 </Property>
@@ -755,6 +760,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Value name="1">
 <Value>ResultsOnPage</Value>
 </Value>
+<Value name="2">
+<Value>SuggestionsCount</Value>
+</Value>
 </Data>
 </Storage>
 </Class>
@@ -762,7 +770,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63640,52287.952301</TimeChanged>
+<TimeChanged>63641,74286.680297</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -828,6 +836,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Index name="KeywordsIDX">
 <Properties>Keywords</Properties>
+</Index>
+
+<Index name="RecipeUQIDX">
+<Properties>SiteId,RecipeName</Properties>
+<Unique>1</Unique>
 </Index>
 
 <Method name="Upsert">
@@ -1000,7 +1013,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63629,73652.720778</TimeChanged>
+<TimeChanged>63641,74884.801883</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1033,8 +1046,8 @@ GROUP BY SiteId</SqlQuery>
 	
 	// Seed search settings
 	IF NOT EXISTS(SELECT * FROM Data.SearchSettings) THEN BEGIN
-		INSERT INTO Data.SearchSettings(ResultsOnPage, IsActive, CreatedDate, ModifiedDate) 
-		VALUES(25, 1, GETUTCDATE(), GETUTCDATE());END
+		INSERT INTO Data.SearchSettings(ResultsOnPage, SuggestionsCount, IsActive, CreatedDate, ModifiedDate) 
+		VALUES(25, 10, 1, GETUTCDATE(), GETUTCDATE());END
 ]]></Implementation>
 </Method>
 
