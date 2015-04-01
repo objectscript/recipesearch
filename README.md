@@ -25,7 +25,7 @@ Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will 
   ```
   call Data_Utils.Seed_Run()
   ```
-- To seed the stemming dictionary another seed procedure must be executed - Data.Utils.Seed.LoadDict(filename). Where 'filename' - *full path* to the morphological dictionary (\RecipesSearch.CacheProject\morphs.mrd).
+- To seed the stemming and spellchecking dictionaries another seed procedure must be executed - Data.Utils.Seed.LoadDictionaries(directory). Where 'directory' - *full path* to the directory with dictionaries (\RecipesSearch.CacheProject\Dictionaries).
 
 #### Setup the Cache REST service:
 1. Go to System Administration -> Security -> Applications -> Web Applications
