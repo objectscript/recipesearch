@@ -16,7 +16,7 @@ namespace RecipesSearch.WebApplication.Controllers
         private readonly SuggestionProvider _suggestionProvider = new SuggestionProvider();
         private readonly SearchSettingsRepository _searchSettingsRepository = new SearchSettingsRepository();
 
-        public ActionResult Index(string query, int pageNumber = 1)
+        public ActionResult Index(string query, int pageNumber = 1, bool exactMatch = false)
         {
             var searchSettings = _searchSettingsRepository.GetSearchSettings();
 
@@ -25,8 +25,10 @@ namespace RecipesSearch.WebApplication.Controllers
             if (!string.IsNullOrEmpty(query))
             {
                 int totalCount;
+                string spellcheckedQuery;
+
                 var searchResult = _searchProvider
-                    .SearchByQuery(query, pageNumber, searchSettings.ResultsOnPage, out totalCount)
+                    .SearchByQuery(query, pageNumber, searchSettings.ResultsOnPage, searchSettings.EnableSpellchecking, exactMatch, out totalCount, out spellcheckedQuery)
                     .Select(result => new SearchResultItemViewModel(result))
                     .ToList();
 
@@ -36,7 +38,10 @@ namespace RecipesSearch.WebApplication.Controllers
                     TotalCount = totalCount,
                     ResultsOnPage = searchSettings.ResultsOnPage,
                     CurrentPage = pageNumber,
-                    CurrentQuery = query
+                    CurrentQuery = query,
+                    SpellcheckingEnabled = searchSettings.EnableSpellchecking,
+                    SpellcheckedQuery = spellcheckedQuery,
+                    ExactMatch = exactMatch
                 };
 
                 return View(searchViewModel);

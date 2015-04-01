@@ -38,6 +38,9 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Max crawling time (0 to disable)")]
         public int CrawlTimeoutSeconds { get; set; }
 
+        [Display(Name = "Update spellcheck dictionary on crawling")]
+        public bool EnableSpellcheckDictionaryUpdate { get; set; }
+
         public List<SiteToCrawlViewModel> SitesToCrawl { get; set; }
 
         public static Config GetEntity(ConfigViewModel viewModel)
@@ -50,6 +53,7 @@ namespace RecipesSearch.WebApplication.ViewModels
                 MaxCrawlDepth = viewModel.MaxCrawlDepth,
                 MaxPagesToCrawl = viewModel.MaxPagesToCrawl,
                 CrawlTimeoutSeconds = viewModel.CrawlTimeoutSeconds,
+                EnableSpellcheckDictionaryUpdate = viewModel.EnableSpellcheckDictionaryUpdate,
                 SitesToCrawl = new List<SiteToCrawl>()
             };
         }
@@ -64,6 +68,7 @@ namespace RecipesSearch.WebApplication.ViewModels
                 MaxCrawlDepth = enity.MaxCrawlDepth,
                 MaxPagesToCrawl = enity.MaxPagesToCrawl,
                 CrawlTimeoutSeconds = enity.CrawlTimeoutSeconds,
+                EnableSpellcheckDictionaryUpdate = enity.EnableSpellcheckDictionaryUpdate,
                 SitesToCrawl = enity.SitesToCrawl.Select(SiteToCrawlViewModel.GetViewModel).ToList(),
             };
         }

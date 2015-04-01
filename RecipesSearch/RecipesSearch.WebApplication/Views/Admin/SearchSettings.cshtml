@@ -23,6 +23,10 @@
                             @Html.TextBoxFor(model => model.SuggestionsCount, new { @class = "form-control" })
                             @Html.ValidationMessageFor(model => model.SuggestionsCount)
                         </div>
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.EnableSpellchecking)
+                            @Html.CheckBoxFor(model => model.EnableSpellchecking)
+                        </div>
                         <div class="right">
                             <input type="submit" class="btn btn-primary" value="Update settings" />
                         </div>

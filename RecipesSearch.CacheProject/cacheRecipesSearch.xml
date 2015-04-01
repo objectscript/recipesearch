@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-04-01 00:25:02">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-04-01 21:24:36">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -613,7 +613,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.Config">
 <Super>Data.Base.Entity</Super>
-<TimeChanged>63611,44269.646674</TimeChanged>
+<TimeChanged>63643,73776.352758</TimeChanged>
 <TimeCreated>63610,79444.886551</TimeCreated>
 
 <Property name="LoggingEnabled">
@@ -641,6 +641,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Required>1</Required>
 </Property>
 
+<Property name="EnableSpellcheckDictionaryUpdate">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
 <DefaultData>ConfigDefaultData</DefaultData>
@@ -660,6 +665,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Value>
 <Value name="5">
 <Value>CrawlTimeoutSeconds</Value>
+</Value>
+<Value name="6">
+<Value>EnableSpellcheckDictionaryUpdate</Value>
 </Value>
 </Data>
 </Storage>
@@ -739,7 +747,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SearchSettings">
 <Super>Data.Base.Entity</Super>
-<TimeChanged>63641,74577.126839</TimeChanged>
+<TimeChanged>63643,73756.971926</TimeChanged>
 <TimeCreated>63610,79681.607063</TimeCreated>
 
 <Property name="ResultsOnPage">
@@ -749,6 +757,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Property name="SuggestionsCount">
 <Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="EnableSpellchecking">
+<Type>%Boolean</Type>
 <Required>1</Required>
 </Property>
 
@@ -763,6 +776,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Value name="2">
 <Value>SuggestionsCount</Value>
 </Value>
+<Value name="3">
+<Value>EnableSpellchecking</Value>
+</Value>
 </Data>
 </Storage>
 </Class>
@@ -770,7 +786,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63641,74286.680297</TimeChanged>
+<TimeChanged>63643,75738.944908</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -845,7 +861,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="Upsert">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),SiteId:%Integer,ProcessKeywords:%Boolean</FormalSpec>
+<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),SiteId:%Integer,ProcessKeywords:%Boolean,UpdateSpellcheckDict:%Boolean</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF ProcessKeywords{
@@ -861,6 +877,16 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	}	
 	ELSE {
 		set keywordsAnalyzed = Keywords
+	}
+	
+	IF UpdateSpellcheckDict{
+		do ##class(Data.Utils.SpellcheckDictionaryCreator).AddSitePageData(
+			Keywords,
+			Ingredients,
+			RecipeInstructions,
+			RecipeName,
+			AdditionalData,
+			Description)
 	}
 
 	do ##class(Data.SitePage).UpsertSQL(URL, keywordsAnalyzed, RecipeName, Description,Ingredients,RecipeInstructions,AdditionalData,SiteId)
@@ -1011,15 +1037,95 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="Data.Utils.DictionaryCreator">
+<Class name="Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63643,1251.146962</TimeChanged>
-<TimeCreated>63642,80024.022374</TimeCreated>
+<TimeChanged>63643,75848.596231</TimeChanged>
+<TimeCreated>63611,44219.144767</TimeCreated>
 
-<Method name="CreateSpellcheckDictionary">
+<Method name="Run">
+<ClassMethod>1</ClassMethod>
+<Language>tsql</Language>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	// Seed crawler config
+	IF NOT EXISTS(SELECT * FROM Data.Config) THEN BEGIN
+		INSERT INTO Data.Config(LoggingEnabled, EnhancedKeywordProcessing, EnableSpellcheckDictionaryUpdate, MaxPagesToCrawl, MaxCrawlDepth, CrawlTimeoutSeconds, IsActive, CreatedDate, ModifiedDate) 
+		VALUES(0, 1, 0, 10000, 10000, 0, 1, GETUTCDATE(), GETUTCDATE());
+		
+		DECLARE @ConfigId AS INT;
+		SELECT TOP 1 @ConfigId = Id FROM Data.Config;
+
+		// Seed sites to crawl		
+		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId, ParserId, IsActive, CreatedDate, ModifiedDate) 
+		VALUES('say7', 'http://www.say7.info/', @ConfigId, 'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
+		VALUES('edimdoma', 'http://www.edimdoma.ru/', @ConfigId,'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
+		VALUES('kedem', 'http://kedem.ru/', @ConfigId,'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
+		VALUES('gotovim-doma', 'http://gotovim-doma.ru/', @ConfigId,'GotovimDoma', 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
+		VALUES('koolinar', 'http://www.koolinar.ru', @ConfigId,'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
+		END
+	
+	// Delete crawling history
+	DELETE FROM Data.CrawlingHistoryItem
+	
+	// Seed search settings
+	IF NOT EXISTS(SELECT * FROM Data.SearchSettings) THEN BEGIN
+		INSERT INTO Data.SearchSettings(ResultsOnPage, SuggestionsCount,EnableSpellchecking, IsActive, CreatedDate, ModifiedDate) 
+		VALUES(25, 10, 1, 1, GETUTCDATE(), GETUTCDATE());
+	END
+]]></Implementation>
+</Method>
+
+<Method name="LoadDictionaries">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>directory:%String</FormalSpec>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	
+	do ##class(%Text.Russian).LoadDict(directory_"\morphs.mrd")
+	
+	kill ^SpellcheckDict
+	do ##class(Data.Utils.SpellcheckDictionaryCreator).LoadSpellcheckDictionaryFromFile(directory_"\spellcheck.txt")
+	do ##class(Data.Utils.SpellcheckDictionaryCreator).CreateSpellcheckDictionaryFromDB()
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="Data.Utils.SpellcheckDictionaryCreator">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63643,73581.756181</TimeChanged>
+<TimeCreated>63643,69565.900242</TimeCreated>
+
+<Method name="LoadSpellcheckDictionaryFromFile">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<Implementation><![CDATA[
+	
+	close filename
+	open filename:("RK\CP1251\"):5 if '$test { return 0 }
+	
+	use filename
+	read stringnum
+	
+	for i=1:1:stringnum {
+		read str
+		set word = $EXTRACT(str, 9, $LENGTH(str))
+		set number = $REPLACE($EXTRACT(str, 1, 7), " ", "")
+		set ^SpellcheckDict(word) = 1 // words from dictionary have minimum probability
+	}
+	
+	close filename
+	quit 1
+]]></Implementation>
+</Method>
+
+<Method name="CreateSpellcheckDictionaryFromDB">
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
-	kill ^SpellcheckDict
 	
 	set result = ##class(%Library.ResultSet).%New() 
 	set tSC = result.Prepare("SELECT Keywords, Ingredients, RecipeInstructions, RecipeName, AdditionalData, Description FROM Data.SitePage") 
@@ -1027,7 +1133,7 @@ GROUP BY SiteId</SqlQuery>
     
     while (result.Next()) 
     {
-	    do ##class(Data.Utils.DictionaryCreator).AddSitePageData(
+	    do ##class(Data.Utils.SpellcheckDictionaryCreator).AddSitePageData(
 	    	result.Data("Keywords"),
 	    	result.Data("Ingredients"),
 	    	result.Data("RecipeInstructions"),
@@ -1044,12 +1150,12 @@ GROUP BY SiteId</SqlQuery>
 <FormalSpec>keywords:%String,ingredients:%String,instructions:%String,name:%String,additionalData:%String,description:%String</FormalSpec>
 <Implementation><![CDATA[
 	    
-	 do ##class(Data.Utils.DictionaryCreator).AddDataFromText(keywords)	           
-	 do ##class(Data.Utils.DictionaryCreator).AddDataFromText(ingredients)	          
-	 do ##class(Data.Utils.DictionaryCreator).AddDataFromText(instructions)	    	      
-	 do ##class(Data.Utils.DictionaryCreator).AddDataFromText(name)        
-	 do ##class(Data.Utils.DictionaryCreator).AddDataFromText(additionalData)	    	      
-	 do ##class(Data.Utils.DictionaryCreator).AddDataFromText(description)
+	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(keywords)	           
+	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(ingredients)	          
+	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(instructions)	    	      
+	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(name)        
+	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(additionalData)	    	      
+	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(description)
 ]]></Implementation>
 </Method>
 
@@ -1058,7 +1164,7 @@ GROUP BY SiteId</SqlQuery>
 <FormalSpec>text:%String</FormalSpec>
 <Implementation><![CDATA[
 	set descriptionList = ##class(iKnow.StringAnalyzer).GetEntitiesInText(text)
-	do ##class(Data.Utils.DictionaryCreator).AddDataFromList(descriptionList)
+	do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromList(descriptionList)
 ]]></Implementation>
 </Method>
 
@@ -1072,56 +1178,6 @@ GROUP BY SiteId</SqlQuery>
 			set ^SpellcheckDict(item) = $GET(^SpellcheckDict(item), 0) + 1
 		}
 	}
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="Data.Utils.Seed">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63641,74884.801883</TimeChanged>
-<TimeCreated>63611,44219.144767</TimeCreated>
-
-<Method name="Run">
-<ClassMethod>1</ClassMethod>
-<Language>tsql</Language>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[
-	// Seed crawler config
-	IF NOT EXISTS(SELECT * FROM Data.Config) THEN BEGIN
-		INSERT INTO Data.Config(LoggingEnabled, EnhancedKeywordProcessing, MaxPagesToCrawl, MaxCrawlDepth, CrawlTimeoutSeconds, IsActive, CreatedDate, ModifiedDate) 
-		VALUES(0, 1, 10000, 10000, 0, 1, GETUTCDATE(), GETUTCDATE());
-		
-		DECLARE @ConfigId AS INT;
-		SELECT TOP 1 @ConfigId = Id FROM Data.Config;
-
-		// Seed sites to crawl		
-		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId, ParserId, IsActive, CreatedDate, ModifiedDate) 
-		VALUES('say7', 'http://www.say7.info/', @ConfigId, 'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
-		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
-		VALUES('edimdoma', 'http://www.edimdoma.ru/', @ConfigId,'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
-		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
-		VALUES('kedem', 'http://kedem.ru/', @ConfigId,'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
-		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
-		VALUES('gotovim-doma', 'http://gotovim-doma.ru/', @ConfigId,'GotovimDoma', 1, GETUTCDATE(), GETUTCDATE());
-		
-		END
-	
-	// Delete crawling history
-	DELETE FROM Data.CrawlingHistoryItem
-	
-	// Seed search settings
-	IF NOT EXISTS(SELECT * FROM Data.SearchSettings) THEN BEGIN
-		INSERT INTO Data.SearchSettings(ResultsOnPage, SuggestionsCount, IsActive, CreatedDate, ModifiedDate) 
-		VALUES(25, 10, 1, GETUTCDATE(), GETUTCDATE());END
-]]></Implementation>
-</Method>
-
-<Method name="LoadDict">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>filename:%String</FormalSpec>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[		do ##class(%Text.Russian).LoadDict(filename)
 ]]></Implementation>
 </Method>
 </Class>
@@ -1221,15 +1277,23 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63640,44461.274212</TimeChanged>
+<TimeChanged>63643,73454.613773</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
+<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
 <Implementation><![CDATA[
 	set sqlQuery = "SELECT %NOLOCK Description,Ingredients,RecipeInstructions,AdditionalData,Keywords,SiteId,URL,RecipeName,CreatedDate, ModifiedDate"
 	_" FROM Data.SitePage"
+	
+	if spellcheck {
+		set spellcheckedQuery = ##class(iKnow.Spellchecker).SpellcheckText(query)
+		
+		if 'exactMatch{
+			set query = spellcheckedQuery
+		}
+	}
 	
 	set predicate = ##class(REST.PredicateBuilder).BuildPredicate(query)
 	
@@ -1240,7 +1304,11 @@ GROUP BY SiteId</SqlQuery>
     set tSC = result.Execute()
      
     set searchResult = ##class(REST.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
-
+	
+	if spellcheck{
+		set searchResult.SpellcheckedQuery = spellcheckedQuery
+	}
+		
 	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(searchResult)
 ]]></Implementation>
 </Method>
@@ -1249,7 +1317,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63639,45113.287378</TimeChanged>
+<TimeChanged>63643,73143.876432</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
@@ -1263,6 +1331,10 @@ GROUP BY SiteId</SqlQuery>
 
 <Property name="PageNumber">
 <Type>%Integer</Type>
+</Property>
+
+<Property name="SpellcheckedQuery">
+<Type>%String</Type>
 </Property>
 
 <Method name="PopulateFromResultSet">
@@ -1339,7 +1411,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.iKnow">
 <Super>%CSP.REST</Super>
-<TimeChanged>63640,44918.048335</TimeChanged>
+<TimeChanged>63643,73411.683079</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
 
 <XData name="UrlMap">
@@ -1359,8 +1431,11 @@ GROUP BY SiteId</SqlQuery>
 	set pageNumber = %request.Get("pageNumber", "1")
 	set pageSize = %request.Get("pageSize", "25")
 	
+	set spellcheck = %request.Get("spellcheck", 0)
+	set exactMatch = %request.Get("exactMatch", 0) // ignore spellchecking result
+	
 	try {
-    	do ##class(REST.Search.SearchEngine).SearchPages(query, pageNumber, pageSize)
+    	do ##class(REST.Search.SearchEngine).SearchPages(query, spellcheck, exactMatch, pageNumber, pageSize)
 	} catch err {
     	write err.AsSystemError()
     }
@@ -1388,7 +1463,7 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-03-31 23:59:18.049695">
+<Project name="RecipesSearch" LastModified="2015-04-01 21:10:31.228431">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="Data" type="PKG"></ProjectItem>
@@ -1406,7 +1481,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="iKnow.Spellchecker">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63643,960.680003</TimeChanged>
+<TimeChanged>63643,1911.20081</TimeChanged>
 <TimeCreated>63642,81475.828652</TimeCreated>
 
 <Method name="SpellcheckText">
@@ -1435,6 +1510,10 @@ GROUP BY SiteId</SqlQuery>
 <FormalSpec>word:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
+	if $GET(^SpellcheckDict(word), -1) '= -1{
+		return word
+	}
+	
 	set editsList = ##class(iKnow.Spellchecker).GenerateEdits(word)
 	
 	set maxProbability = 0

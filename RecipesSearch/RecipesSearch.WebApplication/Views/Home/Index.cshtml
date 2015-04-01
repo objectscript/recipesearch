@@ -19,6 +19,12 @@
         {
             <div class="row">
                 <div class="col-md-6">
+                    @if (Model.SpellcheckingEnabled && Model.SpellcheckedQuery.ToLowerInvariant().Trim() != Model.CurrentQuery.ToLowerInvariant().Trim())
+                    {
+                        <div class="spellcheck-holder">
+                            <p class="title">Try results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
+                        </div>
+                    }
                     <div class="alert alert-warning" role="alert">
                         There are no results for this query :(
                     </div>
@@ -26,7 +32,15 @@
             </div>
         }
         else
-        {
+        {           
+            if (Model.SpellcheckingEnabled && Model.SpellcheckedQuery.ToLowerInvariant().Trim() != Model.CurrentQuery.ToLowerInvariant().Trim())
+            {
+                <div class="spellcheck-holder">
+                    <p class="title">Showing results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
+                    <p class="sub-title">Search instead for: <a href="/Home/Index?exactMatch=true&query=@Model.CurrentQuery">@Model.CurrentQuery</a></p>
+                </div>
+            }
+
             foreach (var searchResult in Model.ResultItems)
             {
                 <div class="row">

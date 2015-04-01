@@ -16,14 +16,16 @@ namespace RecipesSearch.SitePagesImporter.Importer
     {
         private readonly SiteToCrawl _siteToCrawl;
         private readonly bool _keywordsProcessingEnabled;
+        private readonly bool _updateSpellcheckDict;
 
         private readonly List<IPageProcessor> _pageProcessors = new List<IPageProcessor>();
         private readonly CachePageStorage _pageStorage = new CachePageStorage();
 
-        public PageSaver(SiteToCrawl siteToCrawl,  bool keywordsProcessingEnabled)
+        public PageSaver(SiteToCrawl siteToCrawl, bool keywordsProcessingEnabled, bool updateSpellcheckDict)
         {
             _siteToCrawl = siteToCrawl;
             _keywordsProcessingEnabled = keywordsProcessingEnabled;
+            _updateSpellcheckDict = updateSpellcheckDict;
 
             _pageProcessors.AddRange(new IPageProcessor[]
             {
@@ -50,7 +52,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
             // Do not save empty string; e.g. rejected by parser
             if (!String.IsNullOrEmpty(sitePage.Description) || !String.IsNullOrEmpty(sitePage.Ingredients) || !String.IsNullOrEmpty(sitePage.RecipeInstructions))
             {
-                _pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled);
+                _pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled, _updateSpellcheckDict);
             }          
         }
 

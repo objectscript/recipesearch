@@ -21,5 +21,11 @@ namespace RecipesSearch.WebApplication.ViewModels
         public int CurrentPage { get; set; }
 
         public string CurrentQuery { get; set; }
+
+        public bool SpellcheckingEnabled { get; set; }
+
+        public string SpellcheckedQuery { get; set; }
+
+        public bool ExactMatch { get; set; }
     }
 }

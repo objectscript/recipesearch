@@ -25,13 +25,17 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Count of suggestions")]
         public int SuggestionsCount { get; set; }
 
+        [Display(Name = "Spellcheck search query")]
+        public bool EnableSpellchecking { get; set; }
+
         public static SearchSettings GetEntity(SearchSettingsViewModel viewModel)
         {
             return new SearchSettings
             {
                 Id = viewModel.Id,
                 ResultsOnPage = viewModel.ResultsOnPage,
-                SuggestionsCount = viewModel.SuggestionsCount
+                SuggestionsCount = viewModel.SuggestionsCount,
+                EnableSpellchecking = viewModel.EnableSpellchecking
             };
         }
 
@@ -41,7 +45,8 @@ namespace RecipesSearch.WebApplication.ViewModels
             {
                 Id = enity.Id,
                 ResultsOnPage = enity.ResultsOnPage,
-                SuggestionsCount = enity.SuggestionsCount
+                SuggestionsCount = enity.SuggestionsCount,
+                EnableSpellchecking = enity.EnableSpellchecking
             };
         }
     }

@@ -12,6 +12,8 @@ namespace RecipesSearch.Data.Models
 
         public bool EnhancedKeywordProcessing { get; set; }
 
+        public bool EnableSpellcheckDictionaryUpdate { get; set; }
+
         public int MaxPagesToCrawl { get; set; }
 
         public int MaxCrawlDepth { get; set; }

@@ -62,6 +62,20 @@
     overflow-y: auto;
 }
 
+.spellcheck-holder {
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+.spellcheck-holder .title {
+    margin-bottom: 0;
+    font-size: 19px;
+}
+
+.spellcheck-holder .sub-title {
+    margin-bottom: 0;
+}
+
 /* Login */
 .login {
     float: left;

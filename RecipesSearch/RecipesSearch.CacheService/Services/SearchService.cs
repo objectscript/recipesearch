@@ -13,7 +13,7 @@ namespace RecipesSearch.CacheService.Services
     {
         private const string Endpoint = "/iknow/doSearch";
 
-        public List<SitePage> SearchByQuery(string query, int pageNumber, int pageSize, out int totalCount)
+        public List<SitePage> SearchByQuery(string query, int pageNumber, int pageSize, bool spellcheck, bool exactMatch, out int totalCount, out string spellcheckQuery)
         {
             var url = ServiceBase + Endpoint;
             var parameters = new Dictionary<string, string>
@@ -21,11 +21,15 @@ namespace RecipesSearch.CacheService.Services
                 {"query", Uri.EscapeDataString(query)},
                 {"pageNumber", pageNumber.ToString()},
                 {"pageSize", pageSize.ToString()},
+                {"spellcheck", (spellcheck ? 1 : 0).ToString()},
+                {"exactMatch", (exactMatch ? 1 : 0).ToString()}
             };
 
             var respose = RestHelper.MakeRequest<SearchResponse>(url, RestHelper.HttpVerb.GET, parameters, null);
 
             totalCount = respose.TotalCount;
+            spellcheckQuery = respose.SpellcheckedQuery;
+
             return respose.Items.ToList();
         }
     }

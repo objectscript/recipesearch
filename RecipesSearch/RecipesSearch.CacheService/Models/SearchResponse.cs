@@ -14,5 +14,7 @@ namespace RecipesSearch.CacheService.Models
         public int TotalCount { get; set; }
 
         public int PageNumber { get; set; }
+
+        public string SpellcheckedQuery { get; set; }
     }
 }

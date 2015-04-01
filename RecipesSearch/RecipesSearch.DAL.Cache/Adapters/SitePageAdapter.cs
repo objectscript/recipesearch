@@ -17,10 +17,13 @@ namespace RecipesSearch.DAL.Cache.Adapters
 {
     public class SitePageAdapter : CacheAdapter
     {
-        public bool AddSitePage(SitePage sitePage, bool enableKeywordsProcessing)
+        public bool AddSitePage(SitePage sitePage, bool enableKeywordsProcessing, bool updateSpellcheckDict)
         {
             var command = new CacheCommand(GetFullProcedureName("SitePage_Upsert"), CacheConnection);
             command.CommandType = CommandType.StoredProcedure;
+
+            // !!!Order is important
+            // It must match order of the parameters in the Cache sproc
 
             command.Parameters.Add("URL", sitePage.URL);
             command.Parameters.Add("Keywords", sitePage.Keywords); 
@@ -37,6 +40,10 @@ namespace RecipesSearch.DAL.Cache.Adapters
             var processKeywordsParemeter = new CacheParameter("ProcessKeywords", CacheDbType.Bit);
             processKeywordsParemeter.Value = enableKeywordsProcessing;
             command.Parameters.Add(processKeywordsParemeter);
+
+            var updateSpellcheckDictParameter = new CacheParameter("UpdateSpellcheckDict", CacheDbType.Bit);
+            updateSpellcheckDictParameter.Value = updateSpellcheckDict;
+            command.Parameters.Add(updateSpellcheckDictParameter);
 
             return command.ExecuteNonQuery() != 0;
         }
