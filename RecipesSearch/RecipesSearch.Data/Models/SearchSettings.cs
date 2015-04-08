@@ -12,5 +12,7 @@ namespace RecipesSearch.Data.Models
         public int SuggestionsCount { get; set; }
 
         public bool EnableSpellchecking { get; set; }
+
+        public bool EnableSpellcheckingForSuggest { get; set; }
     }
 }

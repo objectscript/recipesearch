@@ -13,13 +13,14 @@ namespace RecipesSearch.CacheService.Services
     {
         private const string Endpoint = "/iknow/suggest";
 
-        public List<string> SuggestByQuery(string query, int count)
+        public List<string> SuggestByQuery(string query, int count, bool spellcheck)
         {
             var url = ServiceBase + Endpoint;
             var parameters = new Dictionary<string, string>
             {
                 {"query", Uri.EscapeDataString(query)},
                 {"count", count.ToString()},
+                {"spellcheck", (spellcheck ? 1 : 0).ToString()}
             };
 
             var respose = RestHelper.MakeRequest<SuggestionReponse>(url, RestHelper.HttpVerb.GET, parameters, null);

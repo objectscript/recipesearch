@@ -53,7 +53,7 @@ namespace RecipesSearch.WebApplication.Controllers
         public JsonResult SuggestRecipe(string query)
         {
             var searchSettings = _searchSettingsRepository.GetSearchSettings();
-            var items = _suggestionProvider.SuggestByQuery(query, searchSettings.SuggestionsCount);
+            var items = _suggestionProvider.SuggestByQuery(query, searchSettings.SuggestionsCount, searchSettings.EnableSpellcheckingForSuggest);
             return Json(items, JsonRequestBehavior.AllowGet);
         }
     }

@@ -13,11 +13,11 @@ namespace RecipesSearch.SearchEngine.Suggestion
     {
         private readonly SuggestionService _suggestionService = new SuggestionService();
         
-        public List<string> SuggestByQuery(string query, int count)
+        public List<string> SuggestByQuery(string query, int count, bool spellcheck)
         {
             try
             {
-                return _suggestionService.SuggestByQuery(query, count);
+                return _suggestionService.SuggestByQuery(query, count, spellcheck);
             }
             catch (Exception exception)
             {

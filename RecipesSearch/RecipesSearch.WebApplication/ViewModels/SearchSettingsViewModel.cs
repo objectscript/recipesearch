@@ -28,6 +28,9 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Spellcheck search query")]
         public bool EnableSpellchecking { get; set; }
 
+        [Display(Name = "Spellcheck autosuggest query")]
+        public bool EnableSpellcheckingForSuggest { get; set; }
+
         public static SearchSettings GetEntity(SearchSettingsViewModel viewModel)
         {
             return new SearchSettings
@@ -35,7 +38,8 @@ namespace RecipesSearch.WebApplication.ViewModels
                 Id = viewModel.Id,
                 ResultsOnPage = viewModel.ResultsOnPage,
                 SuggestionsCount = viewModel.SuggestionsCount,
-                EnableSpellchecking = viewModel.EnableSpellchecking
+                EnableSpellchecking = viewModel.EnableSpellchecking,
+                EnableSpellcheckingForSuggest = viewModel.EnableSpellcheckingForSuggest
             };
         }
 
@@ -46,7 +50,8 @@ namespace RecipesSearch.WebApplication.ViewModels
                 Id = enity.Id,
                 ResultsOnPage = enity.ResultsOnPage,
                 SuggestionsCount = enity.SuggestionsCount,
-                EnableSpellchecking = enity.EnableSpellchecking
+                EnableSpellchecking = enity.EnableSpellchecking,
+                EnableSpellcheckingForSuggest = enity.EnableSpellcheckingForSuggest
             };
         }
     }
