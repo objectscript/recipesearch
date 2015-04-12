@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Abot.Poco;
+using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.BusinessServices.PageStorage;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.SitePagesImporter.Pipeline;
@@ -37,23 +38,32 @@ namespace RecipesSearch.SitePagesImporter.Importer
 
         public void SavePage(CrawledPage crawledPage)
         {
-            var sitePage = new SitePage
+            try
             {
-                SiteID = _siteToCrawl.Id,
-                URL = crawledPage.Uri.ToString(),
-                Keywords = String.Empty
-            };
+                var sitePage = new SitePage
+                {
+                    SiteID = _siteToCrawl.Id,
+                    URL = crawledPage.Uri.ToString(),
+                    Keywords = String.Empty
+                };
 
-            foreach (var pageProcessor in _pageProcessors)
-            {
-                pageProcessor.ProcessContent(sitePage, crawledPage, _siteToCrawl);
+                foreach (var pageProcessor in _pageProcessors)
+                {
+                    pageProcessor.ProcessContent(sitePage, crawledPage, _siteToCrawl);
+                }
+
+                // Do not save empty string; e.g. rejected by parser
+                if (!String.IsNullOrEmpty(sitePage.Description) || !String.IsNullOrEmpty(sitePage.Ingredients) ||
+                    !String.IsNullOrEmpty(sitePage.RecipeInstructions))
+                {
+                    _pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled, _updateSpellcheckDict);
+                }
+
             }
-
-            // Do not save empty string; e.g. rejected by parser
-            if (!String.IsNullOrEmpty(sitePage.Description) || !String.IsNullOrEmpty(sitePage.Ingredients) || !String.IsNullOrEmpty(sitePage.RecipeInstructions))
+            catch (Exception e)
             {
-                _pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled, _updateSpellcheckDict);
-            }          
+                Logger.LogError("Crawler: Error saving page.", e);
+            }   
         }
 
         public void Dispose()
