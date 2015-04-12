@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Abot.Poco;
 using CsQuery;
@@ -22,7 +23,16 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
         protected virtual string GetTextBySelector(CQ queryObject, string selector)
         {
             var elements = queryObject.Find(selector);
-            var itemText = elements.Text();
+            var itemText = elements               
+                .Text((idx, text) => text.EndsWith(".") ? text : text + "|")
+                .Text();
+
+            itemText = Regex.Replace(itemText, @"\.(?<t>\S)", ". ${t}");
+            itemText = Regex.Replace(itemText, @"\|(?<t>\S)", ". ${t}");
+            itemText = Regex.Replace(itemText, @"\|", "");
+
+            itemText = itemText.Trim();
+
             if (String.IsNullOrWhiteSpace(itemText) && elements.HasAttr("content"))
             {
                 itemText = elements.Attr("content");

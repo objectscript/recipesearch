@@ -10,11 +10,11 @@ using RecipesSearch.SitePagesImporter.Pipeline.Base;
 
 namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
 {
-    class RecipeSchemaParser : BaseParser
+    class KulinarParser : RecipeSchemaParser
     {       
         public override string Id
         {
-            get { return "RecipeSchema"; }
+            get { return "Kulinar"; }
         }
 
         public override void ParseContent(CrawledPage crawledPage, SitePage sitePage)
@@ -29,13 +29,8 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
             sitePage.RecipeName = GetTextBySelector(csQueryDocument, "[itemprop=name]");
             sitePage.Description = GetTextBySelector(csQueryDocument, "[itemprop=description]");
             sitePage.Ingredients = GetTextBySelector(csQueryDocument, "[itemprop=ingredients]");
-            sitePage.RecipeInstructions = GetTextBySelector(csQueryDocument, "[itemprop=recipeInstructions]");
+            sitePage.RecipeInstructions = GetTextBySelector(csQueryDocument, "[itemprop=recipeInstructions] p");
             sitePage.AdditionalData = GetTextBySelector(csQueryDocument, "[itemprop=summary]");
-        }
-
-        protected virtual bool CheckForRecipeSchema(CQ queryDocument)
-        {
-            return queryDocument.Has("[itemtype=\"http://schema.org/Recipe\"]").Any();
         }
     }
 }
