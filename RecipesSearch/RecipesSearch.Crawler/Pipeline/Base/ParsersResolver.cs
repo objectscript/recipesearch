@@ -17,6 +17,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
                 {
                     new RecipeSchemaParser(),
                     new GotovimDoma(),
+                    new KulinarParser()
                 });
             }
         }
