@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-03-16 22:16:59">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-04-12 18:29:55">
 <Class name="Experimental.PageAnalyzer">
 <Super>%Persistent</Super>
-<TimeChanged>63627,80126.299905</TimeChanged>
+<TimeChanged>63654,66543.487326</TimeChanged>
 <TimeCreated>63612,49594.660203</TimeCreated>
 
-<Method name="GetEntitiesById">
+<Method name="GetAllEntities">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>id:%Numeric</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	#sqlcompile SELECT = odbc
-	&sql(declare byid cursor for
-	      select Content
-          from Data.SitePage
-          where ID = :id)
-    &sql(open byid)
+	&sql(declare byall cursor for
+	      select RecipeInstructions
+          from Data.SitePage)
+    &sql(open byall)
 	set dname = "RecipesDomain"
     if (##class(%iKnow.Domain).Exists(dname)) {
 	   set domoref=##class(%iKnow.Domain).Open(dname)
@@ -38,36 +36,42 @@
 	}
      	     
 	set mylister=##class(%iKnow.Source.File.Lister).%New(domId)
-	// do mylister.Init("RecipesConfig","","%iKnow.Source.Converter.Html","")
-	set myconverter = ##class(%iKnow.Source.Converter.Html).%New()
 	do mylister.Init("RecipesConfig")
 	set myloader = ##class(%iKnow.Source.Loader).%New(domId)
-	set stat = myloader.SetLister(mylister)
+	set stat = myloader.SetLister(mylister)		
+	set file=##class(%File).%New("C:\temp\page.txt")
+	do file.Open("WSN")
 	set cnt = 1
 	for {
-	   &sql(fetch byid into :Content)
+	   &sql(fetch byall into :RecipeInstructions)
 	   quit:(SQLCODE '= 0)
-	   do myconverter.BufferString(Content)
-	   do myconverter.Convert()
-	   set file=##class(%File).%New("C:\temp\page"_cnt_".txt")
-	   do file.Open("WSN")
-	   do {
-	      set curpart = myconverter.NextConvertedPart()
-	      do file.Write(curpart)
-	   } while curpart '= ""
-	   do file.Close()
-	   set cnt = cnt + 1
+	   set recipesList = $LISTFROMSTRING(RecipeInstructions, " ")
+	   
+	   set i = 1
+	   while i <= $listlength(recipesList) {
+		   set stemmedWord = ##class(Experimental.TextAnalyzer).StemText($list(recipesList,i))
+		   do file.Write(stemmedWord)
+		   do file.WriteLine(".")
+	       set i = i + 1
+	   }	 	   
+	   set cnt = cnt + 1	   
 	}
+	do file.Close()
     set dirpath="C:\temp"
     set stat = myloader.ProcessList(dirpath,"txt")
      
-    do ##class(%iKnow.Queries.EntityAPI).GetTop(.result,domId,1,50)
-  		 
+    do ##class(%iKnow.Queries.EntityAPI).GetTop(.result,domId,1,10000)
+    
+    set fileOutput=##class(%File).%New("C:\temp\Dictionary\dict.txt")
+    do fileOutput.Open("WSN")
+      		 
   	set i=1
   	while $data(result(i)) {
-	   write $listtostring(result(i),",",1),!
+	   do fileOutput.WriteLine($listtostring(result(i),",",1))
        set i=i+1
+       write "i="_i
     }
+    do fileOutput.Close()
      
     if SQLCODE = 100 { set status = $$$OK}
     else { set status = $$$ERROR($$$GeneralError, "SQLCODE: "_SQLCODE)}
@@ -91,7 +95,7 @@
 </Class>
 
 
-<Project name="Experimental" LastModified="2015-03-16 22:14:53.370511">
+<Project name="Experimental" LastModified="2015-04-10 18:36:12.114042">
   <Items>
     <ProjectItem name="Experimental.PageAnalyzer" type="CLS"></ProjectItem>
     <ProjectItem name="Experimental.TextAnalyzer" type="CLS"></ProjectItem>
@@ -101,7 +105,7 @@
 
 <Class name="Experimental.TextAnalyzer">
 <Super>%Persistent</Super>
-<TimeChanged>63627,27614.481977</TimeChanged>
+<TimeChanged>63654,66567.207028</TimeChanged>
 <TimeCreated>63612,49650.300759</TimeCreated>
 
 <Method name="GetEntitiesInText">
@@ -136,9 +140,12 @@
     }
        
     set domId=domoref.Id
+    
+    set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
+	set stemmedText = ##class(Experimental.TextAnalyzer).StemText(text)
              
     set myloader = ##class(%iKnow.Source.Loader).%New(domId)
-    do myloader.BufferSource("ref", text)
+    do myloader.BufferSource("ref", stemmedText)
     do myloader.ProcessBuffer()
        
     do ##class(%iKnow.Queries.EntityAPI).GetTop(.result,domId,1,50)
