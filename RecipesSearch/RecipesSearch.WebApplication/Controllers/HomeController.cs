@@ -20,7 +20,10 @@ namespace RecipesSearch.WebApplication.Controllers
         {
             var searchSettings = _searchSettingsRepository.GetSearchSettings();
 
-            ViewBag.SearchQuery = query ?? String.Empty;
+            query = query ?? String.Empty;
+            query = query.Trim();
+
+            ViewBag.SearchQuery = query;
 
             if (!string.IsNullOrEmpty(query))
             {

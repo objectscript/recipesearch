@@ -12,12 +12,12 @@
     <div class="row form-group">
         <div class="col-md-4">
             @Html.LabelFor(model => model.Name)
-            @Html.TextBoxFor(model => model.Name, new { @class = "form-control" })
+            @Html.TextBoxFor(model => model.Name, new { @class = "form-control input-sm" })
             @Html.ValidationMessageFor(model => model.Name)
         </div>
         <div class="col-md-4">
             @Html.LabelFor(model => model.URL)
-            @Html.TextBoxFor(model => model.URL, new { @class = "form-control" })
+            @Html.TextBoxFor(model => model.URL, new { @class = "form-control input-sm" })
             @Html.ValidationMessageFor(model => model.URL)
         </div>
         <div class="col-md-4">
@@ -25,11 +25,11 @@
             @Html.DropDownListFor(
                 siteToCrawl => siteToCrawl.ParserId,
                 parsersList,
-                new { @class = "form-control" })
+             new { @class = "form-control input-sm" })
             @Html.ValidationMessageFor(model => model.ParserId)
         </div>
     </div>
     <div class="right">
-        <input type="submit" class="btn btn-primary" value="Add site to crawl" />
+        <input type="submit" class="btn btn-link" value="Add site to crawl" />
     </div>
 }

@@ -4,84 +4,66 @@
 @using RecipesSearch.WebApplication.ViewModels
 @model CrawlerControlViewModel
 
-<div class="container-fluid admin">
-    <div class="row">
-        <div class="col-md-6 control-panel">
-            <div class="panel panel-primary">
-                <div class="panel-heading">Crawler control panel</div>
-                <div class="panel-body">
-                    @if (Model.IsCrawlingStarted)
-                    {
-                        <div class="alert alert-success" role="alert">Crawling in progress. Crawled pages: @Model.CrawledPages</div>
-                        <p>Queue:</p>
-                        <ul class="list-group queue">
-                            @for (int i = 0; i < Model.SitesQueue.Count; ++i)
+<div class="row">
+    <div class="col-md-7">
+        @Html.Partial("_SitesInfo", Model.SitesInfo)
+    </div>
+    <div class="col-md-5 control-panel">
+        @if (Model.IsCrawlingStarted)
+        {
+            <div class="alert alert-success" role="alert">Crawling in progress. Crawled pages: @Model.CrawledPages</div>
+            <p>Queue:</p>
+            <ul class="list-group queue">
+                @for (int i = 0; i < Model.SitesQueue.Count; ++i)
+                {
+                    var site = Model.SitesQueue[i];
+                    <li class="list-group-item @(i == 0 ? "list-group-item-info" : "list-group-item-warning")">
+                        <a href="@site.URL">@site.Name</a>
+                        <span class="remove">
+                            @if (i != 0)
                             {
-                                var site = Model.SitesQueue[i];
-                                <li class="list-group-item @(i == 0 ? "list-group-item-info" : "")">
-                                    @site.Name (@site.URL)
-                                    <span class="remove">
-                                        @if (i != 0)
-                                        {
-                                            @Html.Partial("_PostButton", new PostButtonModel
-                                            {
-                                                Action = "RemoveSiteFromCrawlQueue",
-                                                RouteValues = new { siteId = site.Id },
-                                                Controller = "Admin",
-                                                ButtonClass = "btn-link",
-                                                Text = "Remove"
-                                            })
+                                @Html.Partial("_PostButton", new PostButtonModel
+                                {
+                                    Action = "RemoveSiteFromCrawlQueue",
+                                    RouteValues = new { siteId = site.Id },
+                                    Controller = "Admin",
+                                    ButtonClass = "btn-link",
+                                    Text = "Remove"
+                                })
 
-                                        }
-                                        else
-                                        {
-                                            @Html.Partial("_PostButton", new PostButtonModel
-                                            {
-                                                Action = "StopCurrentSiteImporting",
-                                                Controller = "Admin",
-                                                ButtonClass = "btn-link",
-                                                Text = "Stop"
-                                            })
-                                        }
-                                    </span>                           
-                                </li>
                             }
-                        </ul>
-                        @Html.Partial("_PostButton", new PostButtonModel
-                        {
-                            Action = "StopCrawling",
-                            Controller = "Admin",
-                            ButtonClass = "btn-primary",
-                            Text = "Stop crawling"
-                        })
-                    }
-                    else
-                    {
-                        <div class="alert alert-info" role="alert">Crawling stopped.</div>
-                        @Html.Partial("_PostButton", new PostButtonModel
-                        {
-                            Action = "StartCrawling",
-                            Controller = "Admin",
-                            ButtonClass = "btn-primary",
-                            Text = "Crawl all sites"
-                        })
-                    }
-                </div>
-            </div>
-            <div class="panel panel-primary">
-                <div class="panel-heading">Sites data managment</div>
-                <div class="panel-body">
-                    @Html.Partial("_SitesInfo", Model.SitesInfo)
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="panel panel-primary">
-                <div class="panel-heading">Crawling history</div>
-                <div class="panel-body">
-                    @Html.Partial("_CrawlerHistory", Model.CrawlingHistory)
-                </div>
-            </div>
-        </div>
+                            else
+                            {
+                                @Html.Partial("_PostButton", new PostButtonModel
+                                {
+                                    Action = "StopCurrentSiteImporting",
+                                    Controller = "Admin",
+                                    ButtonClass = "btn-link",
+                                    Text = "Stop"
+                                })
+                            }
+                        </span>
+                    </li>
+                }
+            </ul>
+            @Html.Partial("_PostButton", new PostButtonModel
+            {
+                Action = "StopCrawling",
+                Controller = "Admin",
+                ButtonClass = "btn-link",
+                Text = "Stop crawling"
+            })
+        }
+        else
+        {
+            <div class="alert alert-warning" role="alert">Crawling idle</div>
+            @Html.Partial("_PostButton", new PostButtonModel
+            {
+                Action = "StartCrawling",
+                Controller = "Admin",
+                ButtonClass = "btn-link",
+                Text = "Crawl all sites"
+            })
+        }
     </div>
 </div>

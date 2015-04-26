@@ -1,0 +1,29 @@
+﻿@using RecipesSearch.WebApplication.Enums
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <div class="col-md-3">
+        <ul class="nav nav-pills nav-stacked">
+            @{
+                var adminNavItems = new[]
+                {
+                    new Tuple<AdminPages, string, string>(AdminPages.Config, "Crawler config", "Config"),
+                    new Tuple<AdminPages, string, string>(AdminPages.SitesToCrawlSettings, "Sites to Crawl", "SitesToCrawlSettings"),
+                    new Tuple<AdminPages, string, string>(AdminPages.ControlPanel, "Control panel", "Control"),
+                    new Tuple<AdminPages, string, string>(AdminPages.CrawlingHistory, "Crawling history", "CrawlingHistory"),
+                    new Tuple<AdminPages, string, string>(AdminPages.SearchSettings, "Search settings", "SearchSettings"),
+                };
+            }
+            @foreach (var item in adminNavItems)
+            {
+                <li class="@(ViewBag.AdminPage == item.Item1 ? "active":"")">
+                    <a href="@Url.Action(item.Item3, "Admin")">@item.Item2</a>
+                </li>
+            }
+        </ul>
+    </div> 
+    <div class="col-md-9 admin">
+        @RenderBody()
+    </div> 
+</div>

@@ -3,26 +3,49 @@
 }
 @model RecipesSearch.WebApplication.ViewModels.SearchViewModel
 
+<div class="row search-box">
+    <div class="col-md-8">
+        <form id="searchForm" role="search" action="/Home/Index">
+            <div class="form-group">
+                <input id="searchInput"
+                       type="text"
+                       autocomplete="off"
+                       name="query"
+                       class="form-control"
+                       placeholder="Search"
+                       value="@ViewBag.SearchQuery">
+            </div>
+            <button type="submit" class="btn btn-info glyphicon glyphicon-search"></button>
+        </form>
+    </div>
+</div>
+
 <div class="search-results">
     <div class="container-fluid results-list">
         @if (Model == null)
         {
             <div class="row">
-                <div class="col-md-6">
-                    <div class="alert alert-info" role="alert">
-                        Enter a search query
+                <div class="col-md-8">
+                    <div class="empty-placeholder">
+                        Type to search for recipes
                     </div>
                 </div>
             </div>
+            return;
         }
-        else if (Model.ResultItems.Count == 0)
+
+        @if (Model.ResultItems.Count == 0)
         {
             <div class="row">
                 <div class="col-md-6">
                     @if (Model.SpellcheckingEnabled && Model.SpellcheckedQuery.ToLowerInvariant().Trim() != Model.CurrentQuery.ToLowerInvariant().Trim())
                     {
-                        <div class="spellcheck-holder">
-                            <p class="title">Try results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="spellcheck-holder">
+                                    <p class="title">Try results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
+                                </div>
+                            </div>
                         </div>
                     }
                     <div class="alert alert-warning" role="alert">
@@ -32,55 +55,69 @@
             </div>
         }
         else
-        {           
-            if (Model.SpellcheckingEnabled && Model.SpellcheckedQuery.ToLowerInvariant().Trim() != Model.CurrentQuery.ToLowerInvariant().Trim())
-            {
-                <div class="spellcheck-holder">
-                    <p class="title">Showing results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
-                    <p class="sub-title">Search instead for: <a href="/Home/Index?exactMatch=true&query=@Model.CurrentQuery">@Model.CurrentQuery</a></p>
+        {
+            <div class="row results-count">
+                <div class="col-md-8">
+                    <span>Total count: @Model.TotalCount</span>
                 </div>
-            }
-
-            foreach (var searchResult in Model.ResultItems)
+            </div>
+            if (Model.SpellcheckingEnabled && Model.SpellcheckedQuery.ToLowerInvariant().Trim() != Model.CurrentQuery.ToLowerInvariant().Trim())
             {
                 <div class="row">
                     <div class="col-md-8">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
-                                    <a href="@searchResult.URL" target=" _blank">@searchResult.Name</a>
-                                </h3>
-                            </div>
-                            <div class="panel-body">
-                                @if (!String.IsNullOrEmpty(searchResult.Description))
-                                {
-                                    <b>Описание:</b><br />
-                                    @searchResult.Description
-                                    <br /><br />
-                                }
-
-                                <b>Ингридиенты:</b><br />
-                                @searchResult.Ingredients
-                                <br /><br />
-
-                                <b>Инструкция по приготовлению:</b><br />
-                                @searchResult.RecipeInstructions
-                                <br /><br />
-
-                                @if (!String.IsNullOrEmpty(searchResult.AdditionalData))
-                                {
-                                    <b>Дополнительная информация:</b><br />
-                                    @searchResult.AdditionalData
-                                    <br /><br />
-                                }
-
-                            </div>
+                        <div class="spellcheck-holder suggest">
+                            <p class="title">Showing results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
+                            <p class="sub-title">Search instead for: <a href="/Home/Index?exactMatch=true&query=@Model.CurrentQuery">@Model.CurrentQuery</a></p>
                         </div>
                     </div>
                 </div>
             }
 
-            <div class="pagination-holder"></div>
+            for (var i = 0; i < Model.ResultItems.Count; ++i)
+            {
+                var searchResult = Model.ResultItems[i];
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="result-item" id="recipe_@i">
+                            <h4 class="recipe-name"><a href="@searchResult.URL" target=" _blank">@searchResult.Name</a></h4>
+
+                            @if (!String.IsNullOrEmpty(searchResult.Description))
+                            {
+                                @searchResult.Description
+                                <br /><br />
+                            }
+
+                            <b>Ингридиенты:</b><br />
+                            @searchResult.Ingredients
+                            <br /><br />
+
+                            <b>Инструкция по приготовлению:</b><br />
+                            @searchResult.RecipeInstructions
+
+                            @if (!String.IsNullOrEmpty(searchResult.AdditionalData))
+                            {
+                                <br /><br />
+                                <b>Дополнительная информация:</b><br />
+                                @searchResult.AdditionalData
+                                <br /><br />
+                            }
+                        </div>
+                        <a href="#" data-expander="@i" class="expander">More</a>
+                    </div>
+                </div>
+            }
+            <div class="row">
+                <div class="col-md-8">
+                    @if (Model.TotalCount > Model.ResultsOnPage)
+                    {
+                        <div class="pagination-holder"></div>
+                    }
+                    @if (Model.TotalCount > 10)
+                    {
+                        <a href="#" class="back-to-top">Back to top</a>
+                    }
+                </div>
+            </div>
 
             @section Scripts {
                 <script>

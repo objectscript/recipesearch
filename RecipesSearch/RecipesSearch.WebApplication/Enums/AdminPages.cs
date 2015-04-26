@@ -9,6 +9,8 @@ namespace RecipesSearch.WebApplication.Enums
     {
         Config = 1,
         ControlPanel = 2,
-        SearchSettings = 3
+        SearchSettings = 3,
+        SitesToCrawlSettings = 4,
+        CrawlingHistory = 5
     }
 }
