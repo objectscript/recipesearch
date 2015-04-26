@@ -66,6 +66,37 @@ th, b {
     float: right;
     margin-top: 2px;
     font-size: 11px;
+    color: #bbb;
+    text-decoration: underline;
+}
+
+/*Similar items*/
+.search-results .results-list .similar-label {
+    padding-left: 10px;
+    margin-top: 5px;
+    display: inline-block;
+    font-style: italic;
+}
+.search-results .results-list .similar{
+    padding-left: 10px;
+}
+.search-results .results-list .similar .result-item-similar {
+    height: 20px;
+    overflow: hidden;
+    padding-bottom: 15px;
+}
+.search-results .results-list .similar .result-item-similar.expanded {
+    height: initial;
+}
+.search-results .results-list .similar .result-item-similar .expander {
+    font-size: 12px;
+    padding-left: 5px;
+    color: #bbb;
+    text-decoration: underline;
+}
+.search-results .results-list .similar .result-item-similar .recipe-name{
+    font-size: 14px;
+    margin: 0;
 }
 
 .spellcheck-holder .title {

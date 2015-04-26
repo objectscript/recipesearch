@@ -216,6 +216,7 @@
     <Content Include="Views\Admin\_ViewStart.cshtml" />
     <Content Include="Views\Admin\SitesToCrawlSettings.cshtml" />
     <Content Include="Views\Admin\CrawlingHistory.cshtml" />
+    <Content Include="Views\Home\_ResultItem.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RecipesSearch.BusinessServices\RecipesSearch.BusinessServices.csproj">

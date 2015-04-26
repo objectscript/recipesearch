@@ -53,7 +53,7 @@ function initPagination(itemsOnPage, items, currentPage, currentQuery) {
 }
 
 function initExpanders() {
-    var expandButtons = $('.result-item + a[data-expander]');
+    var expandButtons = $('a[data-expander]');
     expandButtons.each(function(idx, item) {
         initExpander($(item));
     });
@@ -69,12 +69,15 @@ function initExpander($item) {
 
 function toggleRecipe(id, $item) {
     var $recipeHolder = $('#recipe_' + id);
+    var showText = $item.data('showText');
+    var hideText = $item.data('hideText');
+
     if ($recipeHolder.hasClass('expanded')) {
         $recipeHolder.removeClass('expanded');
-        $item.text('More');
+        $item.text(showText);
     } else {
         $recipeHolder.addClass('expanded');
-        $item.text('Less');
+        $item.text(hideText);
     }
 }
 
