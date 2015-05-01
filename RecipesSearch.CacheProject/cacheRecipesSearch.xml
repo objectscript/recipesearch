@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-04-12 14:48:27">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-05-01 13:35:26">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -794,7 +794,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63643,75738.944908</TimeChanged>
+<TimeChanged>63673,48875.450106</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -829,6 +829,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Property>
 
 <Property name="AdditionalData">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="WordsTfIdf">
 <Type>%String</Type>
 <Parameter name="MAXLEN" value="100000"/>
 </Property>
@@ -988,6 +993,9 @@ GROUP BY SiteId</SqlQuery>
 </Value>
 <Value name="12">
 <Value>AdditionalData</Value>
+</Value>
+<Value name="13">
+<Value>WordsTfIdf</Value>
 </Value>
 </Data>
 </Storage>
@@ -1192,307 +1200,6 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="Logging.LogRecord">
-<Super>%Persistent</Super>
-<TimeChanged>63611,46480.868979</TimeChanged>
-<TimeCreated>63611,44722.841798</TimeCreated>
-
-<Property name="Type">
-<Type>%Integer</Type>
-<Required>1</Required>
-</Property>
-
-<Property name="Description">
-<Type>%String</Type>
-<Required>1</Required>
-<Parameter name="MAXLEN" value="200"/>
-</Property>
-
-<Property name="Exception">
-<Type>%String</Type>
-<Parameter name="MAXLEN" value="2000"/>
-</Property>
-
-<Property name="CreatedDate">
-<Type>%DateTime</Type>
-<Required>1</Required>
-</Property>
-
-<Storage name="Default">
-<Type>%Library.CacheStorage</Type>
-<DataLocation>^Logging.LogRecordD</DataLocation>
-<DefaultData>LogRecordDefaultData</DefaultData>
-<IdLocation>^Logging.LogRecordD</IdLocation>
-<IndexLocation>^Logging.LogRecordI</IndexLocation>
-<StreamLocation>^Logging.LogRecordS</StreamLocation>
-<Data name="LogRecordDefaultData">
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-<Value name="2">
-<Value>MaxPagesToCrawl</Value>
-</Value>
-<Value name="3">
-<Value>Description</Value>
-</Value>
-<Value name="4">
-<Value>Exception</Value>
-</Value>
-<Value name="5">
-<Value>CreatedDate</Value>
-</Value>
-<Value name="6">
-<Value>Type</Value>
-</Value>
-</Data>
-</Storage>
-</Class>
-
-
-<Package name="Logging" sqlname="Logging"/>
-
-
-<Class name="REST.PredicateBuilder">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63640,44416.350546</TimeChanged>
-<TimeCreated>63640,44416.350546</TimeCreated>
-
-<Method name="BuildPredicate">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String</FormalSpec>
-<Implementation><![CDATA[
-	
-	set queryParts = ##class(iKnow.StringAnalyzer).GetEntitiesInText(query)
-	
-	set predicate = ""
-	set i = 1
-	set listLength = $LISTLENGTH(queryParts)
-	while (i <= listLength){
-		
-		if i '= 1{
-			set predicate = predicate_" AND "
-		}
-		
-		set predicate = predicate_"(Keywords [ '"_$LIST(queryParts, i)_"')"
-		
-		set i = i + 1
-	}
-	
-	return predicate
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="REST.Search.SearchEngine">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63643,73454.613773</TimeChanged>
-<TimeCreated>63598,70157.596857</TimeCreated>
-
-<Method name="SearchPages">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
-<Implementation><![CDATA[
-	set sqlQuery = "SELECT %NOLOCK Description,Ingredients,RecipeInstructions,AdditionalData,Keywords,SiteId,URL,RecipeName,CreatedDate, ModifiedDate"
-	_" FROM Data.SitePage"
-	
-	if spellcheck {
-		set spellcheckedQuery = ##class(iKnow.Spellchecker).SpellcheckText(query)
-		
-		if 'exactMatch{
-			set query = spellcheckedQuery
-		}
-	}
-	
-	set predicate = ##class(REST.PredicateBuilder).BuildPredicate(query)
-	
-	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"	
-		
-	set result = ##class(%Library.ResultSet).%New() 
-	set tSC = result.Prepare(sqlQuery) 
-    set tSC = result.Execute()
-     
-    set searchResult = ##class(REST.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
-	
-	if spellcheck{
-		set searchResult.SpellcheckedQuery = spellcheckedQuery
-	}
-		
-	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(searchResult)
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="REST.Search.SearchResult">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63643,73143.876432</TimeChanged>
-<TimeCreated>63627,74813.171587</TimeCreated>
-
-<Property name="Items">
-<Type>Data.SitePage</Type>
-<Collection>list</Collection>
-</Property>
-
-<Property name="TotalCount">
-<Type>%Integer</Type>
-</Property>
-
-<Property name="PageNumber">
-<Type>%Integer</Type>
-</Property>
-
-<Property name="SpellcheckedQuery">
-<Type>%String</Type>
-</Property>
-
-<Method name="PopulateFromResultSet">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>result:%Library.ResultSet,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
-<ReturnType>%Library.ResultSet</ReturnType>
-<Implementation><![CDATA[
-	
-	// TODO: make it more performant
-	set startIndex = (pageNumber - 1) * pageSize + 1
-	
-	set searchResults = ##class(REST.Search.SearchResult).%New()
-	set searchResults.Items = ##class(%ListOfObjects).%New()
-	
-	set count = 0
-    while (result.Next()) 
-    { 
-    	set count = count + 1 
-		continue:(count < startIndex) 
-        
-        if (count >= (startIndex + pageSize)) 
-        {  
-			continue
-        } 
-        
-        set sitePage = ##class(Data.SitePage).%New() 
-        set sitePage.Description = result.Data("Description") 
-        set sitePage.Ingredients = result.Data("Ingredients") 
-        set sitePage.RecipeInstructions = result.Data("RecipeInstructions")
-        set sitePage.AdditionalData = result.Data("AdditionalData") 
-        set sitePage.SiteId = result.Data("SiteId") 
-        set sitePage.URL = result.Data("URL") 
-        set sitePage.Keywords = result.Data("Keywords") 
-        set sitePage.ModifiedDate = result.Data("ModifiedDate") 
-        set sitePage.CreatedDate = result.Data("CreatedDate") 
-        set sitePage.RecipeName = result.Data("RecipeName") 
-        
-        set tSC = searchResults.Items.Insert(sitePage) 
-        
-	}
-    
-   	set searchResults.PageNumber = pageNumber
-	set searchResults.TotalCount = count
-	
-	return searchResults
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="REST.Suggestion.SuggestionEngine">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63650,75408.572589</TimeChanged>
-<TimeCreated>63640,44078.352651</TimeCreated>
-
-<Method name="SuggestRecipes">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,count:%Integer,spellcheck:%Boolean</FormalSpec>
-<Implementation><![CDATA[
-	set sqlQuery = "SELECT %NOLOCK TOP "_count_" Keywords,SiteId,URL,RecipeName FROM Data.SitePage"
-	
-	if spellcheck {
-		set query = ##class(iKnow.Spellchecker).SpellcheckText(query)
-	}
-	
-	set predicate = ##class(REST.PredicateBuilder).BuildPredicate(query)
-	
-	if predicate = ""{
-		set predicate = "(1 = 0)"
-	}
-	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"
-	
-	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="REST.iKnow">
-<Super>%CSP.REST</Super>
-<TimeChanged>63650,75424.795654</TimeChanged>
-<TimeCreated>63584,64787.957361</TimeCreated>
-
-<XData name="UrlMap">
-<Data><![CDATA[
-<Routes>
- <Route Url="/doSearch" Method="GET" Call="Search"/>
- <Route Url="/suggest" Method="GET" Call="Suggest"/>
- </Routes>
-]]></Data>
-</XData>
-
-<Method name="Search">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set query = %request.Get("query", "")
-	set pageNumber = %request.Get("pageNumber", "1")
-	set pageSize = %request.Get("pageSize", "25")
-	
-	set spellcheck = %request.Get("spellcheck", 0)
-	set exactMatch = %request.Get("exactMatch", 0) // ignore spellchecking result
-	
-	try {
-    	do ##class(REST.Search.SearchEngine).SearchPages(query, spellcheck, exactMatch, pageNumber, pageSize)
-	} catch err {
-    	write err.AsSystemError()
-    }
-		
-	quit $$$OK
-]]></Implementation>
-</Method>
-
-<Method name="Suggest">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set query = %request.Get("query", "")
-	set count = %request.Get("count", "10")
-	set spellcheck = %request.Get("spellcheck", 0)
-	
-	try {
-    	do ##class(REST.Suggestion.SuggestionEngine).SuggestRecipes(query, count, spellcheck)
-	} catch err {
-    	write err.AsSystemError()
-    }
-		
-	quit $$$OK
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Project name="RecipesSearch" LastModified="2015-04-01 21:10:31.228431">
-  <Items>
-    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
-    <ProjectItem name="Data" type="PKG"></ProjectItem>
-    <ProjectItem name="Logging" type="PKG"></ProjectItem>
-    <ProjectItem name="REST.PredicateBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.Search.SearchEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.Search.SearchResult" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.iKnow" type="CLS"></ProjectItem>
-    <ProjectItem name="iKnow.Spellchecker" type="CLS"></ProjectItem>
-    <ProjectItem name="iKnow.StringAnalyzer" type="CLS"></ProjectItem>
-  </Items>
-</Project>
-
-
 <Class name="iKnow.Spellchecker">
 <Super>%RegisteredObject</Super>
 <TimeChanged>63643,1911.20081</TimeChanged>
@@ -1689,6 +1396,307 @@ GROUP BY SiteId</SqlQuery>
     set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
 	set words = stemmer.StemWord(text)
 	return $LISTFROMSTRING(words, " ")
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="Logging.LogRecord">
+<Super>%Persistent</Super>
+<TimeChanged>63611,46480.868979</TimeChanged>
+<TimeCreated>63611,44722.841798</TimeCreated>
+
+<Property name="Type">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="Description">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="Exception">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Property name="CreatedDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Logging.LogRecordD</DataLocation>
+<DefaultData>LogRecordDefaultData</DefaultData>
+<IdLocation>^Logging.LogRecordD</IdLocation>
+<IndexLocation>^Logging.LogRecordI</IndexLocation>
+<StreamLocation>^Logging.LogRecordS</StreamLocation>
+<Data name="LogRecordDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>MaxPagesToCrawl</Value>
+</Value>
+<Value name="3">
+<Value>Description</Value>
+</Value>
+<Value name="4">
+<Value>Exception</Value>
+</Value>
+<Value name="5">
+<Value>CreatedDate</Value>
+</Value>
+<Value name="6">
+<Value>Type</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Package name="Logging" sqlname="Logging"/>
+
+
+<Project name="RecipesSearch" LastModified="2015-05-01 13:33:59.009851">
+  <Items>
+    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
+    <ProjectItem name="Data" type="PKG"></ProjectItem>
+    <ProjectItem name="Logging" type="PKG"></ProjectItem>
+    <ProjectItem name="REST.PredicateBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="REST.Search.SearchEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="REST.Search.SearchResult" type="CLS"></ProjectItem>
+    <ProjectItem name="REST.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="REST.iKnow" type="CLS"></ProjectItem>
+    <ProjectItem name="iKnow.Spellchecker" type="CLS"></ProjectItem>
+    <ProjectItem name="iKnow.StringAnalyzer" type="CLS"></ProjectItem>
+  </Items>
+</Project>
+
+
+<Class name="REST.iKnow">
+<Super>%CSP.REST</Super>
+<TimeChanged>63650,75424.795654</TimeChanged>
+<TimeCreated>63584,64787.957361</TimeCreated>
+
+<XData name="UrlMap">
+<Data><![CDATA[
+<Routes>
+ <Route Url="/doSearch" Method="GET" Call="Search"/>
+ <Route Url="/suggest" Method="GET" Call="Suggest"/>
+ </Routes>
+]]></Data>
+</XData>
+
+<Method name="Search">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set query = %request.Get("query", "")
+	set pageNumber = %request.Get("pageNumber", "1")
+	set pageSize = %request.Get("pageSize", "25")
+	
+	set spellcheck = %request.Get("spellcheck", 0)
+	set exactMatch = %request.Get("exactMatch", 0) // ignore spellchecking result
+	
+	try {
+    	do ##class(REST.Search.SearchEngine).SearchPages(query, spellcheck, exactMatch, pageNumber, pageSize)
+	} catch err {
+    	write err.AsSystemError()
+    }
+		
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Suggest">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set query = %request.Get("query", "")
+	set count = %request.Get("count", "10")
+	set spellcheck = %request.Get("spellcheck", 0)
+	
+	try {
+    	do ##class(REST.Suggestion.SuggestionEngine).SuggestRecipes(query, count, spellcheck)
+	} catch err {
+    	write err.AsSystemError()
+    }
+		
+	quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="REST.PredicateBuilder">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63640,44416.350546</TimeChanged>
+<TimeCreated>63640,44416.350546</TimeCreated>
+
+<Method name="BuildPredicate">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String</FormalSpec>
+<Implementation><![CDATA[
+	
+	set queryParts = ##class(iKnow.StringAnalyzer).GetEntitiesInText(query)
+	
+	set predicate = ""
+	set i = 1
+	set listLength = $LISTLENGTH(queryParts)
+	while (i <= listLength){
+		
+		if i '= 1{
+			set predicate = predicate_" AND "
+		}
+		
+		set predicate = predicate_"(Keywords [ '"_$LIST(queryParts, i)_"')"
+		
+		set i = i + 1
+	}
+	
+	return predicate
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="REST.Search.SearchEngine">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63643,73454.613773</TimeChanged>
+<TimeCreated>63598,70157.596857</TimeCreated>
+
+<Method name="SearchPages">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
+<Implementation><![CDATA[
+	set sqlQuery = "SELECT %NOLOCK Description,Ingredients,RecipeInstructions,AdditionalData,Keywords,SiteId,URL,RecipeName,CreatedDate, ModifiedDate"
+	_" FROM Data.SitePage"
+	
+	if spellcheck {
+		set spellcheckedQuery = ##class(iKnow.Spellchecker).SpellcheckText(query)
+		
+		if 'exactMatch{
+			set query = spellcheckedQuery
+		}
+	}
+	
+	set predicate = ##class(REST.PredicateBuilder).BuildPredicate(query)
+	
+	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"	
+		
+	set result = ##class(%Library.ResultSet).%New() 
+	set tSC = result.Prepare(sqlQuery) 
+    set tSC = result.Execute()
+     
+    set searchResult = ##class(REST.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
+	
+	if spellcheck{
+		set searchResult.SpellcheckedQuery = spellcheckedQuery
+	}
+		
+	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(searchResult)
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="REST.Search.SearchResult">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63643,73143.876432</TimeChanged>
+<TimeCreated>63627,74813.171587</TimeCreated>
+
+<Property name="Items">
+<Type>Data.SitePage</Type>
+<Collection>list</Collection>
+</Property>
+
+<Property name="TotalCount">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="PageNumber">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="SpellcheckedQuery">
+<Type>%String</Type>
+</Property>
+
+<Method name="PopulateFromResultSet">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>result:%Library.ResultSet,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
+<ReturnType>%Library.ResultSet</ReturnType>
+<Implementation><![CDATA[
+	
+	// TODO: make it more performant
+	set startIndex = (pageNumber - 1) * pageSize + 1
+	
+	set searchResults = ##class(REST.Search.SearchResult).%New()
+	set searchResults.Items = ##class(%ListOfObjects).%New()
+	
+	set count = 0
+    while (result.Next()) 
+    { 
+    	set count = count + 1 
+		continue:(count < startIndex) 
+        
+        if (count >= (startIndex + pageSize)) 
+        {  
+			continue
+        } 
+        
+        set sitePage = ##class(Data.SitePage).%New() 
+        set sitePage.Description = result.Data("Description") 
+        set sitePage.Ingredients = result.Data("Ingredients") 
+        set sitePage.RecipeInstructions = result.Data("RecipeInstructions")
+        set sitePage.AdditionalData = result.Data("AdditionalData") 
+        set sitePage.SiteId = result.Data("SiteId") 
+        set sitePage.URL = result.Data("URL") 
+        set sitePage.Keywords = result.Data("Keywords") 
+        set sitePage.ModifiedDate = result.Data("ModifiedDate") 
+        set sitePage.CreatedDate = result.Data("CreatedDate") 
+        set sitePage.RecipeName = result.Data("RecipeName") 
+        
+        set tSC = searchResults.Items.Insert(sitePage) 
+        
+	}
+    
+   	set searchResults.PageNumber = pageNumber
+	set searchResults.TotalCount = count
+	
+	return searchResults
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="REST.Suggestion.SuggestionEngine">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63650,75408.572589</TimeChanged>
+<TimeCreated>63640,44078.352651</TimeCreated>
+
+<Method name="SuggestRecipes">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String,count:%Integer,spellcheck:%Boolean</FormalSpec>
+<Implementation><![CDATA[
+	set sqlQuery = "SELECT %NOLOCK TOP "_count_" Keywords,SiteId,URL,RecipeName FROM Data.SitePage"
+	
+	if spellcheck {
+		set query = ##class(iKnow.Spellchecker).SpellcheckText(query)
+	}
+	
+	set predicate = ##class(REST.PredicateBuilder).BuildPredicate(query)
+	
+	if predicate = ""{
+		set predicate = "(1 = 0)"
+	}
+	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"
+	
+	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
 ]]></Implementation>
 </Method>
 </Class>
