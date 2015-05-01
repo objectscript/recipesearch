@@ -26,18 +26,18 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public List<SearchResultItemViewModel> SimilarResults { get; set; } 
 
-        public SearchResultItemViewModel(SitePage enity)
+        public SearchResultItemViewModel(SitePage entity)
         {
-            URL = enity.URL;
-            Description = enity.Description;
-            Ingredients = enity.Ingredients;
-            RecipeInstructions = enity.RecipeInstructions;
-            AdditionalData = enity.AdditionalData;
-            Name = String.IsNullOrEmpty(enity.RecipeName) ? enity.URL : enity.RecipeName;
+            URL = entity.URL;
+            Description = entity.Description;
+            Ingredients = entity.Ingredients;
+            RecipeInstructions = entity.RecipeInstructions;
+            AdditionalData = entity.AdditionalData;
+            Name = String.IsNullOrEmpty(entity.RecipeName) ? entity.URL : entity.RecipeName;
 
-            if (enity.SimilarResults != null)
+            if (entity.SimilarResults != null)
             {
-                SimilarResults = enity.SimilarResults.Select(sitePage => new SearchResultItemViewModel(sitePage)).ToList();
+                SimilarResults = entity.SimilarResults.Select(sitePage => new SearchResultItemViewModel(sitePage)).ToList();
             }           
         }
     }

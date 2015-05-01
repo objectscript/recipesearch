@@ -129,6 +129,11 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
                 for (int j = 0; j < pages.Length; ++j)
                 {
+                    if (i == j)
+                    {
+                        continue;
+                    }
+
                     var dist = FindDistance(pages[i].WordsTfIdf, pages[j].WordsTfIdf, maxDist);
                     if (dist > maxDist)
                     {
