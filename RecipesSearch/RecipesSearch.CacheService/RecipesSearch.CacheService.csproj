@@ -49,6 +49,7 @@
     <Compile Include="Models\SuggestionResponse.cs" />
     <Compile Include="Models\SearchResponse.cs" />
     <Compile Include="Services\CacheServiceBase.cs" />
+    <Compile Include="Services\TfIdfService.cs" />
     <Compile Include="Services\SuggestionService.cs" />
     <Compile Include="Services\SearchService.cs" />
     <Compile Include="Utils\RestHelper.cs" />

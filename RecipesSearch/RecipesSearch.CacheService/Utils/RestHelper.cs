@@ -76,7 +76,7 @@ namespace RecipesSearch.CacheService.Utils
 
         private static string BuildParameters(Dictionary<string, string> parameters)
         {
-            if (parameters.Count == 0)
+            if (parameters == null || parameters.Count == 0)
             {
                 return String.Empty;
             }

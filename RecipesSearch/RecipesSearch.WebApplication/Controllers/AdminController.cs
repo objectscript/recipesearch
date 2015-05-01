@@ -270,11 +270,16 @@ namespace RecipesSearch.WebApplication.Controllers
             ViewBag.AdminPage = AdminPages.Tasks;
 
             var similarResultsBuilder = SimilarResultsBuilder.GetSimilarResultsBuilder();
+            var tfIdfBuilder = TfIdfBuilder.GetTfIdfBuilder();
+            var pageStatsRepository = new PageStatsRepository();
 
             return View(new TasksViewModel
             {
                 NearestsResultsUpdatingInProgress = similarResultsBuilder.UpdateInProgress,
-                NearestsResultsUpdatedCount = similarResultsBuilder.UpdatedPagesCount
+                NearestsResultsUpdatedCount = similarResultsBuilder.UpdatedPagesCount,
+                TfIdfUpdatingInProgress = tfIdfBuilder.UpdateInProgress,
+                EmptyNearestResultsCount = pageStatsRepository.GetNearestResultsStatistic(),
+                EmptyTfIdfCount = pageStatsRepository.GetTfIdfStatistic()
             });
         }
 
@@ -292,6 +297,15 @@ namespace RecipesSearch.WebApplication.Controllers
         {
             var similarResultsBuilder = SimilarResultsBuilder.GetSimilarResultsBuilder();
             similarResultsBuilder.StopUpdating();
+
+            return RedirectToAction("Tasks");
+        }
+
+        [HttpPost]
+        public ActionResult StartTfIdfUpdating()
+        {
+            var tfIdfBuilder = TfIdfBuilder.GetTfIdfBuilder();
+            tfIdfBuilder.BuildTfIdf();
 
             return RedirectToAction("Tasks");
         }

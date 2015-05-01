@@ -184,6 +184,11 @@ form.post-button {
 .admin .control-panel .queue .list-group-item {
     padding: 6px 15px
 }
+.admin .control-panel .page-stat {
+    margin-top: -18px;
+    display: block;
+    font-size: 12px;
+}
 
 /* Crawling history */
 .admin .crawling-history .table th {

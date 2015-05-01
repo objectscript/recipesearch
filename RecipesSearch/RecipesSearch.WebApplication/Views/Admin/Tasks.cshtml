@@ -5,18 +5,38 @@
 @model TasksViewModel
 
 <div class="row">
-    <div class="col-md-5 control-panel">
+    <div class="col-md-6 control-panel">
+
+        @if (Model.TfIdfUpdatingInProgress)
+        {
+            <div class="alert alert-success" role="alert">Tf/Idf update in progress.</div>
+            <label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
+        }
+        else
+        {
+            <div class="alert alert-warning" role="alert">Tf/Idf update idle</div>
+            <label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
+            @Html.Partial("_PostButton", new PostButtonModel
+            {
+                Action = "StartTfIdfUpdating",
+                Controller = "Admin",
+                ButtonClass = "btn-link",
+                Text = "Update tf/idf"
+            })
+        }
+    </div>
+    <div class="col-md-6 control-panel">
         @if (Model.NearestsResultsUpdatingInProgress)
         {
             if (@Model.NearestsResultsUpdatedCount == -1)
             {
-                <div class="alert alert-success" role="alert">Nearest results updating in progress. Fetching data.</div>
+                <div class="alert alert-success" role="alert">Nearest results update in progress. Fetching data.</div>
             }
             else
             {
-                <div class="alert alert-success" role="alert">Nearest results updating in progress. Updated pages: @Model.NearestsResultsUpdatedCount</div>
+                <div class="alert alert-success" role="alert">Nearest results update in progress. Updated pages: @Model.NearestsResultsUpdatedCount</div>
             }
-
+            <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount</label>
             @Html.Partial("_PostButton", new PostButtonModel
             {
                 Action = "StopNearestResultsUpdating",
@@ -27,7 +47,8 @@
         }
         else
         {
-            <div class="alert alert-warning" role="alert">Nearest results updating idle</div>
+            <div class="alert alert-warning" role="alert">Nearest results update idle</div>
+            <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount</label>
             @Html.Partial("_PostButton", new PostButtonModel
             {
                 Action = "StartNearestResultsUpdating",

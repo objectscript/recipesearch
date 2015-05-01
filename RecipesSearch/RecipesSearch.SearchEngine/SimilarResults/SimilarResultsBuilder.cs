@@ -15,11 +15,16 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 {
     public class SimilarResultsBuilder
     {
-        public int UpdatedPagesCount;
+        public int UpdatedPagesCount
+        {
+            get { return _updatedPagesCount; }
+        }
 
-        public bool UpdateInProgress { get; set; }
+        public bool UpdateInProgress { get; private set; }
 
         private static SimilarResultsBuilder _instance;
+
+        private int _updatedPagesCount;
 
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -43,13 +48,13 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             {
                 try
                 {
-                    UpdatedPagesCount = -1;
+                    _updatedPagesCount = -1;
                     UpdateInProgress = true;
                     _cancellationTokenSource = new CancellationTokenSource();
 
                     var tfIdfInfos = GetTfIdfInfos();
 
-                    UpdatedPagesCount = 0;
+                    _updatedPagesCount = 0;
 
                     GetKNearest(tfIdfInfos, 10);
 
@@ -58,6 +63,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 catch (Exception exception)
                 {
                     Logger.LogError(String.Format("SimilarResultsBuilder.FindNearestResults failed"), exception);
+                    UpdateInProgress = false;
                 }               
             }, TaskCreationOptions.AttachedToParent);
         }
@@ -146,7 +152,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 cacheAdapter.UpdateSimilarResults(pages[i].Id, dists
                     .Select(item => item.Item2));
 
-                Interlocked.Increment(ref UpdatedPagesCount);
+                Interlocked.Increment(ref _updatedPagesCount);
             });
 
             cacheAdapter.Dispose();

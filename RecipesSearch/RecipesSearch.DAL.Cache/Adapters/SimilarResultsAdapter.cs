@@ -39,5 +39,26 @@ namespace RecipesSearch.DAL.Cache.Adapters
 
             return command.ExecuteNonQuery() != 0;
         }
+
+
+        public int GetTfIdfStatistic()
+        {
+            var command = new CacheCommand(GetFullProcedureName("SitePage_GetTFIDFStatistic"), CacheConnection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            var result = command.ExecuteScalar();
+
+            return (int)result;
+        }
+
+        public int GetNearestResultsStatistic()
+        {
+            var command = new CacheCommand(GetFullProcedureName("SitePage_GetNearestResultsStatistic"), CacheConnection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            var result = command.ExecuteScalar();
+
+            return (int)result;
+        }
     }
 }

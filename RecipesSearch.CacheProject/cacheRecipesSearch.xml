@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-01 18:06:30">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-01 18:57:47">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -794,7 +794,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63673,61785.260947</TimeChanged>
+<TimeChanged>63673,66817.31973</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -975,6 +975,24 @@ GROUP BY SiteId</SqlQuery>
 ]]></Implementation>
 </Method>
 
+<Query name="GetTFIDFStatistic">
+<Type>%SQLQuery</Type>
+<SqlName>SitePage_GetTFIDFStatistic</SqlName>
+<SqlProc>1</SqlProc>
+<SqlQuery>	SELECT COUNT(*) AS EmptyTfIdf from data.SitePage WHERE WordsTfIdf IS NULL OR WordsTfIdf = ''</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+<Parameter name="SELECTMODE" value="RUNTIME"/>
+</Query>
+
+<Query name="GetNearestResultsStatistic">
+<Type>%SQLQuery</Type>
+<SqlName>SitePage_GetNearestResultsStatistic</SqlName>
+<SqlProc>1</SqlProc>
+<SqlQuery>	SELECT COUNT(*) AS EmptyNearestResults from data.SitePage WHERE NearestResults IS NULL OR NearestResults = ''</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+<Parameter name="SELECTMODE" value="RUNTIME"/>
+</Query>
+
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
 <DataLocation>^Data.SitePageD</DataLocation>
@@ -1083,7 +1101,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63654,51986.804836</TimeChanged>
+<TimeChanged>63673,65968.507143</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1134,6 +1152,29 @@ GROUP BY SiteId</SqlQuery>
 	kill ^SpellcheckDict
 	do ##class(Data.Utils.SpellcheckDictionaryCreator).LoadSpellcheckDictionaryFromFile(directory_"\spellcheck.txt")
 	do ##class(Data.Utils.SpellcheckDictionaryCreator).CreateSpellcheckDictionaryFromDB()
+	do ##class(Data.Utils.Seed).ReadRecipesDictionaryToGlobal(directory_"\dictionary.txt")
+]]></Implementation>
+</Method>
+
+<Method name="ReadRecipesDictionaryToGlobal">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<Implementation><![CDATA[
+	kill ^allDict
+	
+	close filename
+	open filename:("RK\CP1251\"):5 if '$test { return 0 }
+	
+	use filename	   
+    read stringnum
+	
+	for i=1:1:stringnum {
+		read word
+		set ^allDict(word) = 1
+	}
+	
+	close filename
+	quit 1
 ]]></Implementation>
 </Method>
 </Class>
@@ -1460,7 +1501,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.iKnow">
 <Super>%CSP.REST</Super>
-<TimeChanged>63650,75424.795654</TimeChanged>
+<TimeChanged>63673,66242.153221</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
 
 <XData name="UrlMap">
@@ -1468,6 +1509,7 @@ GROUP BY SiteId</SqlQuery>
 <Routes>
  <Route Url="/doSearch" Method="GET" Call="Search"/>
  <Route Url="/suggest" Method="GET" Call="Suggest"/>
+ <Route Url="/updateTfIdf" Method="POST" Call="UpdateTfIdf"/>
  </Routes>
 ]]></Data>
 </XData>
@@ -1510,10 +1552,25 @@ GROUP BY SiteId</SqlQuery>
 	quit $$$OK
 ]]></Implementation>
 </Method>
+
+<Method name="UpdateTfIdf">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	try {
+    	do ##class(iKnow.PageAnalyzer).CountTfIdf()
+	} catch err {
+    	write err.AsSystemError()
+    }
+		
+	quit $$$OK
+]]></Implementation>
+</Method>
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-01 18:06:30.278454">
+<Project name="RecipesSearch" LastModified="2015-05-01 18:16:08.501778">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="Data" type="PKG"></ProjectItem>
@@ -1525,8 +1582,114 @@ GROUP BY SiteId</SqlQuery>
     <ProjectItem name="REST.iKnow" type="CLS"></ProjectItem>
     <ProjectItem name="iKnow.Spellchecker" type="CLS"></ProjectItem>
     <ProjectItem name="iKnow.StringAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="iKnow.PageAnalyzer" type="CLS"></ProjectItem>
   </Items>
 </Project>
+
+
+<Class name="iKnow.PageAnalyzer">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63673,65756.516909</TimeChanged>
+<TimeCreated>63673,65442.338382</TimeCreated>
+
+<Method name="AddWordsToGlobal">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>words:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set wordsStemmed = ##class(iKnow.StringAnalyzer).StemText(words)
+	set wordList = $LISTFROMSTRING(wordsStemmed, " ")
+	for i=1:1:$listlength(wordList) {
+		set curWord = $list(wordList,i)
+		set inDictionary = $GET(^allDict(curWord))
+		if inDictionary '= "" {
+			set curFrequency = $GET(^tempWords(curWord))
+			if curFrequency '= "" {
+				set ^tempWords(curWord) = curFrequency + 1
+			} else {
+				set ^tempWords(curWord) = 1
+			}
+		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="CountTfIdf">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	kill ^documentFrequency
+	kill ^tempWords
+	kill ^tf
+	kill ^maxtf
+	#sqlcompile SELECT = odbc
+	&sql(declare byalldata cursor for
+	      select ID,Keywords, RecipeName, Ingredients, RecipeInstructions
+          from Data.SitePage)
+    &sql(open byalldata)
+    set numberOfDocuments = 0
+    for {
+	   &sql(fetch byalldata into :curID,:Keywords,:RecipeName,:Ingredients,:RecipeInstructions)
+	   quit:(SQLCODE '= 0)
+	   set numberOfDocuments = numberOfDocuments + 1 
+	   do ##class(iKnow.PageAnalyzer).AddWordsToGlobal(Keywords)
+	   do ##class(iKnow.PageAnalyzer).AddWordsToGlobal(RecipeName)
+	   do ##class(iKnow.PageAnalyzer).AddWordsToGlobal(Ingredients)
+	   do ##class(iKnow.PageAnalyzer).AddWordsToGlobal(RecipeInstructions)
+
+	   set termFrequency = ""
+	   set maxFrequency = 0
+	   set key = $Order(^tempWords(""))
+	   while key '= "" {
+		   set curFrequency = $GET(^tempWords(key))
+		   set allFrequency = $GET(^documentFrequency(key))
+		   if allFrequency = "" {
+			   set ^documentFrequency(key) = 1
+		   } else {
+			   set ^documentFrequency(key) = allFrequency + 1
+		   }
+		   if curFrequency > maxFrequency {
+			   set maxFrequency = curFrequency
+		   }
+		   set termFrequency = termFrequency_key_","_curFrequency_" "
+		   set key = $Order(^tempWords(key))
+	   }
+	   set ^tf(curID) = termFrequency
+	   set ^maxtf(curID) = maxFrequency
+	   kill ^tempWords
+	   
+	   // &sql(update data.SitePage set AdvancedKeywords = :enhancedKeywords where ID = :ID)
+    }
+    &sql(close byalldata)
+    
+    &sql(declare byURL cursor for
+	      select ID,URL
+	      from Data.SitePage)
+    &sql(open byURL)
+    for {
+	   &sql(fetch byURL into :curID,:curURL)
+	   quit:(SQLCODE '= 0)
+	   set termFrequency = $GET(^tf(curID))
+	   set maxFrequency = $GET(^maxtf(curID))
+	   set frequencyList = $LISTFROMSTRING(termFrequency, " ")
+	   set documentTfIdf = ""
+	   for i=1:1:$listlength(frequencyList)-1 {
+		   set curGroup = $list(frequencyList,i)
+		   set curWord = $PIECE(curGroup, ",", 1)
+		   set curFrequency = $PIECE(curGroup, ",", 2)
+		   set curDocumentFrequency = ^documentFrequency(curWord)
+		   set curIdf = $ZLN(numberOfDocuments / curDocumentFrequency)
+		   set curTf = (0.5 * curFrequency / maxFrequency) + 0.5
+		   set curTfIdf = curTf * curIdf
+		   set documentTfIdf = documentTfIdf_curWord_","_curTfIdf_" "
+	   }
+	   &sql(update data.SitePage set WordsTfIdf = :documentTfIdf where ID = :curID)
+    }
+    &sql(close byURL)
+]]></Implementation>
+</Method>
+</Class>
 
 
 <Class name="iKnow.Spellchecker">
@@ -1714,7 +1877,7 @@ GROUP BY SiteId</SqlQuery>
 
 
 <Class name="iKnow.StringAnalyzer">
-<TimeChanged>63640,43712.942679</TimeChanged>
+<TimeChanged>63673,65740.206813</TimeChanged>
 <TimeCreated>63610,80153.007685</TimeCreated>
 
 <Method name="GetEntitiesInText">
@@ -1722,9 +1885,18 @@ GROUP BY SiteId</SqlQuery>
 <FormalSpec>text:%String</FormalSpec>
 <ReturnType>%Library.List</ReturnType>
 <Implementation><![CDATA[
-    set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
-	set words = stemmer.StemWord(text)
+	set words = ##class(iKnow.StringAnalyzer).StemText(text) 
 	return $LISTFROMSTRING(words, " ")
+]]></Implementation>
+</Method>
+
+<Method name="StemText">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
+	return stemmer.StemWord(text)
 ]]></Implementation>
 </Method>
 </Class>
