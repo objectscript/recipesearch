@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-04-12 18:29:55">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-05-01 13:30:05">
 <Class name="Experimental.PageAnalyzer">
 <Super>%Persistent</Super>
-<TimeChanged>63654,66543.487326</TimeChanged>
+<TimeChanged>63673,47214.714632</TimeChanged>
 <TimeCreated>63612,49594.660203</TimeCreated>
 
 <Method name="GetAllEntities">
@@ -79,6 +79,304 @@
 ]]></Implementation>
 </Method>
 
+<Method name="GetAllEntitiesFromSQL">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	#sqlcompile SELECT = odbc
+	set dname = "RecipesDomain"
+    if (##class(%iKnow.Domain).Exists(dname)) {
+	   set domoref=##class(%iKnow.Domain).Open(dname)
+	   set stat=domoref.DropData()
+	   if 'stat {
+		   write "DropData error ",$System.Status.DisplayError(stat)
+		   quit
+	   } 
+    } else { 
+	   set domoref=##class(%iKnow.Domain).%New(dname)
+	   do domoref.%Save()
+	}
+        
+	set domId=domoref.Id
+	if ##class(%iKnow.Configuration).Exists("RecipesConfig") {
+       set cfg=##class(%iKnow.Configuration).Open("RecipesConfig")
+    } else {
+	   set cfg=##class(%iKnow.Configuration).%New("RecipesConfig",0,$LISTBUILD("ru"),"",1)
+	   do cfg.%Save()
+	}
+    set processor = "%iKnow.Source.Temp.Processor"
+    set pparams = $LB("CP1251") 
+    set flister = ##class(%iKnow.Source.SQL.Lister).%New(domId)
+    do flister.Init("RecipesConfig", processor, pparams)
+    set myloader=##class(%iKnow.Source.Loader).%New(domId)
+    
+    set myquery = "SELECT ID,SiteId,RecipeName,Ingredients,RecipeInstructions FROM Data.SitePage"
+    set idfld = "ID"
+    set grpfld = "SiteId"
+    set dataflds = $LB("RecipeName","Ingredients","RecipeInstructions")
+    set metaflds = $LB("SiteId")
+    set metakeys = $LB("SiteId")
+    
+    set stat=flister.AddListToBatch(myquery,idfld,grpfld,dataflds,metaflds,metakeys,0)
+    if stat '= 1 {
+	    write "The lister failed: ", $System.Status.DisplayError(stat)
+	    quit
+    }
+    
+    set stat=myloader.ProcessBatch()
+    if stat '= 1 {
+	    write "The loader failed: ", $System.Status.DisplayError(stat)
+	    quit
+    }
+    
+    do ##class(%iKnow.Queries.EntityAPI).GetTop(.result,domId,1,30000)
+    
+    set fileOutput=##class(%File).%New("C:\temp\Dictionary\dict.txt")
+    do fileOutput.Open("WSN")
+      		 
+  	set i=1
+  	while $data(result(i)) {
+	   do fileOutput.WriteLine($listtostring(result(i),",",1))
+       set i = i + 1
+    }
+    do fileOutput.Close()
+
+    return stat
+]]></Implementation>
+</Method>
+
+<Method name="ReadDictToGlobal">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	kill ^frequentWordsNew
+	set fileInput=##class(%File).%New("C:\temp\Dictionary\dict.txt")
+    do fileInput.Open("RS")
+    set string = fileInput.ReadLine()
+    while string '= "" {
+	    set wordGroup = $PIECE(string,",",2)
+	    set frequency = $PIECE(string,",",3)
+	    set cnt = 1
+	    set curWord = $PIECE(wordGroup," ",cnt)
+	    while curWord '= "" {
+		    set stemmedWord = ##class(Experimental.TextAnalyzer).StemText(curWord)
+		    if stemmedWord '= "" {
+			    set inDict = $GET(^allDict(stemmedWord))
+			    if inDict '= "" {
+				    set cur = $GET(^frequentWordsNew(stemmedWord))
+				    if cur = "" {
+					    set ^frequentWordsNew(stemmedWord) = frequency
+					} else {
+						set ^frequentWordsNew(stemmedWord) = cur + frequency
+					}
+				}
+		    }
+		    set cnt = cnt + 1
+		    set curWord = $PIECE(wordGroup," ",cnt)
+	    }
+	    set string = fileInput.ReadLine()
+    }
+    
+    do fileInput.Close()
+]]></Implementation>
+</Method>
+
+<Method name="ReadAllDictionariesToGlobal">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	kill ^allDict
+	set fileInput=##class(%File).%New("C:\Users\Aleks\Desktop\recipesearch\recipesearch\RecipesSearch.CacheProject\Dictionaries\allDictionaries.txt")
+    do fileInput.Open("RS")
+    set string = fileInput.ReadLine()
+    while string '= "" {
+	    set stemmedString = ##class(Experimental.TextAnalyzer).StemText(string)
+	    if stemmedString '= "" {
+		    set index = 1
+		    set piece = $PIECE(stemmedString," ",index)
+		    while piece '= "" {
+			    set ^allDict(piece) = 1
+			    set index = index + 1
+			    set piece = $PIECE(stemmedString," ",index)
+		    }
+	    }
+	    set string = fileInput.ReadLine()
+    }
+    do fileInput.Close()
+]]></Implementation>
+</Method>
+
+<Method name="AddWordsToGlobal">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>words:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set wordsStemmed = ##class(Experimental.TextAnalyzer).StemText(words)
+	set wordList = $LISTFROMSTRING(wordsStemmed, " ")
+	for i=1:1:$listlength(wordList) {
+		set curWord = $list(wordList,i)
+		set inDictionary = $GET(^allDict(curWord))
+		if inDictionary '= "" {
+			set curFrequency = $GET(^tempWords(curWord))
+			if curFrequency '= "" {
+				set ^tempWords(curWord) = curFrequency + 1
+			} else {
+				set ^tempWords(curWord) = 1
+			}
+		}
+	}
+]]></Implementation>
+</Method>
+
+<Method name="CountTfIdf">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	kill ^documentFrequency
+	kill ^tempWords
+	kill ^tf
+	kill ^maxtf
+	#sqlcompile SELECT = odbc
+	&sql(declare byalldata cursor for
+	      select ID,Keywords, RecipeName, Ingredients, RecipeInstructions
+          from Data.SitePage)
+    &sql(open byalldata)
+    set numberOfDocuments = 0
+    for {
+	   &sql(fetch byalldata into :curID,:Keywords,:RecipeName,:Ingredients,:RecipeInstructions)
+	   quit:(SQLCODE '= 0)
+	   set numberOfDocuments = numberOfDocuments + 1 
+	   do ##class(Experimental.PageAnalyzer).AddWordsToGlobal(Keywords)
+	   do ##class(Experimental.PageAnalyzer).AddWordsToGlobal(RecipeName)
+	   do ##class(Experimental.PageAnalyzer).AddWordsToGlobal(Ingredients)
+	   do ##class(Experimental.PageAnalyzer).AddWordsToGlobal(RecipeInstructions)
+
+	   set termFrequency = ""
+	   set maxFrequency = 0
+	   set key = $Order(^tempWords(""))
+	   while key '= "" {
+		   set curFrequency = $GET(^tempWords(key))
+		   set allFrequency = $GET(^documentFrequency(key))
+		   if allFrequency = "" {
+			   set ^documentFrequency(key) = 1
+		   } else {
+			   set ^documentFrequency(key) = allFrequency + 1
+		   }
+		   if curFrequency > maxFrequency {
+			   set maxFrequency = curFrequency
+		   }
+		   set termFrequency = termFrequency_key_","_curFrequency_" "
+		   set key = $Order(^tempWords(key))
+	   }
+	   set ^tf(curID) = termFrequency
+	   set ^maxtf(curID) = maxFrequency
+	   kill ^tempWords
+	   
+	   // &sql(update data.SitePage set AdvancedKeywords = :enhancedKeywords where ID = :ID)
+    }
+    &sql(close byalldata)
+    
+    &sql(declare byURL cursor for
+	      select ID,URL
+	      from Data.SitePage)
+    &sql(open byURL)
+    for {
+	   &sql(fetch byURL into :curID,:curURL)
+	   quit:(SQLCODE '= 0)
+	   set termFrequency = $GET(^tf(curID))
+	   set maxFrequency = $GET(^maxtf(curID))
+	   set frequencyList = $LISTFROMSTRING(termFrequency, " ")
+	   set documentTfIdf = ""
+	   for i=1:1:$listlength(frequencyList)-1 {
+		   set curGroup = $list(frequencyList,i)
+		   set curWord = $PIECE(curGroup, ",", 1)
+		   set curFrequency = $PIECE(curGroup, ",", 2)
+		   set curDocumentFrequency = ^documentFrequency(curWord)
+		   set curIdf = $ZLN(numberOfDocuments / curDocumentFrequency)
+		   set curTf = (0.5 * curFrequency / maxFrequency) + 0.5
+		   set curTfIdf = curTf * curIdf
+		   set documentTfIdf = documentTfIdf_curWord_","_curTfIdf_" "
+	   }
+	   &sql(update data.SitePage set WordsTfIdf = :documentTfIdf where ID = :curID)
+    }
+    &sql(close byURL)
+]]></Implementation>
+</Method>
+
+<Method name="FindKNearest">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>id:%Numeric,K:%Numeric</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	kill ^tfIdfTemp
+	kill ^tfIdfOne
+	kill ^dist
+	set tfIdf = ""
+	&sql(declare byIdTfIdf cursor for
+	      select WordsTfIdf from Data.SitePage where ID = :id)
+	
+    &sql(open byIdTfIdf)
+    for {
+	   &sql(fetch byIdTfIdf into :myWordsTfIdf)
+	   quit:(SQLCODE '= 0)
+	   set tfIdf = myWordsTfIdf
+    }
+    &sql(close byIdTfIdf)
+    
+    set tfIdfListOne = $LISTFROMSTRING(tfIdf, " ")
+    for i=1:1:$listlength(tfIdfListOne)-1 {
+	    set curGroupOne = $list(tfIdfListOne,i)
+	    set curWordOne = $PIECE(curGroupOne, ",", 1)
+	    set curTfIdfOne = $PIECE(curGroupOne, ",", 2)
+	    set ^tfIdfOne(curWordOne) = curTfIdfOne
+	}
+    
+	&sql(declare byTfIdfAll cursor for
+	      select ID,WordsTfIdf from Data.SitePage)
+    &sql(open byTfIdfAll)
+    for {
+	   &sql(fetch byTfIdfAll into :ID,:WordsTfIdf)
+	   quit:(SQLCODE '= 0)
+	   set key = $Order(^tfIdfOne(""))
+	   while key '= "" {
+		   set ^tfIdfTemp(key) = $GET(^tfIdfOne(key))
+		   set key = $Order(^tfIdfOne(key))
+	   }
+	   set tfIdfListTwo = $LISTFROMSTRING(WordsTfIdf, " ")
+	   for i=1:1:$listlength(tfIdfListTwo)-1 {
+		   set curGroupTwo = $list(tfIdfListTwo,i)
+		   set curWordTwo = $PIECE(curGroupTwo, ",", 1)
+		   set curTfIdfTwo = $PIECE(curGroupTwo, ",", 2)
+		   set wasTfIdf = $GET(^tfIdfTemp(curWordTwo))
+		   if wasTfIdf = "" {
+			   set ^tfIdfTemp(curWordTwo) = curTfIdfTwo
+		   } else {
+			   set ^tfIdfTemp(curWordTwo) = wasTfIdf - curTfIdfTwo
+		   }
+	   }
+	   set distance = 0
+	   set key = $Order(^tfIdfTemp(""))
+	   while key '= "" {
+		   set TfIdfDiff = $GET(^tfIdfTemp(key))
+		   set distance = distance + (TfIdfDiff * TfIdfDiff)
+		   set key = $Order(^tfIdfTemp(key))
+	   }
+	   set ^dist($ZSQR(distance)) = ID
+	   kill ^tfIdfTemp
+    }
+    &sql(close byTfIdfAll)
+    
+    set result = ""
+    set key = $Order(^dist(""))
+    for i=1:1:K {
+	    quit:(key = "")
+	    set result = result_^dist(key)_","_key_" "
+	    set key = $Order(^dist(key))
+	}
+	kill ^dist
+	return result
+]]></Implementation>
+</Method>
+
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
 <DataLocation>^Experimental.PageAnalyzerD</DataLocation>
@@ -95,7 +393,7 @@
 </Class>
 
 
-<Project name="Experimental" LastModified="2015-04-10 18:36:12.114042">
+<Project name="Experimental" LastModified="2015-05-01 13:30:05.261051">
   <Items>
     <ProjectItem name="Experimental.PageAnalyzer" type="CLS"></ProjectItem>
     <ProjectItem name="Experimental.TextAnalyzer" type="CLS"></ProjectItem>
