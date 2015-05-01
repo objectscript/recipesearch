@@ -5,5 +5,5 @@
 /// <reference path="jquery.unobtrusive-ajax.js" />
 /// <reference path="jquery.validate.unobtrusive.js" />
 /// <reference path="site.js" />
-/// <reference path="typeahead.jquery.js" />
 /// <reference path="typeahead.bundle.js" />
+/// <reference path="jquery.simplepagination.js" />

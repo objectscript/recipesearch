@@ -30,6 +30,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
             itemText = Regex.Replace(itemText, @"\.(?<t>\S)", ". ${t}");
             itemText = Regex.Replace(itemText, @"\|(?<t>\S)", ". ${t}");
             itemText = Regex.Replace(itemText, @"\|", "");
+            itemText = Regex.Replace(itemText, @"\,(?<t>\S)", ", ${t}");
 
             itemText = itemText.Trim();
 

@@ -15,7 +15,6 @@ namespace RecipesSearch.WebApplication.ViewModels
     {
         public bool IsCrawlingStarted { get; set; }
         public int CrawledPages { get; set; }
-        public List<CrawlingHistoryItem> CrawlingHistory { get; set; }
         public List<SiteInfo> SitesInfo { get; set; }
         public List<SiteToCrawl> SitesQueue { get; set; } 
     }

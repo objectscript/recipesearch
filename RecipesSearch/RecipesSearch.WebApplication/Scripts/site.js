@@ -2,6 +2,9 @@
     $(document).ready(function () {
         removeBanners();
         initSearchTypeahed();
+        initExpanders();
+
+        $('.back-to-top').on('click', backToTop);
     });
 })();
 
@@ -47,6 +50,40 @@ function initPagination(itemsOnPage, items, currentPage, currentQuery) {
             window.location.href = '/Home/Index?query=' + currentQuery + '&pageNumber=' + pageNumber;
         }
     });
+}
+
+function initExpanders() {
+    var expandButtons = $('a[data-expander]');
+    expandButtons.each(function(idx, item) {
+        initExpander($(item));
+    });
+}
+
+function initExpander($item) {
+    var id = $item.data('expander');
+    $item.on('click', function() {
+        toggleRecipe(id, $(this));
+        return false;
+    });
+}
+
+function toggleRecipe(id, $item) {
+    var $recipeHolder = $('#recipe_' + id);
+    var showText = $item.data('showText');
+    var hideText = $item.data('hideText');
+
+    if ($recipeHolder.hasClass('expanded')) {
+        $recipeHolder.removeClass('expanded');
+        $item.text(showText);
+    } else {
+        $recipeHolder.addClass('expanded');
+        $item.text(hideText);
+    }
+}
+
+function backToTop() {
+    $("html, body").animate({ scrollTop: 0 }, "fast");
+    return false;
 }
 
 // For SOMEE hosting

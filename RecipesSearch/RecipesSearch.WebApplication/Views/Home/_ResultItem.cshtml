@@ -1,0 +1,22 @@
+﻿@model RecipesSearch.WebApplication.ViewModels.SearchResultItemViewModel
+
+@if (!String.IsNullOrEmpty(Model.Description))
+{
+    @Model.Description
+    <br /><br />
+}
+
+<b>Ингридиенты:</b><br />
+@Model.Ingredients
+<br /><br />
+
+<b>Инструкция по приготовлению:</b><br />
+@Model.RecipeInstructions
+
+@if (!String.IsNullOrEmpty(Model.AdditionalData))
+{
+    <br /><br />
+    <b>Дополнительная информация:</b><br />
+    @Model.AdditionalData
+    <br /><br />
+}

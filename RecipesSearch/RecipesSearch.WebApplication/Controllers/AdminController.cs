@@ -36,7 +36,6 @@ namespace RecipesSearch.WebApplication.Controllers
 
         public ActionResult Control()
         {
-            var crawlingHistory = _crawlingHistoryRepository.GetCrawlingHistory();
             var sitesInfo = _sitePageManager.GetSitesInfo();
 
             ViewBag.AdminPage = AdminPages.ControlPanel;
@@ -44,7 +43,6 @@ namespace RecipesSearch.WebApplication.Controllers
             {
                 IsCrawlingStarted = _importer.IsImportingInProgress(),
                 CrawledPages = _importer.CrawledPages(),
-                CrawlingHistory = crawlingHistory,
                 SitesInfo = sitesInfo ?? new List<SiteInfo>(),
                 SitesQueue = _importer.SitesQueue().ToList()
             });
@@ -55,6 +53,22 @@ namespace RecipesSearch.WebApplication.Controllers
             ViewBag.AdminPage = AdminPages.SearchSettings;
             var searchSettings = _searchSettingsRepository.GetSearchSettings();
             return View(SearchSettingsViewModel.GetViewModel(searchSettings));
+        }
+
+        public ActionResult CrawlingHistory()
+        {
+            ViewBag.AdminPage = AdminPages.CrawlingHistory;
+            var crawlingHistory = _crawlingHistoryRepository.GetCrawlingHistory();
+            return View(crawlingHistory);
+        }
+
+        public ActionResult SitesToCrawlSettings()
+        {
+            ViewBag.AdminPage = AdminPages.SitesToCrawlSettings;
+            var config = _configRepository.GetConfig();
+            var sitesToCralw = config.SitesToCrawl.Select(SiteToCrawlViewModel.GetViewModel);
+            ViewBag.ConfigId = config.Id;
+            return View(sitesToCralw);
         }
 
         [HttpPost]
@@ -165,7 +179,7 @@ namespace RecipesSearch.WebApplication.Controllers
             try
             {
                 _crawlingHistoryRepository.Clear();
-                return Redirect("/Admin/Control");
+                return Redirect("/Admin/CrawlingHistory");
             }
             catch (Exception ex)
             {
