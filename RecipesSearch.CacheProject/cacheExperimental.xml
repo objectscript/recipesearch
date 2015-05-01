@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-05-01 13:30:05">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-05-01 14:01:55">
 <Class name="Experimental.PageAnalyzer">
 <Super>%Persistent</Super>
-<TimeChanged>63673,47214.714632</TimeChanged>
+<TimeChanged>63673,50487.798328</TimeChanged>
 <TimeCreated>63612,49594.660203</TimeCreated>
 
 <Method name="GetAllEntities">
@@ -145,60 +145,32 @@
 ]]></Implementation>
 </Method>
 
-<Method name="ReadDictToGlobal">
+<Method name="WriteGlobalToFile">
 <ClassMethod>1</ClassMethod>
+<FormalSpec>pathToDictionary:%String</FormalSpec>
 <Implementation><![CDATA[
-	kill ^frequentWordsNew
-	set fileInput=##class(%File).%New("C:\temp\Dictionary\dict.txt")
-    do fileInput.Open("RS")
-    set string = fileInput.ReadLine()
-    while string '= "" {
-	    set wordGroup = $PIECE(string,",",2)
-	    set frequency = $PIECE(string,",",3)
-	    set cnt = 1
-	    set curWord = $PIECE(wordGroup," ",cnt)
-	    while curWord '= "" {
-		    set stemmedWord = ##class(Experimental.TextAnalyzer).StemText(curWord)
-		    if stemmedWord '= "" {
-			    set inDict = $GET(^allDict(stemmedWord))
-			    if inDict '= "" {
-				    set cur = $GET(^frequentWordsNew(stemmedWord))
-				    if cur = "" {
-					    set ^frequentWordsNew(stemmedWord) = frequency
-					} else {
-						set ^frequentWordsNew(stemmedWord) = cur + frequency
-					}
-				}
-		    }
-		    set cnt = cnt + 1
-		    set curWord = $PIECE(wordGroup," ",cnt)
-	    }
-	    set string = fileInput.ReadLine()
-    }
-    
-    do fileInput.Close()
+	set fileOutput=##class(%File).%New(pathToDictionary)
+    do fileOutput.Open("WSN")
+    set key = $Order(^allDict(""))
+	   while key '= "" {
+		   do fileOutput.WriteLine(key)
+		   set key = $Order(^allDict(key))
+	   }
+    do fileOutput.Close()
 ]]></Implementation>
 </Method>
 
-<Method name="ReadAllDictionariesToGlobal">
+<Method name="ReadDictionaryToGlobal">
 <ClassMethod>1</ClassMethod>
+<FormalSpec>pathToDictionary:%String</FormalSpec>
 <Implementation><![CDATA[
 	kill ^allDict
-	set fileInput=##class(%File).%New("C:\Users\Aleks\Desktop\recipesearch\recipesearch\RecipesSearch.CacheProject\Dictionaries\allDictionaries.txt")
+	set fileInput=##class(%File).%New(pathToDictionary)
     do fileInput.Open("RS")
-    set string = fileInput.ReadLine()
-    while string '= "" {
-	    set stemmedString = ##class(Experimental.TextAnalyzer).StemText(string)
-	    if stemmedString '= "" {
-		    set index = 1
-		    set piece = $PIECE(stemmedString," ",index)
-		    while piece '= "" {
-			    set ^allDict(piece) = 1
-			    set index = index + 1
-			    set piece = $PIECE(stemmedString," ",index)
-		    }
-	    }
-	    set string = fileInput.ReadLine()
+    set word = fileInput.ReadLine()
+    while word '= "" {
+	    set ^allDict(word) = 1
+	    set word = fileInput.ReadLine()
     }
     do fileInput.Close()
 ]]></Implementation>
