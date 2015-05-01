@@ -30,7 +30,12 @@ namespace RecipesSearch.CacheService.Services
             totalCount = respose.TotalCount;
             spellcheckQuery = respose.SpellcheckedQuery;
 
-            return respose.Items.ToList();
+            return respose.Items.Select(result =>
+            {
+                result.Result.SimilarResults = result.SimilarResults;
+                return result.Result;
+            })
+            .ToList();
         }
     }
 }

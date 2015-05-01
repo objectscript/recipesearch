@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-01 18:57:47">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-01 20:10:31">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -1363,14 +1363,14 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63643,73454.613773</TimeChanged>
+<TimeChanged>63673,72580.081958</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
 <Implementation><![CDATA[
-	set sqlQuery = "SELECT %NOLOCK Description,Ingredients,RecipeInstructions,AdditionalData,Keywords,SiteId,URL,RecipeName,CreatedDate, ModifiedDate"
+	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
 	_" FROM Data.SitePage"
 	
 	if spellcheck {
@@ -1403,11 +1403,11 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="REST.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63643,73143.876432</TimeChanged>
+<TimeChanged>63673,72496.577663</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
-<Type>Data.SitePage</Type>
+<Type>REST.Search.SitePageResult</Type>
 <Collection>list</Collection>
 </Property>
 
@@ -1446,19 +1446,12 @@ GROUP BY SiteId</SqlQuery>
 			continue
         } 
         
-        set sitePage = ##class(Data.SitePage).%New() 
-        set sitePage.Description = result.Data("Description") 
-        set sitePage.Ingredients = result.Data("Ingredients") 
-        set sitePage.RecipeInstructions = result.Data("RecipeInstructions")
-        set sitePage.AdditionalData = result.Data("AdditionalData") 
-        set sitePage.SiteId = result.Data("SiteId") 
-        set sitePage.URL = result.Data("URL") 
-        set sitePage.Keywords = result.Data("Keywords") 
-        set sitePage.ModifiedDate = result.Data("ModifiedDate") 
-        set sitePage.CreatedDate = result.Data("CreatedDate") 
-        set sitePage.RecipeName = result.Data("RecipeName") 
+        set sitePageResult = ##class(REST.Search.SitePageResult).%New()
         
-        set tSC = searchResults.Items.Insert(sitePage) 
+        set sitePageResult.Result = ##class(REST.Search.SearchResult).MapResultToSitePage(result)
+        set sitePageResult.SimilarResults = ##class(REST.Search.SearchResult).GetSimilarResults(sitePageResult.Result.NearestResults)
+              
+        set tSC = searchResults.Items.Insert(sitePageResult) 
         
 	}
     
@@ -1468,6 +1461,83 @@ GROUP BY SiteId</SqlQuery>
 	return searchResults
 ]]></Implementation>
 </Method>
+
+<Method name="GetSimilarResults">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>NearestResults:%String</FormalSpec>
+<ReturnType>%ListOfObjects</ReturnType>
+<Implementation><![CDATA[
+   	set similarResults = ##class(%ListOfObjects).%New()
+    
+   	set similarResultsIds = $LISTFROMSTRING(NearestResults, " ")            
+   	set length = $LISTLENGTH(similarResultsIds)
+   	
+   	if length = 0{
+	   	return similarResults
+   	}
+   	     
+   	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
+   	_" FROM Data.SitePage WHERE ID IN ("
+   	
+   	for i=1:1:length{
+   		if i '= 1{
+       		set sqlQuery = sqlQuery_", "
+      	}
+     	set sqlQuery = sqlQuery_$LIST(similarResultsIds, i)
+    }
+    set sqlQuery = sqlQuery_")"
+    
+    set result = ##class(%Library.ResultSet).%New() 
+	set tSC = result.Prepare(sqlQuery) 
+    set tSC = result.Execute()
+    
+    while (result.Next()) 
+    {
+	    set similarResult = ##class(REST.Search.SearchResult).MapResultToSitePage(result)
+	    set tSC = similarResults.Insert(similarResult) 
+    }
+    
+    return similarResults
+]]></Implementation>
+</Method>
+
+<Method name="MapResultToSitePage">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>result:%Library.ResultSet</FormalSpec>
+<ReturnType>Data.SitePage</ReturnType>
+<Implementation><![CDATA[
+	set sitePage = ##class(Data.SitePage).%New() 
+    set sitePage.Description = result.Data("Description") 
+    set sitePage.Ingredients = result.Data("Ingredients") 
+    set sitePage.RecipeInstructions = result.Data("RecipeInstructions")
+    set sitePage.AdditionalData = result.Data("AdditionalData") 
+    set sitePage.SiteId = result.Data("SiteId") 
+    set sitePage.URL = result.Data("URL") 
+    set sitePage.Keywords = result.Data("Keywords") 
+    set sitePage.ModifiedDate = result.Data("ModifiedDate") 
+    set sitePage.CreatedDate = result.Data("CreatedDate") 
+    set sitePage.RecipeName = result.Data("RecipeName") 
+    set sitePage.NearestResults = result.Data("NearestResults") 
+       
+    return sitePage
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="REST.Search.SitePageResult">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63673,70073.256262</TimeChanged>
+<TimeCreated>63673,70073.256262</TimeCreated>
+
+<Property name="Result">
+<Type>Data.SitePage</Type>
+</Property>
+
+<Property name="SimilarResults">
+<Type>Data.SitePage</Type>
+<Collection>list</Collection>
+</Property>
 </Class>
 
 
@@ -1570,7 +1640,7 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-01 18:16:08.501778">
+<Project name="RecipesSearch" LastModified="2015-05-01 20:10:31.689713">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="Data" type="PKG"></ProjectItem>
@@ -1583,6 +1653,7 @@ GROUP BY SiteId</SqlQuery>
     <ProjectItem name="iKnow.Spellchecker" type="CLS"></ProjectItem>
     <ProjectItem name="iKnow.StringAnalyzer" type="CLS"></ProjectItem>
     <ProjectItem name="iKnow.PageAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="REST.Search.SitePageResult" type="CLS"></ProjectItem>
   </Items>
 </Project>
 

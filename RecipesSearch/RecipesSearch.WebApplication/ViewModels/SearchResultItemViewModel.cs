@@ -24,6 +24,8 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public string AdditionalData { get; set; }
 
+        public List<SearchResultItemViewModel> SimilarResults { get; set; } 
+
         public SearchResultItemViewModel(SitePage enity)
         {
             URL = enity.URL;
@@ -32,6 +34,11 @@ namespace RecipesSearch.WebApplication.ViewModels
             RecipeInstructions = enity.RecipeInstructions;
             AdditionalData = enity.AdditionalData;
             Name = String.IsNullOrEmpty(enity.RecipeName) ? enity.URL : enity.RecipeName;
+
+            if (enity.SimilarResults != null)
+            {
+                SimilarResults = enity.SimilarResults.Select(sitePage => new SearchResultItemViewModel(sitePage)).ToList();
+            }           
         }
     }
 }

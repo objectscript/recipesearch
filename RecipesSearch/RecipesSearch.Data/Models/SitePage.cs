@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -29,5 +31,8 @@ namespace RecipesSearch.Data.Models
 
         [NotMapped]
         public DateTime ModifiedDate { get; set; }
+
+        [NotMapped]
+        public List<SitePage> SimilarResults { get; set; }
     }
 }

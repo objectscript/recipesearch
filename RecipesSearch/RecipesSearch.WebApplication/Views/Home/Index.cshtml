@@ -85,30 +85,24 @@
                         </div>
                         <a href="#" data-expander="@i" data-show-text="More" data-hide-text="Less" class="expander">More</a>
 
-                        @{
-                            var similarResults = new SearchResultItemViewModel[]
-                            {
-                                 /*searchResult, searchResult, searchResult*/
-                            }.ToList();
-                        }
 
-                        @if (similarResults.Any())
+                        @if (searchResult.SimilarResults.Any())
                         {
                             <span class="similar-label">Similar results:</span>
                             <ul class="similar">
-                                @for (var j = 0; j < similarResults.Count; ++j)
+                                @for (var j = 0; j < searchResult.SimilarResults.Count; ++j)
                                 {
                                     <li>                                
                                         <div class="result-item-similar" id="recipe_@(i + "_" + j)">
                                             <h4 class="recipe-name">
-                                                <a href="@similarResults[j].URL" target=" _blank">@similarResults[j].Name</a>
+                                                <a href="@searchResult.SimilarResults[j].URL" target=" _blank">@searchResult.SimilarResults[j].Name</a>
                                                 <a href="#"
                                                    data-expander="@(i + "_" + j)"
                                                    data-show-text="Expand"
                                                    data-hide-text="Collapse"
                                                    class="expander">Expand</a>
                                             </h4>                                           
-                                            @Html.Partial("_ResultItem", similarResults[j])
+                                            @Html.Partial("_ResultItem", searchResult.SimilarResults[j])
                                         </div>                                       
                                     </li>
                                 }
