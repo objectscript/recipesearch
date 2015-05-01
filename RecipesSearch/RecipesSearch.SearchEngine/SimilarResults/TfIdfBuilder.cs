@@ -41,9 +41,11 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 try
                 {
                     UpdateInProgress = true;
-                   
-                    var tfIdfService = new TfIdfService();
-                    tfIdfService.UpdateTfIdf();
+
+                    using (var cacheAdapter = new SimilarResultsAdapter())
+                    {
+                        cacheAdapter.UpdateTfIdf();
+                    }
 
                     UpdateInProgress = false;
                 }

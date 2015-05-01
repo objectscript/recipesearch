@@ -60,5 +60,15 @@ namespace RecipesSearch.DAL.Cache.Adapters
 
             return (int)result;
         }
+
+        public void UpdateTfIdf()
+        {
+            var command = new CacheCommand(GetFullProcedureName("SitePage_UpdateTfIdf"), CacheConnection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.CommandTimeout = 60*60; // 1 hour
+            
+            command.ExecuteNonQuery();
+        }
     }
 }
