@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesSearch.SitePagesImpo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesSearch.BusinessServices", "RecipesSearch.BusinessServices\RecipesSearch.BusinessServices.csproj", "{3075B2DE-512A-4BFA-96C9-B49D11A6DC3C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{4E41D2A1-E5D9-4D15-B2A8-57E17B76277E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ServicesAPI", "ServicesAPI", "{4E41D2A1-E5D9-4D15-B2A8-57E17B76277E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipesSearch.CacheService", "RecipesSearch.CacheService\RecipesSearch.CacheService.csproj", "{4181C673-B57A-4DB6-A0DE-6F5813CC587A}"
 EndProject

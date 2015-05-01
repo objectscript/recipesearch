@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.CacheService.Services;
 using RecipesSearch.Data.Models;
+using RecipesSearch.SearchEngine.SimilarResults;
 
 namespace RecipesSearch.SearchEngine.Search
 {

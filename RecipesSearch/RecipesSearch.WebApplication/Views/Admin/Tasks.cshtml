@@ -1,0 +1,40 @@
+﻿@{
+    ViewBag.Title = "Admin Control Panel";
+}
+@using RecipesSearch.WebApplication.ViewModels
+@model TasksViewModel
+
+<div class="row">
+    <div class="col-md-5 control-panel">
+        @if (Model.NearestsResultsUpdatingInProgress)
+        {
+            if (@Model.NearestsResultsUpdatedCount == -1)
+            {
+                <div class="alert alert-success" role="alert">Nearest results updating in progress. Fetching data.</div>
+            }
+            else
+            {
+                <div class="alert alert-success" role="alert">Nearest results updating in progress. Updated pages: @Model.NearestsResultsUpdatedCount</div>
+            }
+
+            @Html.Partial("_PostButton", new PostButtonModel
+            {
+                Action = "StopNearestResultsUpdating",
+                Controller = "Admin",
+                ButtonClass = "btn-link",
+                Text = "Stop updating"
+            })
+        }
+        else
+        {
+            <div class="alert alert-warning" role="alert">Nearest results updating idle</div>
+            @Html.Partial("_PostButton", new PostButtonModel
+            {
+                Action = "StartNearestResultsUpdating",
+                Controller = "Admin",
+                ButtonClass = "btn-link",
+                Text = "Update nearest results"
+            })
+        }
+    </div>
+</div>

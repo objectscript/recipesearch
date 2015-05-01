@@ -10,6 +10,7 @@ using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.BusinessServices.PageStorage;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.Data.Views;
+using RecipesSearch.SearchEngine.SimilarResults;
 using RecipesSearch.SitePagesImporter.Importer;
 using RecipesSearch.WebApplication.Enums;
 using RecipesSearch.WebApplication.ImporterService;
@@ -262,6 +263,37 @@ namespace RecipesSearch.WebApplication.Controllers
                 Logger.LogError("StopCurrentSiteImporting error.", ex);
                 return View("Error");
             }
+        }
+
+        public ActionResult Tasks()
+        {
+            ViewBag.AdminPage = AdminPages.Tasks;
+
+            var similarResultsBuilder = SimilarResultsBuilder.GetSimilarResultsBuilder();
+
+            return View(new TasksViewModel
+            {
+                NearestsResultsUpdatingInProgress = similarResultsBuilder.UpdateInProgress,
+                NearestsResultsUpdatedCount = similarResultsBuilder.UpdatedPagesCount
+            });
+        }
+
+        [HttpPost]
+        public ActionResult StartNearestResultsUpdating()
+        {
+            var similarResultsBuilder = SimilarResultsBuilder.GetSimilarResultsBuilder();
+            similarResultsBuilder.FindNearestResults();
+
+            return RedirectToAction("Tasks");
+        }
+
+        [HttpPost]
+        public ActionResult StopNearestResultsUpdating()
+        {
+            var similarResultsBuilder = SimilarResultsBuilder.GetSimilarResultsBuilder();
+            similarResultsBuilder.StopUpdating();
+
+            return RedirectToAction("Tasks");
         }
     }
 }

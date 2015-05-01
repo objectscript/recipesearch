@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Adapters\Base\CacheAdapter.cs" />
     <Compile Include="Adapters\CrawlingHistoryAdapter.cs" />
+    <Compile Include="Adapters\SimilarResultsAdapter.cs" />
     <Compile Include="Adapters\SitePageAdapter.cs" />
     <Compile Include="Utilities\ObjectMapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -307,3 +307,7 @@ form.post-button {
   padding: 10px 15px;
   height: 40px;
 }
+
+.alert-warning {
+    background-color: #C2C2C0;
+}

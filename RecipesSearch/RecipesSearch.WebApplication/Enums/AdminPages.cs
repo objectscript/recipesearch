@@ -11,6 +11,7 @@ namespace RecipesSearch.WebApplication.Enums
         ControlPanel = 2,
         SearchSettings = 3,
         SitesToCrawlSettings = 4,
-        CrawlingHistory = 5
+        CrawlingHistory = 5,
+        Tasks = 6
     }
 }

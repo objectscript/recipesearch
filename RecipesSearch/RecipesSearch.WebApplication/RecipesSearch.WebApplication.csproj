@@ -131,6 +131,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\TasksViewModel.cs" />
     <Compile Include="ViewModels\SearchViewModel.cs" />
     <Compile Include="ViewModels\SearchSettingsViewModel.cs" />
     <Compile Include="ViewModels\PostButtonModel.cs" />
@@ -217,6 +218,7 @@
     <Content Include="Views\Admin\SitesToCrawlSettings.cshtml" />
     <Content Include="Views\Admin\CrawlingHistory.cshtml" />
     <Content Include="Views\Home\_ResultItem.cshtml" />
+    <Content Include="Views\Admin\Tasks.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RecipesSearch.BusinessServices\RecipesSearch.BusinessServices.csproj">
