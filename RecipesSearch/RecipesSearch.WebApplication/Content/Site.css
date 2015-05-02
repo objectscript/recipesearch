@@ -52,7 +52,7 @@ th, b {
     overflow: hidden;
     text-align: justify;
     position: relative;
-    background-color: #FbFbFb;
+    background-color: #F9F9F9;
     padding: 10px 10px 0 10px;
     border-radius: 5px;
 }
@@ -75,7 +75,7 @@ th, b {
     padding-left: 10px;
     margin-top: 5px;
     display: inline-block;
-    font-style: italic;
+    font-size: 13px;
 }
 .search-results .results-list .similar{
     padding-left: 10px;

@@ -7,13 +7,14 @@
         <ul class="nav nav-pills nav-stacked">
             @{
                 var adminNavItems = new[]
-                {
-                    new Tuple<AdminPages, string, string>(AdminPages.Config, "Crawler config", "Config"),
-                    new Tuple<AdminPages, string, string>(AdminPages.SitesToCrawlSettings, "Sites to Crawl", "SitesToCrawlSettings"),
-                    new Tuple<AdminPages, string, string>(AdminPages.ControlPanel, "Control panel", "Control"),
+                {     
+                    new Tuple<AdminPages, string, string>(AdminPages.ControlPanel, "Crawling control", "Control"), 
+                    new Tuple<AdminPages, string, string>(AdminPages.Tasks, "Tasks", "Tasks"),  
+                    new Tuple<AdminPages, string, string>(AdminPages.Config, "Crawler config", "Config"),          
+                    new Tuple<AdminPages, string, string>(AdminPages.SitesToCrawlSettings, "Sites to Crawl", "SitesToCrawlSettings"),                                                         
                     new Tuple<AdminPages, string, string>(AdminPages.CrawlingHistory, "Crawling history", "CrawlingHistory"),
                     new Tuple<AdminPages, string, string>(AdminPages.SearchSettings, "Search settings", "SearchSettings"),
-                    new Tuple<AdminPages, string, string>(AdminPages.Tasks, "Tasks", "Tasks"),
+                    
                 };
             }
             @foreach (var item in adminNavItems)

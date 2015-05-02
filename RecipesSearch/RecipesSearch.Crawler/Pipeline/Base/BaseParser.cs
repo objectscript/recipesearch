@@ -23,11 +23,12 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
         protected virtual string GetTextBySelector(CQ queryObject, string selector)
         {
             var elements = queryObject.Find(selector);
-            var itemText = elements               
-                .Text((idx, text) => text.EndsWith(".") ? text : text + "|")
+            var itemText = elements
+                .Text((idx, text) => text.EndsWith(".") || text.EndsWith(";") ? text : text + "|")
                 .Text();
 
             itemText = Regex.Replace(itemText, @"\.(?<t>\S)", ". ${t}");
+            itemText = Regex.Replace(itemText, @"\;(?<t>\S)", "; ${t}");
             itemText = Regex.Replace(itemText, @"\|(?<t>\S)", ". ${t}");
             itemText = Regex.Replace(itemText, @"\|", "");
             itemText = Regex.Replace(itemText, @"\,(?<t>\S)", ", ${t}");

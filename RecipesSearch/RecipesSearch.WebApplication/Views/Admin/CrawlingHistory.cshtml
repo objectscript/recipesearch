@@ -26,7 +26,7 @@
                         <th class="count-col">Pages</th>
                     </tr>
                 <tbody>
-                    @foreach (CrawlingHistoryItem crawlingHistoryItem in @Model)
+                    @foreach (CrawlingHistoryItem crawlingHistoryItem in Model)
                     {
                         <tr>
                             <td class="name-col">
@@ -40,16 +40,16 @@
                 </tbody>
             </table>
         }
-        @if (!Model.Any())
+        @if (Model.Any())
         {
-            Html.Partial("_PostButton", new PostButtonModel
+            @Html.Partial("_PostButton", new PostButtonModel
             {
                 Action = "ClearHistory",
                 Controller = "Admin",
                 OnClick = "return confirm('Are you sure you want to delete the history?')",
                 ButtonClass = "btn-link",
                 Text = "Clear History"
-            });
-        }
+            })
+        }           
     </div>
 </div>

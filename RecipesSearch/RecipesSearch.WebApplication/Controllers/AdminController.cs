@@ -116,7 +116,7 @@ namespace RecipesSearch.WebApplication.Controllers
             try
             {
                 _sitesToCrawlRepository.RemoveSiteToCrawl(siteToCrawlId);
-                return Redirect("/Admin/Config");
+                return Redirect("/Admin/SitesToCrawlSettings");
             }
             catch (Exception ex)
             {
@@ -133,7 +133,7 @@ namespace RecipesSearch.WebApplication.Controllers
                 if (ModelState.IsValid)
                 {
                     _sitesToCrawlRepository.SaveSiteToCrawl(SiteToCrawlViewModel.GetEntity(siteToCrawl));
-                    return Redirect("/Admin/Config");
+                    return Redirect("/Admin/SitesToCrawlSettings");
                 }
                 return View("Error");
             }
@@ -241,7 +241,7 @@ namespace RecipesSearch.WebApplication.Controllers
             try
             {
                 _importer.RemoveFromQueue(siteId);
-                return Redirect("/Admin/Control");
+                return Redirect("/Admin/SitesToCrawlSettings");
             }
             catch (Exception ex)
             {
