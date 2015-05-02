@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-02 12:30:40">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-02 12:58:14">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -1108,7 +1108,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63673,65968.507143</TimeChanged>
+<TimeChanged>63674,46689.6164</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1119,7 +1119,7 @@ GROUP BY SiteId</SqlQuery>
 	// Seed crawler config
 	IF NOT EXISTS(SELECT * FROM Data.Config) THEN BEGIN
 		INSERT INTO Data.Config(LoggingEnabled, EnhancedKeywordProcessing, EnableSpellcheckDictionaryUpdate, MaxPagesToCrawl, MaxCrawlDepth, CrawlTimeoutSeconds, IsActive, CreatedDate, ModifiedDate) 
-		VALUES(0, 1, 0, 10000, 10000, 0, 1, GETUTCDATE(), GETUTCDATE());
+		VALUES(0, 1, 1, 10000, 10000, 0, 1, GETUTCDATE(), GETUTCDATE());
 		
 		DECLARE @ConfigId AS INT;
 		SELECT TOP 1 @ConfigId = Id FROM Data.Config;
