@@ -64,3 +64,10 @@ Connections settings are located in the Web.Base.config of the RecipesSearch.Web
 
 #### Open Visual Studio solution, build and run the web application
 - Make sure RecipesSearch.WebApplication has been set as a startup project.
+
+# Data Import Guide
+1. Go to the Admin part of the site.
+2. Go to the Crawlering control tab and crawl pages from sites.
+3. Open the Tasks tab.
+4. Update Tf/Idf data.
+5. Update nearest neighbors data.
