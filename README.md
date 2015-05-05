@@ -38,7 +38,7 @@ Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will 
 8. Save application
 
 #### Ensure Cache connection settings are valid
-Connections settings are located in the Web.Base.config of the RecipesSearch.WebApplication project. There are 2 settings group for now:
+Connections settings are located in the Web.Base.config of the RecipesSearch.WebApplication and RecipesSearch.ImporterService projects. There are 2 settings group for now:
 
 - Connection string. It must have the following structure:
   ```
