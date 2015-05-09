@@ -69,7 +69,8 @@ th, b {
     color: #bbb;
     text-decoration: underline;
 }
-.search-results .results-list .result-item .recipe-image {
+.search-results .results-list .result-item .recipe-image,
+.search-results .results-list .similar .result-item-similar .recipe-image{
      float: left;
      max-height: 130px;
      box-sizing: content-box;
