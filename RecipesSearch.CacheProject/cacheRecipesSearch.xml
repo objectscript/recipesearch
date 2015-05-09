@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-09 20:05:25">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-09 21:28:46">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -802,7 +802,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63681,72175.440782</TimeChanged>
+<TimeChanged>63681,77242.342239</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -896,7 +896,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF ProcessKeywords{
-		set keywordsList = ##class(iKnow.StringAnalyzer).GetEntitiesInText(Keywords)
+		set keywordsList = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(Keywords)
 		set keywordsAnalyzed = ""
 		set i = 1
 		set listLength = $LISTLENGTH(keywordsList)
@@ -911,7 +911,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	}
 	
 	IF UpdateSpellcheckDict{
-		do ##class(Data.Utils.SpellcheckDictionaryCreator).AddSitePageData(
+		do ##class(Spellcheck.SpellcheckDictionaryCreator).AddSitePageData(
 			Keywords,
 			Ingredients,
 			RecipeInstructions,
@@ -1007,7 +1007,7 @@ GROUP BY SiteId</SqlQuery>
 <Method name="UpdateTfIdf">
 <ClassMethod>1</ClassMethod>
 <SqlProc>1</SqlProc>
-<Implementation><![CDATA[	do ##class(iKnow.PageAnalyzer).CountTfIdf()
+<Implementation><![CDATA[	do ##class(RecipeAnalyze.PageAnalyzer).CountTfIdf()
 ]]></Implementation>
 </Method>
 
@@ -1122,7 +1122,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,63646.327984</TimeChanged>
+<TimeChanged>63681,75519.735878</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1171,8 +1171,8 @@ GROUP BY SiteId</SqlQuery>
 	do ##class(%Text.Russian).LoadDict(directory_"\morphs.mrd")
 	
 	kill ^SpellcheckDict
-	do ##class(Data.Utils.SpellcheckDictionaryCreator).LoadSpellcheckDictionaryFromFile(directory_"\spellcheck.txt")
-	do ##class(Data.Utils.SpellcheckDictionaryCreator).CreateSpellcheckDictionaryFromDB()
+	do ##class(Spellcheck.SpellcheckDictionaryCreator).LoadSpellcheckDictionaryFromFile(directory_"\spellcheck.txt")
+	do ##class(Spellcheck.SpellcheckDictionaryCreator).CreateSpellcheckDictionaryFromDB()
 	do ##class(Data.Utils.Seed).ReadRecipesDictionaryToGlobal(directory_"\dictionary.txt")
 ]]></Implementation>
 </Method>
@@ -1196,95 +1196,6 @@ GROUP BY SiteId</SqlQuery>
 	
 	close filename
 	quit 1
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="Data.Utils.SpellcheckDictionaryCreator">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63650,76032.434074</TimeChanged>
-<TimeCreated>63643,69565.900242</TimeCreated>
-
-<Method name="LoadSpellcheckDictionaryFromFile">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>filename:%String</FormalSpec>
-<Implementation><![CDATA[
-	
-	close filename
-	open filename:("RK\CP1251\"):5 if '$test { return 0 }
-	
-	use filename
-	read stringnum
-	
-	for i=1:1:stringnum {
-		read str
-		set word = $EXTRACT(str, 9, $LENGTH(str))
-		set number = $REPLACE($EXTRACT(str, 1, 7), " ", "")
-		set ^SpellcheckDict(word, 1) = number
-		set ^SpellcheckDict(word) = 1 // words from dictionary have minimum probability
-	}
-	
-	close filename
-	quit 1
-]]></Implementation>
-</Method>
-
-<Method name="CreateSpellcheckDictionaryFromDB">
-<ClassMethod>1</ClassMethod>
-<Implementation><![CDATA[
-	
-	set result = ##class(%Library.ResultSet).%New() 
-	set tSC = result.Prepare("SELECT Keywords, Ingredients, RecipeInstructions, RecipeName, AdditionalData, Description FROM Data.SitePage") 
-    set tSC = result.Execute()
-    
-    while (result.Next()) 
-    {
-	    do ##class(Data.Utils.SpellcheckDictionaryCreator).AddSitePageData(
-	    	result.Data("Keywords"),
-	    	result.Data("Ingredients"),
-	    	result.Data("RecipeInstructions"),
-	    	result.Data("RecipeName"),
-	    	result.Data("AdditionalData"),
-	    	result.Data("Description")
-	    )
-    }
-]]></Implementation>
-</Method>
-
-<Method name="AddSitePageData">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>keywords:%String,ingredients:%String,instructions:%String,name:%String,additionalData:%String,description:%String</FormalSpec>
-<Implementation><![CDATA[
-	    
-	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(keywords)	           
-	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(ingredients)	          
-	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(instructions)	    	      
-	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(name)        
-	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(additionalData)	    	      
-	 do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromText(description)
-]]></Implementation>
-</Method>
-
-<Method name="AddDataFromText">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>text:%String</FormalSpec>
-<Implementation><![CDATA[
-	set descriptionList = ##class(iKnow.StringAnalyzer).GetEntitiesInText(text)
-	do ##class(Data.Utils.SpellcheckDictionaryCreator).AddDataFromList(descriptionList)
-]]></Implementation>
-</Method>
-
-<Method name="AddDataFromList">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>itemsList:%Library.List</FormalSpec>
-<Implementation><![CDATA[
-	for i = 1:1:$LISTLENGTH(itemsList){
-		set item = $LIST(itemsList, i)
-		if item '= ""{
-			set ^SpellcheckDict(item) = $GET(^SpellcheckDict(item), 0) + 1
-		}
-	}
 ]]></Implementation>
 </Method>
 </Class>
@@ -1350,352 +1261,10 @@ GROUP BY SiteId</SqlQuery>
 <Package name="Logging" sqlname="Logging"/>
 
 
-<Class name="REST.PredicateBuilder">
+<Class name="RecipeAnalyze.PageAnalyzer">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63640,44416.350546</TimeChanged>
-<TimeCreated>63640,44416.350546</TimeCreated>
-
-<Method name="BuildPredicate">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String</FormalSpec>
-<Implementation><![CDATA[
-	
-	set queryParts = ##class(iKnow.StringAnalyzer).GetEntitiesInText(query)
-	
-	set predicate = ""
-	set i = 1
-	set listLength = $LISTLENGTH(queryParts)
-	while (i <= listLength){
-		
-		if i '= 1{
-			set predicate = predicate_" AND "
-		}
-		
-		set predicate = predicate_"(Keywords [ '"_$LIST(queryParts, i)_"')"
-		
-		set i = i + 1
-	}
-	
-	return predicate
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="REST.Search.SearchEngine">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63681,50751.865279</TimeChanged>
-<TimeCreated>63598,70157.596857</TimeCreated>
-
-<Method name="SearchPages">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
-<Implementation><![CDATA[
-	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
-	_" FROM Data.SitePage"
-	
-	if spellcheck {
-		set spellcheckedQuery = ##class(iKnow.Spellchecker).SpellcheckText(query)
-		
-		if 'exactMatch{
-			set query = spellcheckedQuery
-		}
-	}
-	
-	set predicate = ##class(REST.PredicateBuilder).BuildPredicate(query)
-	
-	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"	
-		
-	set result = ##class(%Library.ResultSet).%New() 
-	set tSC = result.Prepare(sqlQuery) 
-    set tSC = result.Execute()
-     
-    set searchResult = ##class(REST.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
-	
-	if spellcheck{
-		set searchResult.SpellcheckedQuery = spellcheckedQuery
-	}
-		
-	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(searchResult)
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="REST.Search.SearchResult">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63681,58741.559997</TimeChanged>
-<TimeCreated>63627,74813.171587</TimeCreated>
-
-<Property name="Items">
-<Type>REST.Search.SitePageResult</Type>
-<Collection>list</Collection>
-</Property>
-
-<Property name="TotalCount">
-<Type>%Integer</Type>
-</Property>
-
-<Property name="PageNumber">
-<Type>%Integer</Type>
-</Property>
-
-<Property name="SpellcheckedQuery">
-<Type>%String</Type>
-</Property>
-
-<Method name="PopulateFromResultSet">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>result:%Library.ResultSet,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
-<ReturnType>%Library.ResultSet</ReturnType>
-<Implementation><![CDATA[
-	
-	// TODO: make it more performant
-	set startIndex = (pageNumber - 1) * pageSize + 1
-	
-	set searchResults = ##class(REST.Search.SearchResult).%New()
-	set searchResults.Items = ##class(%ListOfObjects).%New()
-	
-	set count = 0
-    while (result.Next()) 
-    { 
-    	set count = count + 1 
-		continue:(count < startIndex) 
-        
-        if (count >= (startIndex + pageSize)) 
-        {  
-			continue
-        } 
-        
-        set sitePageResult = ##class(REST.Search.SitePageResult).%New()
-        
-        set sitePageResult.Result = ##class(REST.Search.SearchResult).MapResultToSitePage(result)
-        set sitePageResult.SimilarResults = ##class(REST.Search.SearchResult).GetSimilarResults(sitePageResult.Result.NearestResults)
-              
-        set tSC = searchResults.Items.Insert(sitePageResult) 
-        
-	}
-    
-   	set searchResults.PageNumber = pageNumber
-	set searchResults.TotalCount = count
-	
-	return searchResults
-]]></Implementation>
-</Method>
-
-<Method name="GetSimilarResults">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>NearestResults:%String</FormalSpec>
-<ReturnType>%ListOfObjects</ReturnType>
-<Implementation><![CDATA[
-	set similarResultsObjects = ##class(%ListOfObjects).%New()
-	
-   	set similarResultsIds = $LISTFROMSTRING(NearestResults, " ")            
-   	set length = $LISTLENGTH(similarResultsIds)
-   	
-   	if length = 0{
-	   	return similarResultsObjects
-   	}
-
-   	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
-   	_" FROM Data.SitePage WHERE ID IN ("
-   	
-   	for i=1:1:length{
-	   	if $LIST(similarResultsIds, i) = ""{
-	      	continue
-      	}
-   		if i '= 1{
-       		set sqlQuery = sqlQuery_", "
-      	}
-     	set sqlQuery = sqlQuery_$LIST(similarResultsIds, i)
-    }
-    set sqlQuery = sqlQuery_")"
-    
-    set result = ##class(%Library.ResultSet).%New() 
-	set tSC = result.Prepare(sqlQuery) 
-    set tSC = result.Execute()
-    
-    set actulaIdsOrder = $LISTFROMSTRING("")
-    
-    while (result.Next()) 
-    {
-	    set similarResult = ##class(REST.Search.SearchResult).MapResultToSitePage(result)
-	    do similarResultsObjects.Insert(similarResult)
-	    
-	    set id = result.Data("ID")	    	
-	    set actulaIdsOrder = actulaIdsOrder_$LISTBUILD(id)
-	    
-    }   
-    
-    // Order results by distance
-    set similarResultsObjectsOrdered = ##class(%ListOfObjects).%New()
-    
-    set actualResultsLength = $LISTLENGTH(actulaIdsOrder)
-    
-    for i=1:1:length{
-	    set id = $LIST(similarResultsIds, i)
-	    
-	    if id = ""{
-	      	continue
-      	}
-	    
-	    for j=1:1:actualResultsLength{
-		   if $LIST(actulaIdsOrder, j) = id{
-			    do similarResultsObjectsOrdered.Insert(similarResultsObjects.GetAt(j))
-		    }
-	    }
-    }
-			    
-    return similarResultsObjectsOrdered
-]]></Implementation>
-</Method>
-
-<Method name="MapResultToSitePage">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>result:%Library.ResultSet</FormalSpec>
-<ReturnType>Data.SitePage</ReturnType>
-<Implementation><![CDATA[
-	set sitePage = ##class(Data.SitePage).%New() 
-    set sitePage.Description = result.Data("Description") 
-    set sitePage.Ingredients = result.Data("Ingredients") 
-    set sitePage.RecipeInstructions = result.Data("RecipeInstructions")
-    set sitePage.AdditionalData = result.Data("AdditionalData") 
-    set sitePage.ImageUrl = result.Data("ImageUrl") 
-    set sitePage.SiteId = result.Data("SiteId") 
-    set sitePage.URL = result.Data("URL") 
-    set sitePage.Keywords = result.Data("Keywords") 
-    set sitePage.ModifiedDate = result.Data("ModifiedDate") 
-    set sitePage.CreatedDate = result.Data("CreatedDate") 
-    set sitePage.RecipeName = result.Data("RecipeName") 
-    set sitePage.NearestResults = result.Data("NearestResults") 
-       
-    return sitePage
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="REST.Search.SitePageResult">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63673,75886.369848</TimeChanged>
-<TimeCreated>63673,70073.256262</TimeCreated>
-
-<Property name="Result">
-<Type>Data.SitePage</Type>
-</Property>
-
-<Property name="SimilarResults">
-<Type>Data.SitePage</Type>
-<Collection>list</Collection>
-</Property>
-</Class>
-
-
-<Class name="REST.Suggestion.SuggestionEngine">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63650,75408.572589</TimeChanged>
-<TimeCreated>63640,44078.352651</TimeCreated>
-
-<Method name="SuggestRecipes">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,count:%Integer,spellcheck:%Boolean</FormalSpec>
-<Implementation><![CDATA[
-	set sqlQuery = "SELECT %NOLOCK TOP "_count_" Keywords,SiteId,URL,RecipeName FROM Data.SitePage"
-	
-	if spellcheck {
-		set query = ##class(iKnow.Spellchecker).SpellcheckText(query)
-	}
-	
-	set predicate = ##class(REST.PredicateBuilder).BuildPredicate(query)
-	
-	if predicate = ""{
-		set predicate = "(1 = 0)"
-	}
-	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"
-	
-	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="REST.iKnow">
-<Super>%CSP.REST</Super>
-<TimeChanged>63673,75268.811811</TimeChanged>
-<TimeCreated>63584,64787.957361</TimeCreated>
-
-<XData name="UrlMap">
-<Data><![CDATA[
-<Routes>
- <Route Url="/doSearch" Method="GET" Call="Search"/>
- <Route Url="/suggest" Method="GET" Call="Suggest"/>
- </Routes>
-]]></Data>
-</XData>
-
-<Method name="Search">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set query = %request.Get("query", "")
-	set pageNumber = %request.Get("pageNumber", "1")
-	set pageSize = %request.Get("pageSize", "25")
-	
-	set spellcheck = %request.Get("spellcheck", 0)
-	set exactMatch = %request.Get("exactMatch", 0) // ignore spellchecking result
-	
-	try {
-    	do ##class(REST.Search.SearchEngine).SearchPages(query, spellcheck, exactMatch, pageNumber, pageSize)
-	} catch err {
-    	write err.AsSystemError()
-    }
-		
-	quit $$$OK
-]]></Implementation>
-</Method>
-
-<Method name="Suggest">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set query = %request.Get("query", "")
-	set count = %request.Get("count", "10")
-	set spellcheck = %request.Get("spellcheck", 0)
-	
-	try {
-    	do ##class(REST.Suggestion.SuggestionEngine).SuggestRecipes(query, count, spellcheck)
-	} catch err {
-    	write err.AsSystemError()
-    }
-		
-	quit $$$OK
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Project name="RecipesSearch" LastModified="2015-05-09 19:57:54.82163">
-  <Items>
-    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
-    <ProjectItem name="Data" type="PKG"></ProjectItem>
-    <ProjectItem name="Logging" type="PKG"></ProjectItem>
-    <ProjectItem name="REST.PredicateBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.Search.SearchEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.Search.SearchResult" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.Search.SitePageResult" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="REST.iKnow" type="CLS"></ProjectItem>
-    <ProjectItem name="iKnow.PageAnalyzer" type="CLS"></ProjectItem>
-    <ProjectItem name="iKnow.Spellchecker" type="CLS"></ProjectItem>
-    <ProjectItem name="iKnow.StringAnalyzer" type="CLS"></ProjectItem>
-  </Items>
-</Project>
-
-
-<Class name="iKnow.PageAnalyzer">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63673,65756.516909</TimeChanged>
-<TimeCreated>63673,65442.338382</TimeCreated>
+<TimeChanged>63681,76118.779122</TimeChanged>
+<TimeCreated>63681,75947.377003</TimeCreated>
 
 <Method name="AddWordsToGlobal">
 <ClassMethod>1</ClassMethod>
@@ -1703,7 +1272,7 @@ GROUP BY SiteId</SqlQuery>
 <Private>1</Private>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set wordsStemmed = ##class(iKnow.StringAnalyzer).StemText(words)
+	set wordsStemmed = ##class(RecipeAnalyze.StringAnalyzer).StemText(words)
 	set wordList = $LISTFROMSTRING(wordsStemmed, " ")
 	for i=1:1:$listlength(wordList) {
 		set curWord = $list(wordList,i)
@@ -1738,10 +1307,10 @@ GROUP BY SiteId</SqlQuery>
 	   &sql(fetch byalldata into :curID,:Keywords,:RecipeName,:Ingredients,:RecipeInstructions)
 	   quit:(SQLCODE '= 0)
 	   set numberOfDocuments = numberOfDocuments + 1 
-	   do ##class(iKnow.PageAnalyzer).AddWordsToGlobal(Keywords)
-	   do ##class(iKnow.PageAnalyzer).AddWordsToGlobal(RecipeName)
-	   do ##class(iKnow.PageAnalyzer).AddWordsToGlobal(Ingredients)
-	   do ##class(iKnow.PageAnalyzer).AddWordsToGlobal(RecipeInstructions)
+	   do ##class(RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(Keywords)
+	   do ##class(RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(RecipeName)
+	   do ##class(RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(Ingredients)
+	   do ##class(RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(RecipeInstructions)
 
 	   set termFrequency = ""
 	   set maxFrequency = 0
@@ -1797,10 +1366,468 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="iKnow.Spellchecker">
+<Class name="RecipeAnalyze.StringAnalyzer">
+<TimeChanged>63681,75995.758964</TimeChanged>
+<TimeCreated>63610,80153.007685</TimeCreated>
+
+<Method name="GetEntitiesInText">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:%String</FormalSpec>
+<ReturnType>%Library.List</ReturnType>
+<Implementation><![CDATA[
+	set words = ##class(RecipeAnalyze.StringAnalyzer).StemText(text) 
+	return $LISTFROMSTRING(words, " ")
+]]></Implementation>
+</Method>
+
+<Method name="StemText">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
+	return stemmer.StemWord(text)
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Project name="RecipesSearch" LastModified="2015-05-09 21:20:06.758746">
+  <Items>
+    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
+    <ProjectItem name="Data" type="PKG"></ProjectItem>
+    <ProjectItem name="Logging" type="PKG"></ProjectItem>
+    <ProjectItem name="RecipeAnalyze.PageAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeAnalyze.StringAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="SearchAPI.PredicateBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="SearchAPI.RESTBroker" type="CLS"></ProjectItem>
+    <ProjectItem name="SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="SearchAPI.Search.SearchResult" type="CLS"></ProjectItem>
+    <ProjectItem name="SearchAPI.Search.SitePageResult" type="CLS"></ProjectItem>
+    <ProjectItem name="SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
+    <ProjectItem name="Spellcheck.Spellchecker" type="CLS"></ProjectItem>
+  </Items>
+</Project>
+
+
+<Class name="SearchAPI.PredicateBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63643,1911.20081</TimeChanged>
-<TimeCreated>63642,81475.828652</TimeCreated>
+<TimeChanged>63681,76050.610945</TimeChanged>
+<TimeCreated>63640,44416.350546</TimeCreated>
+
+<Method name="BuildPredicate">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String</FormalSpec>
+<Implementation><![CDATA[
+	
+	set queryParts = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(query)
+	
+	set predicate = ""
+	set i = 1
+	set listLength = $LISTLENGTH(queryParts)
+	while (i <= listLength){
+		
+		if i '= 1{
+			set predicate = predicate_" AND "
+		}
+		
+		set predicate = predicate_"(Keywords [ '"_$LIST(queryParts, i)_"')"
+		
+		set i = i + 1
+	}
+	
+	return predicate
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="SearchAPI.RESTBroker">
+<Super>%CSP.REST</Super>
+<TimeChanged>63681,76503.316604</TimeChanged>
+<TimeCreated>63584,64787.957361</TimeCreated>
+
+<XData name="UrlMap">
+<Data><![CDATA[
+<Routes>
+ <Route Url="/doSearch" Method="GET" Call="Search"/>
+ <Route Url="/suggest" Method="GET" Call="Suggest"/>
+ </Routes>
+]]></Data>
+</XData>
+
+<Method name="Search">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set query = %request.Get("query", "")
+	set pageNumber = %request.Get("pageNumber", "1")
+	set pageSize = %request.Get("pageSize", "25")
+	
+	set spellcheck = %request.Get("spellcheck", 0)
+	set exactMatch = %request.Get("exactMatch", 0) // ignore spellchecking result
+	
+	try {
+    	do ##class(SearchAPI.Search.SearchEngine).SearchPages(query, spellcheck, exactMatch, pageNumber, pageSize)
+	} catch err {
+    	write err.AsSystemError()
+    }
+		
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Suggest">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set query = %request.Get("query", "")
+	set count = %request.Get("count", "10")
+	set spellcheck = %request.Get("spellcheck", 0)
+	
+	try {
+    	do ##class(SearchAPI.Suggestion.SuggestionEngine).SuggestRecipes(query, count, spellcheck)
+	} catch err {
+    	write err.AsSystemError()
+    }
+		
+	quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="SearchAPI.Search.SearchEngine">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63681,75558.809392</TimeChanged>
+<TimeCreated>63598,70157.596857</TimeCreated>
+
+<Method name="SearchPages">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
+<Implementation><![CDATA[
+	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
+	_" FROM Data.SitePage"
+	
+	if spellcheck {
+		set spellcheckedQuery = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
+		
+		if 'exactMatch{
+			set query = spellcheckedQuery
+		}
+	}
+	
+	set predicate = ##class(SearchAPI.PredicateBuilder).BuildPredicate(query)
+	
+	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"	
+		
+	set result = ##class(%Library.ResultSet).%New() 
+	set tSC = result.Prepare(sqlQuery) 
+    set tSC = result.Execute()
+     
+    set searchResult = ##class(SearchAPI.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
+	
+	if spellcheck{
+		set searchResult.SpellcheckedQuery = spellcheckedQuery
+	}
+		
+	do ##class(%ZEN.Auxiliary.jsonProvider).%ObjectToJSON(searchResult)
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="SearchAPI.Search.SearchResult">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63681,58741.559997</TimeChanged>
+<TimeCreated>63627,74813.171587</TimeCreated>
+
+<Property name="Items">
+<Type>SearchAPI.Search.SitePageResult</Type>
+<Collection>list</Collection>
+</Property>
+
+<Property name="TotalCount">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="PageNumber">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="SpellcheckedQuery">
+<Type>%String</Type>
+</Property>
+
+<Method name="PopulateFromResultSet">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>result:%Library.ResultSet,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
+<ReturnType>%Library.ResultSet</ReturnType>
+<Implementation><![CDATA[
+	
+	// TODO: make it more performant
+	set startIndex = (pageNumber - 1) * pageSize + 1
+	
+	set searchResults = ##class(SearchAPI.Search.SearchResult).%New()
+	set searchResults.Items = ##class(%ListOfObjects).%New()
+	
+	set count = 0
+    while (result.Next()) 
+    { 
+    	set count = count + 1 
+		continue:(count < startIndex) 
+        
+        if (count >= (startIndex + pageSize)) 
+        {  
+			continue
+        } 
+        
+        set sitePageResult = ##class(SearchAPI.Search.SitePageResult).%New()
+        
+        set sitePageResult.Result = ##class(SearchAPI.Search.SearchResult).MapResultToSitePage(result)
+        set sitePageResult.SimilarResults = ##class(SearchAPI.Search.SearchResult).GetSimilarResults(sitePageResult.Result.NearestResults)
+              
+        set tSC = searchResults.Items.Insert(sitePageResult) 
+        
+	}
+    
+   	set searchResults.PageNumber = pageNumber
+	set searchResults.TotalCount = count
+	
+	return searchResults
+]]></Implementation>
+</Method>
+
+<Method name="GetSimilarResults">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>NearestResults:%String</FormalSpec>
+<ReturnType>%ListOfObjects</ReturnType>
+<Implementation><![CDATA[
+	set similarResultsObjects = ##class(%ListOfObjects).%New()
+	
+   	set similarResultsIds = $LISTFROMSTRING(NearestResults, " ")            
+   	set length = $LISTLENGTH(similarResultsIds)
+   	
+   	if length = 0{
+	   	return similarResultsObjects
+   	}
+
+   	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
+   	_" FROM Data.SitePage WHERE ID IN ("
+   	
+   	for i=1:1:length{
+	   	if $LIST(similarResultsIds, i) = ""{
+	      	continue
+      	}
+   		if i '= 1{
+       		set sqlQuery = sqlQuery_", "
+      	}
+     	set sqlQuery = sqlQuery_$LIST(similarResultsIds, i)
+    }
+    set sqlQuery = sqlQuery_")"
+    
+    set result = ##class(%Library.ResultSet).%New() 
+	set tSC = result.Prepare(sqlQuery) 
+    set tSC = result.Execute()
+    
+    set actulaIdsOrder = $LISTFROMSTRING("")
+    
+    while (result.Next()) 
+    {
+	    set similarResult = ##class(SearchAPI.Search.SearchResult).MapResultToSitePage(result)
+	    do similarResultsObjects.Insert(similarResult)
+	    
+	    set id = result.Data("ID")	    	
+	    set actulaIdsOrder = actulaIdsOrder_$LISTBUILD(id)
+	    
+    }   
+    
+    // Order results by distance
+    set similarResultsObjectsOrdered = ##class(%ListOfObjects).%New()
+    
+    set actualResultsLength = $LISTLENGTH(actulaIdsOrder)
+    
+    for i=1:1:length{
+	    set id = $LIST(similarResultsIds, i)
+	    
+	    if id = ""{
+	      	continue
+      	}
+	    
+	    for j=1:1:actualResultsLength{
+		   if $LIST(actulaIdsOrder, j) = id{
+			    do similarResultsObjectsOrdered.Insert(similarResultsObjects.GetAt(j))
+		    }
+	    }
+    }
+			    
+    return similarResultsObjectsOrdered
+]]></Implementation>
+</Method>
+
+<Method name="MapResultToSitePage">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>result:%Library.ResultSet</FormalSpec>
+<ReturnType>Data.SitePage</ReturnType>
+<Implementation><![CDATA[
+	set sitePage = ##class(Data.SitePage).%New() 
+    set sitePage.Description = result.Data("Description") 
+    set sitePage.Ingredients = result.Data("Ingredients") 
+    set sitePage.RecipeInstructions = result.Data("RecipeInstructions")
+    set sitePage.AdditionalData = result.Data("AdditionalData") 
+    set sitePage.ImageUrl = result.Data("ImageUrl") 
+    set sitePage.SiteId = result.Data("SiteId") 
+    set sitePage.URL = result.Data("URL") 
+    set sitePage.Keywords = result.Data("Keywords") 
+    set sitePage.ModifiedDate = result.Data("ModifiedDate") 
+    set sitePage.CreatedDate = result.Data("CreatedDate") 
+    set sitePage.RecipeName = result.Data("RecipeName") 
+    set sitePage.NearestResults = result.Data("NearestResults") 
+       
+    return sitePage
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="SearchAPI.Search.SitePageResult">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63673,75886.369848</TimeChanged>
+<TimeCreated>63673,70073.256262</TimeCreated>
+
+<Property name="Result">
+<Type>Data.SitePage</Type>
+</Property>
+
+<Property name="SimilarResults">
+<Type>Data.SitePage</Type>
+<Collection>list</Collection>
+</Property>
+</Class>
+
+
+<Class name="SearchAPI.Suggestion.SuggestionEngine">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63681,75578.268084</TimeChanged>
+<TimeCreated>63640,44078.352651</TimeCreated>
+
+<Method name="SuggestRecipes">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String,count:%Integer,spellcheck:%Boolean</FormalSpec>
+<Implementation><![CDATA[
+	set sqlQuery = "SELECT %NOLOCK TOP "_count_" Keywords,SiteId,URL,RecipeName FROM Data.SitePage"
+	
+	if spellcheck {
+		set query = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
+	}
+	
+	set predicate = ##class(SearchAPI.PredicateBuilder).BuildPredicate(query)
+	
+	if predicate = ""{
+		set predicate = "(1 = 0)"
+	}
+	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"
+	
+	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="Spellcheck.SpellcheckDictionaryCreator">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63681,76063.326387</TimeChanged>
+<TimeCreated>63681,75479.498522</TimeCreated>
+
+<Method name="LoadSpellcheckDictionaryFromFile">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>filename:%String</FormalSpec>
+<Implementation><![CDATA[
+	
+	close filename
+	open filename:("RK\CP1251\"):5 if '$test { return 0 }
+	
+	use filename
+	read stringnum
+	
+	for i=1:1:stringnum {
+		read str
+		set word = $EXTRACT(str, 9, $LENGTH(str))
+		set number = $REPLACE($EXTRACT(str, 1, 7), " ", "")
+		set ^SpellcheckDict(word, 1) = number
+		set ^SpellcheckDict(word) = 1 // words from dictionary have minimum probability
+	}
+	
+	close filename
+	quit 1
+]]></Implementation>
+</Method>
+
+<Method name="CreateSpellcheckDictionaryFromDB">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	
+	set result = ##class(%Library.ResultSet).%New() 
+	set tSC = result.Prepare("SELECT Keywords, Ingredients, RecipeInstructions, RecipeName, AdditionalData, Description FROM Data.SitePage") 
+    set tSC = result.Execute()
+    
+    while (result.Next()) 
+    {
+	    do ##class(Spellcheck.SpellcheckDictionaryCreator).AddSitePageData(
+	    	result.Data("Keywords"),
+	    	result.Data("Ingredients"),
+	    	result.Data("RecipeInstructions"),
+	    	result.Data("RecipeName"),
+	    	result.Data("AdditionalData"),
+	    	result.Data("Description")
+	    )
+    }
+]]></Implementation>
+</Method>
+
+<Method name="AddSitePageData">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>keywords:%String,ingredients:%String,instructions:%String,name:%String,additionalData:%String,description:%String</FormalSpec>
+<Implementation><![CDATA[
+	    
+	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(keywords)	           
+	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(ingredients)	          
+	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(instructions)	    	      
+	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(name)        
+	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(additionalData)	    	      
+	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(description)
+]]></Implementation>
+</Method>
+
+<Method name="AddDataFromText">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>text:%String</FormalSpec>
+<Implementation><![CDATA[
+	set descriptionList = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(text)
+	do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromList(descriptionList)
+]]></Implementation>
+</Method>
+
+<Method name="AddDataFromList">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>itemsList:%Library.List</FormalSpec>
+<Implementation><![CDATA[
+	for i = 1:1:$LISTLENGTH(itemsList){
+		set item = $LIST(itemsList, i)
+		if item '= ""{
+			set ^SpellcheckDict(item) = $GET(^SpellcheckDict(item), 0) + 1
+		}
+	}
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="Spellcheck.Spellchecker">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63681,75772.571092</TimeChanged>
+<TimeCreated>63681,75436.493578</TimeCreated>
 
 <Method name="SpellcheckText">
 <ClassMethod>1</ClassMethod>
@@ -1813,7 +1840,7 @@ GROUP BY SiteId</SqlQuery>
 	// try to spellcheck each word
 	set length = $LISTLENGTH(wordsList)
 	for i=1:1:length{
-		set resultText = resultText_##class(iKnow.Spellchecker).SpellcheckWord($LIST(wordsList, i))
+		set resultText = resultText_##class(Spellcheck.Spellchecker).SpellcheckWord($LIST(wordsList, i))
 		if i '= length{
 			set resultText = resultText_" "
 		}		
@@ -1832,7 +1859,7 @@ GROUP BY SiteId</SqlQuery>
 		return word
 	}
 	
-	set editsList = ##class(iKnow.Spellchecker).GenerateEdits(word)
+	set editsList = ##class(Spellcheck.Spellchecker).GenerateEdits(word)
 	
 	set maxProbability = 0
 	set maxProbableWord = word
@@ -1857,28 +1884,28 @@ GROUP BY SiteId</SqlQuery>
 <Implementation><![CDATA[
 	set resultListItemsCount = 0
 	
-	set deletions = ##class(iKnow.Spellchecker).GenerateDeletions(word)
+	set deletions = ##class(Spellcheck.Spellchecker).GenerateDeletions(word)
 	for i=1:1:$LISTLENGTH(deletions){
 		set $LIST(resultList, resultListItemsCount + 1) = $LIST(deletions,i)
 		
 		set resultListItemsCount = resultListItemsCount + 1
 	}
 	
-	set transpositions = ##class(iKnow.Spellchecker).GenerateTranspositions(word)
+	set transpositions = ##class(Spellcheck.Spellchecker).GenerateTranspositions(word)
 	for i=1:1:$LISTLENGTH(transpositions){
 		set $LIST(resultList, resultListItemsCount + 1) = $LIST(transpositions,i)
 		
 		set resultListItemsCount = resultListItemsCount + 1
 	}
 	
-	set alterations = ##class(iKnow.Spellchecker).GenerateAlterations(word)
+	set alterations = ##class(Spellcheck.Spellchecker).GenerateAlterations(word)
 	for i=1:1:$LISTLENGTH(alterations){
 		set $LIST(resultList, resultListItemsCount + 1) = $LIST(alterations,i)
 		
 		set resultListItemsCount = resultListItemsCount + 1
 	}
 	
-	set insertions = ##class(iKnow.Spellchecker).GenerateInsertions(word)
+	set insertions = ##class(Spellcheck.Spellchecker).GenerateInsertions(word)
 	for i=1:1:$LISTLENGTH(insertions){
 		set $LIST(resultList, resultListItemsCount + 1) = $LIST(insertions,i)
 		
@@ -1976,32 +2003,6 @@ GROUP BY SiteId</SqlQuery>
 	}
 	
 	return resultList
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="iKnow.StringAnalyzer">
-<TimeChanged>63673,65740.206813</TimeChanged>
-<TimeCreated>63610,80153.007685</TimeCreated>
-
-<Method name="GetEntitiesInText">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>text:%String</FormalSpec>
-<ReturnType>%Library.List</ReturnType>
-<Implementation><![CDATA[
-	set words = ##class(iKnow.StringAnalyzer).StemText(text) 
-	return $LISTFROMSTRING(words, " ")
-]]></Implementation>
-</Method>
-
-<Method name="StemText">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>text:%String</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
-	set stemmer = ##class(%iKnow.Stemming.TextStemmer).%New("ru")
-	return stemmer.StemWord(text)
 ]]></Implementation>
 </Method>
 </Class>

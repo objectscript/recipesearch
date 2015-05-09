@@ -11,7 +11,7 @@ namespace RecipesSearch.CacheService.Services
 {
     public class SuggestionService : CacheServiceBase
     {
-        private const string Endpoint = "/iknow/suggest";
+        private const string Endpoint = "/recipes/suggest";
 
         public List<string> SuggestByQuery(string query, int count, bool spellcheck)
         {
