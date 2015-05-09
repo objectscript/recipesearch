@@ -86,11 +86,16 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 pages = cacheAdapter.GetWordsTfIdf();
             }
 
-            var results = new TfIdfInfo[pages.Count];
+            var resultsList = new List<TfIdfInfo>();
 
             for (int i = 0; i < pages.Count; ++i)
             {
-                results[i] = new TfIdfInfo
+                if (String.IsNullOrEmpty(pages[i].WordsTfIdf))
+                {
+                    continue;
+                }
+
+                var result = new TfIdfInfo
                 {
                     Id = pages[i].Id,
                     WordsTfIdf = new Dictionary<string, double>()
@@ -105,11 +110,13 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                     var word = tfIdfWordParts[0];
                     double tfidf = Double.Parse(tfIdfWordParts[1], CultureInfo.InvariantCulture);
 
-                    results[i].WordsTfIdf.Add(word, tfidf);
+                    result.WordsTfIdf.Add(word, tfidf);
                 }
+
+                resultsList.Add(result);
             }
 
-            return results;
+            return resultsList.ToArray();
         }
 
         private void GetKNearest(TfIdfInfo[] pages, int k)
