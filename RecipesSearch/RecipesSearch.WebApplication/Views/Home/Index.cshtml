@@ -39,7 +39,7 @@
         {
             <div class="row">
                 <div class="col-md-6">
-                    @if (Model.SpellcheckingEnabled && Model.SpellcheckedQuery.ToLowerInvariant().Trim() != Model.CurrentQuery.ToLowerInvariant().Trim())
+                    @if (Model.SpellcheckingEnabled && Model.SpellcheckedQuery.ToLowerInvariant().Trim() != Model.CurrentQuery.Replace(".", "").ToLowerInvariant().Trim())
                     {
                         <div class="row">
                             <div class="col-md-8">

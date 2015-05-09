@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-09 21:28:46">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-09 22:56:26">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -613,7 +613,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.Config">
 <Super>Data.Base.Entity</Super>
-<TimeChanged>63681,50393.569799</TimeChanged>
+<TimeChanged>63681,78966.645546</TimeChanged>
 <TimeCreated>63610,79444.886551</TimeCreated>
 
 <Property name="LoggingEnabled">
@@ -802,7 +802,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63681,77242.342239</TimeChanged>
+<TimeChanged>63681,82578.319434</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -817,7 +817,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Property>
 
 <Property name="Keywords">
-<Type>%String</Type>
+<Type>%Text</Type>
+<Parameter name="LANGUAGECLASS" value="%Text.Russian"/>
 <Parameter name="MAXLEN" value="1000"/>
 </Property>
 
@@ -882,7 +883,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Index>
 
 <Index name="KeywordsIDX">
-<Properties>Keywords</Properties>
+<Properties>Keywords(KEYS)</Properties>
 </Index>
 
 <Index name="RecipeUQIDX">
@@ -898,12 +899,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	IF ProcessKeywords{
 		set keywordsList = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(Keywords)
 		set keywordsAnalyzed = ""
-		set i = 1
 		set listLength = $LISTLENGTH(keywordsList)
-		while (i <= listLength){		
+		for i=1:1:listLength {		
+			set keyword = $LIST(keywordsList, i)
+			
 			set keywordsAnalyzed = keywordsAnalyzed_" "_$LIST(keywordsList, i)
-		
-			set i = i + 1
 		}
 	}	
 	ELSE {
@@ -934,7 +934,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 		UPDATE SitePage SET AdditionalData = @AdditionalData,Description = @Description,Ingredients = @Ingredients,RecipeInstructions = @RecipeInstructions, Keywords = @Keywords, RecipeName = @RecipeName, ImageUrl = @ImageUrl, ModifiedDate = GETUTCDATE()
 		WHERE URL = @URL AND SiteId = @SiteId;
 	END ELSE BEGIN
-		INSERT INTO SitePage(SiteId, URL, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl, Keywords, RecipeName, CreatedDate, ModifiedDate) 
+		INSERT INTO SitePage(SiteId, URL, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl, Keywords,RecipeName, CreatedDate, ModifiedDate) 
 		VALUES(@SiteId, @URL, @Description,@Ingredients,@RecipeInstructions,@AdditionalData,@ImageUrl, @Keywords, @RecipeName, GETUTCDATE(), GETUTCDATE());
 END
 ]]></Implementation>
@@ -1413,7 +1413,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.PredicateBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,76050.610945</TimeChanged>
+<TimeChanged>63681,79853.116646</TimeChanged>
 <TimeCreated>63640,44416.350546</TimeCreated>
 
 <Method name="BuildPredicate">
@@ -1426,16 +1426,22 @@ GROUP BY SiteId</SqlQuery>
 	set predicate = ""
 	set i = 1
 	set listLength = $LISTLENGTH(queryParts)
-	while (i <= listLength){
-		
+	
+	IF listLength = 0 {
+		return predicate
+	}
+	
+	set predicate = "Keywords %CONTAINS("
+	
+	for i=1:1:listLength{
 		if i '= 1{
-			set predicate = predicate_" AND "
+			set predicate = predicate_", "
 		}
 		
-		set predicate = predicate_"(Keywords [ '"_$LIST(queryParts, i)_"')"
-		
-		set i = i + 1
+		set predicate = predicate_"'"_$LIST(queryParts, i)_"'"
 	}
+	
+	set predicate = predicate_")"
 	
 	return predicate
 ]]></Implementation>
@@ -1500,7 +1506,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,75558.809392</TimeChanged>
+<TimeChanged>63681,79880.648633</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
@@ -1737,7 +1743,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="Spellcheck.SpellcheckDictionaryCreator">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,76063.326387</TimeChanged>
+<TimeChanged>63681,81044.462611</TimeChanged>
 <TimeCreated>63681,75479.498522</TimeCreated>
 
 <Method name="LoadSpellcheckDictionaryFromFile">
@@ -1804,8 +1810,12 @@ GROUP BY SiteId</SqlQuery>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>text:%String</FormalSpec>
 <Implementation><![CDATA[
-	set descriptionList = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(text)
-	do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromList(descriptionList)
+	set stemmedList = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(text)	
+	do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromList(stemmedList)
+	
+	// TODO: Revisit. Hack to get words list stripped from other symbols
+	set orignalWordsList = $LISTFROMSTRING(##class(%iKnow.Stemming.TextStemmer).%New("en").StemWord(text)," ")
+	do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromList(orignalWordsList)
 ]]></Implementation>
 </Method>
 
