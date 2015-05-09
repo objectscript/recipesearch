@@ -16,6 +16,8 @@ namespace RecipesSearch.Data.Models
 
         public int MaxPagesToCrawl { get; set; }
 
+        public int MaxConcurrentThreads { get; set; }       
+
         public int MaxCrawlDepth { get; set; }
 
         public int CrawlTimeoutSeconds { get; set; }

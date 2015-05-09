@@ -27,10 +27,11 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
             }
 
             sitePage.RecipeName = GetTextBySelector(csQueryDocument, "[itemprop=name]");
-            sitePage.Description = GetTextBySelector(csQueryDocument, "[itemprop=description]");
+            sitePage.Description = String.Empty;
             sitePage.Ingredients = GetTextBySelector(csQueryDocument, "[itemprop=ingredients]");
             sitePage.RecipeInstructions = GetTextBySelector(csQueryDocument, "[itemprop=recipeInstructions] p");
             sitePage.AdditionalData = GetTextBySelector(csQueryDocument, "[itemprop=summary]");
+            sitePage.ImageUrl = GetImageUrl(crawledPage, csQueryDocument, "[itemprop=image]");
         }
     }
 }

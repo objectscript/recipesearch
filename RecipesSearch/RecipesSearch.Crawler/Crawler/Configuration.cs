@@ -17,13 +17,13 @@ namespace RecipesSearch.SitePagesImporter.Crawler
             CrawlTimeoutSeconds = config.CrawlTimeoutSeconds;
             MaxPagesToCrawl = config.MaxPagesToCrawl;
 
-            MaxConcurrentThreads = 2;         
+            MaxConcurrentThreads = config.MaxConcurrentThreads;         
             UserAgentString = "abot v1.0 http://code.google.com/p/abot";
             IsExternalPageCrawlingEnabled = false;
             IsExternalPageLinksCrawlingEnabled = false;
             IsHttpRequestAutoRedirectsEnabled = true;
-            IsRespectMetaRobotsNoFollowEnabled = false;
-            IsRespectAnchorRelNoFollowEnabled = false;
+            IsRespectMetaRobotsNoFollowEnabled = true;
+            IsRespectAnchorRelNoFollowEnabled = true;
             IsRespectRobotsDotTextEnabled = true;
             IsSendingCookiesEnabled = true;            
             IsUriRecrawlingEnabled = false;

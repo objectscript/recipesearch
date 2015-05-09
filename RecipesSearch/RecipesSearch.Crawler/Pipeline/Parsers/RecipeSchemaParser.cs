@@ -11,7 +11,12 @@ using RecipesSearch.SitePagesImporter.Pipeline.Base;
 namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
 {
     class RecipeSchemaParser : BaseParser
-    {       
+    {
+
+        protected string ImageSelector = "[itemprop=image]";
+
+        protected string RecipeInstructionsSelector = "[itemprop=recipeInstructions]";
+
         public override string Id
         {
             get { return "RecipeSchema"; }
@@ -28,9 +33,11 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
 
             sitePage.RecipeName = GetTextBySelector(csQueryDocument, "[itemprop=name]");
             sitePage.Description = GetTextBySelector(csQueryDocument, "[itemprop=description]");
-            sitePage.Ingredients = GetTextBySelector(csQueryDocument, "[itemprop=ingredients]");
-            sitePage.RecipeInstructions = GetTextBySelector(csQueryDocument, "[itemprop=recipeInstructions]");
+            sitePage.Ingredients = GetTextBySelector(csQueryDocument, "[itemprop=ingredients]", ",");
+            sitePage.RecipeInstructions = GetTextBySelector(csQueryDocument, RecipeInstructionsSelector);
             sitePage.AdditionalData = GetTextBySelector(csQueryDocument, "[itemprop=summary]");
+
+            sitePage.ImageUrl = GetImageUrl(crawledPage, csQueryDocument, ImageSelector);
         }
 
         protected virtual bool CheckForRecipeSchema(CQ queryDocument)

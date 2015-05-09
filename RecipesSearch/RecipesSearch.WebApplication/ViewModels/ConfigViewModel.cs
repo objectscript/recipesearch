@@ -34,6 +34,11 @@ namespace RecipesSearch.WebApplication.ViewModels
         public int MaxCrawlDepth { get; set; }
 
         [Required(ErrorMessage = "Field is required")]
+        [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
+        [Display(Name = "Maximum thread's count allowed for a crawler")]
+        public int MaxConcurrentThreads { get; set; }
+
+        [Required(ErrorMessage = "Field is required")]
         [RegularExpression("([0-9]*)", ErrorMessage = "Must be a non-negative number")]
         [Display(Name = "Max crawling time (0 to disable)")]
         public int CrawlTimeoutSeconds { get; set; }
@@ -52,6 +57,7 @@ namespace RecipesSearch.WebApplication.ViewModels
                 MaxPagesToCrawl = viewModel.MaxPagesToCrawl,
                 CrawlTimeoutSeconds = viewModel.CrawlTimeoutSeconds,
                 EnableSpellcheckDictionaryUpdate = viewModel.EnableSpellcheckDictionaryUpdate,
+                MaxConcurrentThreads = viewModel.MaxConcurrentThreads,
                 SitesToCrawl = new List<SiteToCrawl>()
             };
         }
@@ -67,6 +73,7 @@ namespace RecipesSearch.WebApplication.ViewModels
                 MaxPagesToCrawl = enity.MaxPagesToCrawl,
                 CrawlTimeoutSeconds = enity.CrawlTimeoutSeconds,
                 EnableSpellcheckDictionaryUpdate = enity.EnableSpellcheckDictionaryUpdate,
+                MaxConcurrentThreads = enity.MaxConcurrentThreads
             };
         }
     }

@@ -1,5 +1,10 @@
 ﻿@model RecipesSearch.WebApplication.ViewModels.SearchResultItemViewModel
 
+@if (!String.IsNullOrEmpty(Model.ImageUrl))
+{
+    <img src="@Model.ImageUrl" class="recipe-image"/>
+}
+
 @if (!String.IsNullOrEmpty(Model.Description))
 {
     @Model.Description

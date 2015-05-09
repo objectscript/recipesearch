@@ -26,6 +26,8 @@ namespace RecipesSearch.Data.Models
 
         public string AdditionalData { get; set; }
 
+        public string ImageUrl { get; set; }
+
         [NotMapped]
         public DateTime CreatedDate { get; set; }
 

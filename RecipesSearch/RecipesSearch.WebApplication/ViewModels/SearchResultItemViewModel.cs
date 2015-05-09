@@ -24,6 +24,8 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public string AdditionalData { get; set; }
 
+        public string ImageUrl { get; set; }
+
         public List<SearchResultItemViewModel> SimilarResults { get; set; } 
 
         public SearchResultItemViewModel(SitePage entity)
@@ -34,6 +36,7 @@ namespace RecipesSearch.WebApplication.ViewModels
             RecipeInstructions = entity.RecipeInstructions;
             AdditionalData = entity.AdditionalData;
             Name = String.IsNullOrEmpty(entity.RecipeName) ? entity.URL : entity.RecipeName;
+            ImageUrl = entity.ImageUrl;
 
             if (entity.SimilarResults != null)
             {

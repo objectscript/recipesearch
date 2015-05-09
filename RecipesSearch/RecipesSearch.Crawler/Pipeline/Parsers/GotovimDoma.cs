@@ -30,6 +30,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
             sitePage.Ingredients = GetTextBySelector(recipeWrapper, ".rcpstru");
             sitePage.RecipeInstructions = GetTextBySelector(recipeWrapper, ".instructions");
             sitePage.Description = String.Empty;
+            sitePage.ImageUrl = GetImageUrl(crawledPage, recipeWrapper, ".photo");
         }                
     }
 }

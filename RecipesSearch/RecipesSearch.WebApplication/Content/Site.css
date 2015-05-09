@@ -48,7 +48,7 @@ th, b {
     margin-bottom: 20px;
 }
 .search-results .results-list .result-item{
-    max-height: 115px;
+    max-height: 175px;
     overflow: hidden;
     text-align: justify;
     position: relative;
@@ -68,6 +68,12 @@ th, b {
     font-size: 11px;
     color: #bbb;
     text-decoration: underline;
+}
+.search-results .results-list .result-item .recipe-image {
+     float: left;
+     max-height: 130px;
+     box-sizing: content-box;
+     padding: 5px 10px 0 0;
 }
 
 /*Similar items*/
