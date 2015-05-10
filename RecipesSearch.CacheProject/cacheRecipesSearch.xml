@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-09 22:56:26">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-10 18:47:11">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -1203,7 +1203,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="Logging.LogRecord">
 <Super>%Persistent</Super>
-<TimeChanged>63611,46480.868979</TimeChanged>
+<TimeChanged>63682,64488.949431</TimeChanged>
 <TimeCreated>63611,44722.841798</TimeCreated>
 
 <Property name="Type">
@@ -1214,12 +1214,12 @@ GROUP BY SiteId</SqlQuery>
 <Property name="Description">
 <Type>%String</Type>
 <Required>1</Required>
-<Parameter name="MAXLEN" value="200"/>
+<Parameter name="MAXLEN" value="2000"/>
 </Property>
 
 <Property name="Exception">
 <Type>%String</Type>
-<Parameter name="MAXLEN" value="2000"/>
+<Parameter name="MAXLEN" value="10000"/>
 </Property>
 
 <Property name="CreatedDate">
