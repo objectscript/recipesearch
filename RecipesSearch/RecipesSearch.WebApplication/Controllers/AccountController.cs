@@ -1,16 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.Security;
+using InterSystems.AspNet.Identity.Cache;
 using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.WebApplication.ViewModels;
+using Microsoft.AspNet.Identity.Owin;
 
 namespace RecipesSearch.WebApplication.Controllers
 {
     public class AccountController : Controller
     {
+        public ApplicationUserManager UserManager
+        {
+            get
+            {
+                return HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
+            }
+        }
+
+        public ApplicationSignInManager SignInManager
+        {
+            get
+            {
+                return HttpContext.GetOwinContext().GetUserManager<ApplicationSignInManager>();
+            }
+        }
+
         [HttpGet]
         public ViewResult Login(bool resetPassword = false)
         {
@@ -20,22 +36,30 @@ namespace RecipesSearch.WebApplication.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LogonViewModel model)
+        public async Task<ActionResult> Login(LogonViewModel model)
         {
             try
             {
-                EnsureTestUserExists();
-                if (ModelState.IsValid)
+                if (!ModelState.IsValid)
                 {
-                    if (Membership.ValidateUser(model.Login, model.Password))
-                    {
-                        FormsAuthentication.SetAuthCookie(model.Login, model.RememberMe);
-                        return Redirect(model.RedirectUrl);
-                    }
-                    ViewBag.InvalidAttempt = true;
-                    return View("Login", new LogonViewModel());
+                    return View("Error");
                 }
-                return View("Error");
+
+                await EnsureTestUserExists();
+
+                var result = await SignInManager.PasswordSignInAsync(model.Login, model.Password, model.RememberMe, shouldLockout: false);
+                switch (result)
+                {
+                    case SignInStatus.Success:
+                        return String.IsNullOrEmpty(model.RedirectUrl) ? 
+                            (ActionResult) RedirectToAction("Index", "Home") :
+                            Redirect(model.RedirectUrl);
+
+                    case SignInStatus.Failure:
+                    default:
+                        ViewBag.InvalidAttempt = true;
+                        return View("Login", new LogonViewModel());
+                }             
             }
             catch (Exception ex)
             {
@@ -44,13 +68,14 @@ namespace RecipesSearch.WebApplication.Controllers
             }
         }
 
-        //TODO: Remove when/if we get registrastration
+        //TODO: Remove when/if we get registratration
         //For now just one admin user hardcoded
-        private void EnsureTestUserExists()
+        private async Task EnsureTestUserExists()
         {
-            if (!Membership.ValidateUser("admin", "admin"))
+            var user = await UserManager.FindByNameAsync("admin");
+            if (user == null)
             {
-                Membership.CreateUser("admin", "admin");
+                await UserManager.CreateAsync(new IdentityUser { UserName = "admin" }, "admin");
             }
         }
 
@@ -60,7 +85,7 @@ namespace RecipesSearch.WebApplication.Controllers
         {
             try
             {
-                FormsAuthentication.SignOut();
+                HttpContext.GetOwinContext().Authentication.SignOut();
             }
             catch (Exception ex)
             {

@@ -22,6 +22,10 @@
                     {
                         <li><a href="@Url.Action("Index", "Home")">Search</a></li>
                     }
+                    @if (HttpContext.Current.User.Identity.IsAuthenticated)
+                    {
+                        <li><a href="@Url.Action("LogOff", "Account")">Logout</a></li>
+                    }
                 </ul>
             </div>
         </nav>
