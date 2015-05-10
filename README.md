@@ -1,6 +1,6 @@
 Main goal of this project is to provide enhanced functionality for recipes search. It uses iKnow to analyze recipes text, finds similar recipes and groups them before show to user.
 
-Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will be always working)
+Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will be always working). Username/password for admin part - admin/admin.
 
 # Dev Environment Setup Guide
 #### Install necessary software
