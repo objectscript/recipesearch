@@ -20,10 +20,10 @@ namespace RecipesSearch.WebApplication
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
-            using (var context = new IdentityDbContext("Cache"))
-            {
-                context.Database.Initialize(force: true);
-            }
+            //using (var context = new IdentityDbContext("Cache"))
+            //{
+            //    context.Database.Initialize(force: true);
+            //}
 
             Logger.LogInfo("Application start.");
         }

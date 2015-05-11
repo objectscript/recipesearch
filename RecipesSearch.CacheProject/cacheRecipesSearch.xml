@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-11 22:59:31">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-11 23:40:33">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -810,7 +810,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.RecipeData.WordsTF">
 <Super>%Persistent</Super>
-<TimeChanged>63683,74641.170853</TimeChanged>
+<TimeChanged>63683,83453.404218</TimeChanged>
 <TimeCreated>63683,65238.598919</TimeCreated>
 
 <Property name="RecipeId">
@@ -853,7 +853,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <FormalSpec>RecipeId:%Integer,Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000)</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
-	write "enter","-",RecipeId,"-",Keywords,!
 	
 	set extendedKeywords = 
 		RecipeName_"; "_Description_"; "_Ingredients
@@ -913,6 +912,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="ComputeWordsTFForAllRecipes">
 <ClassMethod>1</ClassMethod>
+<SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	&sql(declare recipesCursor cursor for
 	      select ID, Keywords, RecipeName, Description, Ingredients, RecipeInstructions,AdditionalData
@@ -1706,7 +1706,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.PredicateBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63683,79176.197995</TimeChanged>
+<TimeChanged>63683,84930.992765</TimeChanged>
 <TimeCreated>63640,44416.350546</TimeCreated>
 
 <Method name="BuildPredicate">
@@ -1755,7 +1755,7 @@ GROUP BY SiteId</SqlQuery>
 		return subquery
 	}
 	
-	set subquery = "("
+	set subquery = "(0"
 	
 	for i=1:1:listLength{
 		set word = $LIST(queryParts, i)
@@ -1764,9 +1764,7 @@ GROUP BY SiteId</SqlQuery>
 			continue
 		}
 		
-		if i '= 1{
-			set subquery = subquery_" + "
-		}
+		set subquery = subquery_" + "
 										
 		set subquery = subquery_"(SELECT SUM(TF)* "_^globalIdf(word)_" from Data_RecipeData.WordsTF WHERE RecipeId = sp.Id AND word = '"_word_"')"
 	}
@@ -1836,13 +1834,21 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63683,81395.429356</TimeChanged>
+<TimeChanged>63683,84942.254311</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
 <Implementation><![CDATA[
+	if spellcheck {
+		set spellcheckedQuery = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
+		
+		if 'exactMatch{
+			set query = spellcheckedQuery
+		}
+	}
+	
 	set sqlQuery = "SELECT %NOLOCK" 
 			_" ID,"
 			_" Description,"
@@ -1858,14 +1864,6 @@ GROUP BY SiteId</SqlQuery>
 			_" CreatedDate," 
 			_" ModifiedDate"
 		_" FROM Data.SitePage sp"
-	
-	if spellcheck {
-		set spellcheckedQuery = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
-		
-		if 'exactMatch{
-			set query = spellcheckedQuery
-		}
-	}
 	
 	set predicate = ##class(SearchAPI.PredicateBuilder).BuildPredicate(query)
 	
@@ -2030,13 +2028,17 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.Suggestion.SuggestionEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63683,79248.650103</TimeChanged>
+<TimeChanged>63683,84619.105959</TimeChanged>
 <TimeCreated>63640,44078.352651</TimeCreated>
 
 <Method name="SuggestRecipes">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>query:%String,count:%Integer,spellcheck:%Boolean</FormalSpec>
 <Implementation><![CDATA[
+	
+	if spellcheck {
+		set query = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
+	}
 	
 	set sqlQuery = "SELECT %NOLOCK TOP "_count 
 			_" Keywords,"
@@ -2045,10 +2047,6 @@ GROUP BY SiteId</SqlQuery>
 			_" RecipeName,"
 			_##class(SearchAPI.PredicateBuilder).BuildRelevancySubQuery(query)
 		_" FROM Data.SitePage sp"
-	
-	if spellcheck {
-		set query = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
-	}
 	
 	set predicate = ##class(SearchAPI.PredicateBuilder).BuildPredicate(query)
 	
