@@ -31,6 +31,8 @@ namespace RecipesSearch.DAL.Cache.Adapters
 
         public bool UpdateSimilarResults(int pageId, IEnumerable<int> results)
         {
+            EnsureConnectionOpened();
+
             var command = new CacheCommand(GetFullProcedureName("SitePage_UpdateNearestResults"), CacheConnection);
             command.CommandType = CommandType.StoredProcedure;
 
@@ -58,7 +60,7 @@ namespace RecipesSearch.DAL.Cache.Adapters
 
             var result = command.ExecuteScalar();
 
-            return (int)result;
+            return (int)(decimal)result;
         }
 
         public void UpdateTfIdf()

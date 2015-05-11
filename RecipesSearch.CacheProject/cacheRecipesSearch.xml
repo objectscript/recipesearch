@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-11 22:02:03">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-11 22:59:31">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -753,6 +753,61 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Package name="Data" sqlname="Data"/>
 
 
+<Class name="Data.RecipeData.NearestResult">
+<Super>%Persistent</Super>
+<TimeChanged>63683,80644.140854</TimeChanged>
+<TimeCreated>63683,79491.18148</TimeCreated>
+
+<Property name="RecipeId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="SimilarRecipeId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="Order">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Index name="MainIDX">
+<PrimaryKey>1</PrimaryKey>
+<Properties>RecipeId,SimilarRecipeId</Properties>
+</Index>
+
+<ForeignKey name="SitePage">
+<Properties>RecipeId</Properties>
+<ReferencedClass>Data.SitePage</ReferencedClass>
+</ForeignKey>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Data.RecipeData.NearestResultD</DataLocation>
+<DefaultData>NearestResultDefaultData</DefaultData>
+<IdLocation>^Data.RecipeData.NearestResultD</IdLocation>
+<IndexLocation>^Data.RecipeData.NearestResultI</IndexLocation>
+<StreamLocation>^Data.RecipeData.NearestResultS</StreamLocation>
+<Data name="NearestResultDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>RecipeId</Value>
+</Value>
+<Value name="3">
+<Value>SimilarRecipeId</Value>
+</Value>
+<Value name="4">
+<Value>Order</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
 <Class name="Data.RecipeData.WordsTF">
 <Super>%Persistent</Super>
 <TimeChanged>63683,74641.170853</TimeChanged>
@@ -954,7 +1009,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63683,77306.952918</TimeChanged>
+<TimeChanged>63683,82181.47151</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1003,11 +1058,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Property name="WordsTfIdf">
 <Type>%String</Type>
 <Parameter name="MAXLEN" value="100000"/>
-</Property>
-
-<Property name="NearestResults">
-<Type>%String</Type>
-<Parameter name="MAXLEN" value="1000"/>
 </Property>
 
 <Property name="ImageUrl">
@@ -1162,11 +1212,18 @@ GROUP BY SiteId</SqlQuery>
 <Method name="UpdateNearestResults">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>PageId:%Integer,NearestResults:%String</FormalSpec>
-<Language>tsql</Language>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
+	&sql(DELETE %NOLOCK FROM Data_RecipeData.NearestResult WHERE RecipeId = :PageId)
+	
+	set similarResults = $LISTFROMSTRING(NearestResults," ")
+	for i=1:1:$LISTLENGTH(similarResults){
+		set recipeId = $LIST(similarResults,i)
 		
-		UPDATE SitePage SET NearestResults = @NearestResults WHERE Id = @PageId
+		&sql(INSERT %NOLOCK INTO Data_RecipeData.NearestResult
+			(RecipeId, SimilarRecipeId, Order) 
+			VALUES(:PageId, CAST(:recipeId AS INT), :i))
+	}
 ]]></Implementation>
 </Method>
 
@@ -1183,7 +1240,7 @@ GROUP BY SiteId</SqlQuery>
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetNearestResultsStatistic</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>	SELECT COUNT(*) AS EmptyNearestResults from data.SitePage WHERE NearestResults IS NULL OR NearestResults = ''</SqlQuery>
+<SqlQuery>	select ((select COUNT(Id) FROM data.SitePage) - (select COUNT(DISTINCT RecipeId) FROM Data_RecipeData.NearestResult)) AS NearestResults</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1628,7 +1685,7 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-11 21:21:02.774494">
+<Project name="RecipesSearch" LastModified="2015-05-11 22:41:17.983935">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="Data" type="PKG"></ProjectItem>
@@ -1779,7 +1836,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63683,78813.27533</TimeChanged>
+<TimeChanged>63683,81395.429356</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
@@ -1797,7 +1854,6 @@ GROUP BY SiteId</SqlQuery>
 			_" SiteId,"
 			_" URL,"
 			_" RecipeName, "
-			_" NearestResults,"
 			_##class(SearchAPI.PredicateBuilder).BuildRelevancySubQuery(query)_","
 			_" CreatedDate," 
 			_" ModifiedDate"
@@ -1833,7 +1889,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,58741.559997</TimeChanged>
+<TimeChanged>63683,81686.777838</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
@@ -1879,7 +1935,7 @@ GROUP BY SiteId</SqlQuery>
         set sitePageResult = ##class(SearchAPI.Search.SitePageResult).%New()
         
         set sitePageResult.Result = ##class(SearchAPI.Search.SearchResult).MapResultToSitePage(result)
-        set sitePageResult.SimilarResults = ##class(SearchAPI.Search.SearchResult).GetSimilarResults(sitePageResult.Result.NearestResults)
+        set sitePageResult.SimilarResults = ##class(SearchAPI.Search.SearchResult).GetSimilarResults(result.Data("ID"))
               
         set tSC = searchResults.Items.Insert(sitePageResult) 
         
@@ -1894,68 +1950,41 @@ GROUP BY SiteId</SqlQuery>
 
 <Method name="GetSimilarResults">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>NearestResults:%String</FormalSpec>
+<FormalSpec>RecipeId:%Integer</FormalSpec>
 <ReturnType>%ListOfObjects</ReturnType>
 <Implementation><![CDATA[
 	set similarResultsObjects = ##class(%ListOfObjects).%New()
-	
-   	set similarResultsIds = $LISTFROMSTRING(NearestResults, " ")            
-   	set length = $LISTLENGTH(similarResultsIds)
-   	
-   	if length = 0{
-	   	return similarResultsObjects
-   	}
 
-   	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
-   	_" FROM Data.SitePage WHERE ID IN ("
-   	
-   	for i=1:1:length{
-	   	if $LIST(similarResultsIds, i) = ""{
-	      	continue
-      	}
-   		if i '= 1{
-       		set sqlQuery = sqlQuery_", "
-      	}
-     	set sqlQuery = sqlQuery_$LIST(similarResultsIds, i)
-    }
-    set sqlQuery = sqlQuery_")"
+	set sqlQuery = "SELECT %NOLOCK" 
+			_" sp.ID,"
+			_" Description,"
+			_" Ingredients,"
+			_" RecipeInstructions,"
+			_" AdditionalData,"
+			_" ImageUrl,"
+			_" Keywords,"
+			_" SiteId,"
+			_" URL,"
+			_" RecipeName, "
+			_" CreatedDate," 
+			_" ModifiedDate"
+		_" FROM  Data_RecipeData.NearestResult"
+		_" INNER JOIN data.SitePage sp ON sp.Id = SimilarRecipeId"
+		_" WHERE RecipeId = "_RecipeId
+		_" ORDER BY Order"
     
     set result = ##class(%Library.ResultSet).%New() 
 	set tSC = result.Prepare(sqlQuery) 
     set tSC = result.Execute()
     
-    set actulaIdsOrder = $LISTFROMSTRING("")
     
     while (result.Next()) 
     {
 	    set similarResult = ##class(SearchAPI.Search.SearchResult).MapResultToSitePage(result)
-	    do similarResultsObjects.Insert(similarResult)
-	    
-	    set id = result.Data("ID")	    	
-	    set actulaIdsOrder = actulaIdsOrder_$LISTBUILD(id)
-	    
+	    do similarResultsObjects.Insert(similarResult)	    	    
     }   
-    
-    // Order results by distance
-    set similarResultsObjectsOrdered = ##class(%ListOfObjects).%New()
-    
-    set actualResultsLength = $LISTLENGTH(actulaIdsOrder)
-    
-    for i=1:1:length{
-	    set id = $LIST(similarResultsIds, i)
-	    
-	    if id = ""{
-	      	continue
-      	}
-	    
-	    for j=1:1:actualResultsLength{
-		   if $LIST(actulaIdsOrder, j) = id{
-			    do similarResultsObjectsOrdered.Insert(similarResultsObjects.GetAt(j))
-		    }
-	    }
-    }
 			    
-    return similarResultsObjectsOrdered
+    return similarResultsObjects
 ]]></Implementation>
 </Method>
 
@@ -1975,8 +2004,7 @@ GROUP BY SiteId</SqlQuery>
     set sitePage.Keywords = result.Data("Keywords") 
     set sitePage.ModifiedDate = result.Data("ModifiedDate") 
     set sitePage.CreatedDate = result.Data("CreatedDate") 
-    set sitePage.RecipeName = result.Data("RecipeName") 
-    set sitePage.NearestResults = result.Data("NearestResults") 
+    set sitePage.RecipeName = result.Data("RecipeName")
        
     return sitePage
 ]]></Implementation>
