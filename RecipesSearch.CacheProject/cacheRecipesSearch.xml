@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-11 21:21:02">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-11 22:02:03">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -954,7 +954,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63683,74782.228891</TimeChanged>
+<TimeChanged>63683,77306.952918</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1041,7 +1041,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Index>
 
 <Index name="KeywordsIDX">
-<Properties>Keywords(KEYS)</Properties>
+<Properties>ExtendedKeywords(KEYS)</Properties>
 </Index>
 
 <Index name="RecipeUQIDX">
@@ -1649,7 +1649,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.PredicateBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63683,76727.152976</TimeChanged>
+<TimeChanged>63683,79176.197995</TimeChanged>
 <TimeCreated>63640,44416.350546</TimeCreated>
 
 <Method name="BuildPredicate">
@@ -1680,6 +1680,43 @@ GROUP BY SiteId</SqlQuery>
 	set predicate = predicate_")"
 	
 	return predicate
+]]></Implementation>
+</Method>
+
+<Method name="BuildRelevancySubQuery">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String</FormalSpec>
+<Implementation><![CDATA[
+	
+	set queryParts = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(query)
+	
+	set subquery = ""
+	set i = 1
+	set listLength = $LISTLENGTH(queryParts)
+	
+	IF listLength = 0 {
+		return subquery
+	}
+	
+	set subquery = "("
+	
+	for i=1:1:listLength{
+		set word = $LIST(queryParts, i)
+		
+		if $GET(^globalIdf(word), -1) = -1{
+			continue
+		}
+		
+		if i '= 1{
+			set subquery = subquery_" + "
+		}
+										
+		set subquery = subquery_"(SELECT SUM(TF)* "_^globalIdf(word)_" from Data_RecipeData.WordsTF WHERE RecipeId = sp.Id AND word = '"_word_"')"
+	}
+	
+	set subquery = subquery_") AS Relevancy"
+	
+	return subquery
 ]]></Implementation>
 </Method>
 </Class>
@@ -1742,15 +1779,29 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,79880.648633</TimeChanged>
+<TimeChanged>63683,78813.27533</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
 <Implementation><![CDATA[
-	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
-	_" FROM Data.SitePage"
+	set sqlQuery = "SELECT %NOLOCK" 
+			_" ID,"
+			_" Description,"
+			_" Ingredients,"
+			_" RecipeInstructions,"
+			_" AdditionalData,"
+			_" ImageUrl,"
+			_" Keywords,"
+			_" SiteId,"
+			_" URL,"
+			_" RecipeName, "
+			_" NearestResults,"
+			_##class(SearchAPI.PredicateBuilder).BuildRelevancySubQuery(query)_","
+			_" CreatedDate," 
+			_" ModifiedDate"
+		_" FROM Data.SitePage sp"
 	
 	if spellcheck {
 		set spellcheckedQuery = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
@@ -1762,7 +1813,7 @@ GROUP BY SiteId</SqlQuery>
 	
 	set predicate = ##class(SearchAPI.PredicateBuilder).BuildPredicate(query)
 	
-	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"	
+	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY Relevancy DESC, URL, SiteId"	
 		
 	set result = ##class(%Library.ResultSet).%New() 
 	set tSC = result.Prepare(sqlQuery) 
@@ -1951,14 +2002,21 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.Suggestion.SuggestionEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,75578.268084</TimeChanged>
+<TimeChanged>63683,79248.650103</TimeChanged>
 <TimeCreated>63640,44078.352651</TimeCreated>
 
 <Method name="SuggestRecipes">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>query:%String,count:%Integer,spellcheck:%Boolean</FormalSpec>
 <Implementation><![CDATA[
-	set sqlQuery = "SELECT %NOLOCK TOP "_count_" Keywords,SiteId,URL,RecipeName FROM Data.SitePage"
+	
+	set sqlQuery = "SELECT %NOLOCK TOP "_count 
+			_" Keywords,"
+			_" SiteId,"
+			_" URL,"
+			_" RecipeName,"
+			_##class(SearchAPI.PredicateBuilder).BuildRelevancySubQuery(query)
+		_" FROM Data.SitePage sp"
 	
 	if spellcheck {
 		set query = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
@@ -1969,7 +2027,7 @@ GROUP BY SiteId</SqlQuery>
 	if predicate = ""{
 		set predicate = "(1 = 0)"
 	}
-	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"
+	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY Relevancy DESC, URL, SiteId"
 	
 	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
 ]]></Implementation>
