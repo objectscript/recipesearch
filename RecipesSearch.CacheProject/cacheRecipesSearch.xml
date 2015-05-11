@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-10 18:47:11">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-11 21:21:02">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -753,6 +753,158 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Package name="Data" sqlname="Data"/>
 
 
+<Class name="Data.RecipeData.WordsTF">
+<Super>%Persistent</Super>
+<TimeChanged>63683,74641.170853</TimeChanged>
+<TimeCreated>63683,65238.598919</TimeCreated>
+
+<Property name="RecipeId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="Word">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="TF">
+<Type>%Double</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="WordCount">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<ForeignKey name="SitePage">
+<Properties>RecipeId</Properties>
+<ReferencedClass>Data.SitePage</ReferencedClass>
+</ForeignKey>
+
+<Index name="MainIDX">
+<PrimaryKey>1</PrimaryKey>
+<Properties>RecipeId,Word</Properties>
+</Index>
+
+<Index name="WordIDX">
+<Properties>Word</Properties>
+</Index>
+
+<Method name="ComputeWordsTF">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>RecipeId:%Integer,Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000)</FormalSpec>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	write "enter","-",RecipeId,"-",Keywords,!
+	
+	set extendedKeywords = 
+		RecipeName_"; "_Description_"; "_Ingredients
+		_"; "_RecipeInstructions_"; "_AdditionalData
+		
+	set extendedKeywordsList = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(extendedKeywords)
+	set extendedKeywordsCountList = $LISTFROMSTRING("")
+	set extendedKeywords = ""
+	
+	set maxCount = -1
+	set length = $LISTLENGTH(extendedKeywordsList)
+	
+	for i=1:1:length{
+		set word = $LIST(extendedKeywordsList, i)
+		
+		if word = ""{
+			set extendedKeywordsCountList = extendedKeywordsCountList_$LISTBUILD("")
+			continue
+		}
+		
+		set extendedKeywords = extendedKeywords_" "_word
+		
+		set count = 1
+		for j=i+1:1:length{
+			if $LIST(extendedKeywordsList,j) = word{
+				set $LIST(extendedKeywordsList,j) = ""
+				set count = count + 1
+			}
+		}
+		
+		if count > maxCount{
+			set maxCount = count
+		}
+		
+		set extendedKeywordsCountList = extendedKeywordsCountList_$LISTBUILD(count)		
+	}
+	
+	&sql(UPDATE Data.SitePage SET ExtendedKeywords = :extendedKeywords WHERE Id = :RecipeId)
+	&sql(DELETE FROM Data_RecipeData.WordsTF WHERE RecipeId = :RecipeId)
+	
+	for i=1:1:length{
+		set word = $LIST(extendedKeywordsList, i)
+		set wordCount = $LIST(extendedKeywordsCountList, i)
+		
+		if word = ""{
+			continue
+		}
+		
+		set wordTf = 0.5 + 0.5 * wordCount / maxCount
+		
+		&sql(INSERT INTO Data_RecipeData.WordsTF
+			(RecipeId, Word, TF, WordCount)
+			VALUES(:RecipeId, :word, :wordTf, :wordCount))
+	}
+]]></Implementation>
+</Method>
+
+<Method name="ComputeWordsTFForAllRecipes">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	&sql(declare recipesCursor cursor for
+	      select ID, Keywords, RecipeName, Description, Ingredients, RecipeInstructions,AdditionalData
+          from Data.SitePage)
+          
+    &sql(open recipesCursor)
+    for {
+	   &sql(fetch recipesCursor into :curID,:Keywords,:RecipeName,:Description,:Ingredients,:RecipeInstructions, :AdditionalData)
+	   quit:(SQLCODE '= 0)
+
+	   do ##class(Data.RecipeData.WordsTF).ComputeWordsTF(curID, Keywords, RecipeName, Description, Ingredients, RecipeInstructions, AdditionalData)
+    }
+    &sql(close recipesCursor)
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Data.RecipeData.WordsTFD</DataLocation>
+<DefaultData>WordsTFDefaultData</DefaultData>
+<IdLocation>^Data.RecipeData.WordsTFD</IdLocation>
+<IndexLocation>^Data.RecipeData.WordsTFI</IndexLocation>
+<StreamLocation>^Data.RecipeData.WordsTFS</StreamLocation>
+<Data name="WordsTFDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>RecipeId</Value>
+</Value>
+<Value name="3">
+<Value>Word</Value>
+</Value>
+<Value name="4">
+<Value>TF</Value>
+</Value>
+<Value name="5">
+<Value>Count</Value>
+</Value>
+<Value name="6">
+<Value>WordCount</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
 <Class name="Data.SearchSettings">
 <Super>Data.Base.Entity</Super>
 <TimeChanged>63650,75279.792166</TimeChanged>
@@ -802,7 +954,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63681,82578.319434</TimeChanged>
+<TimeChanged>63683,74782.228891</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -820,6 +972,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Type>%Text</Type>
 <Parameter name="LANGUAGECLASS" value="%Text.Russian"/>
 <Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Property name="ExtendedKeywords">
+<Type>%Text</Type>
+<Parameter name="LANGUAGECLASS" value="%Text.Russian"/>
+<Parameter name="MAXLEN" value="10000"/>
 </Property>
 
 <Property name="Description">
@@ -931,12 +1089,33 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF EXISTS(SELECT * FROM SitePage WHERE URL = @URL AND SiteId = @SiteId) THEN BEGIN
-		UPDATE SitePage SET AdditionalData = @AdditionalData,Description = @Description,Ingredients = @Ingredients,RecipeInstructions = @RecipeInstructions, Keywords = @Keywords, RecipeName = @RecipeName, ImageUrl = @ImageUrl, ModifiedDate = GETUTCDATE()
+		UPDATE SitePage SET 
+			AdditionalData = @AdditionalData,
+			Description = @Description,
+			Ingredients = @Ingredients,
+			RecipeInstructions = @RecipeInstructions, 
+			Keywords = @Keywords, 
+			RecipeName = @RecipeName, 
+			ImageUrl = @ImageUrl, 
+			ModifiedDate = GETUTCDATE()
 		WHERE URL = @URL AND SiteId = @SiteId;
 	END ELSE BEGIN
 		INSERT INTO SitePage(SiteId, URL, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl, Keywords,RecipeName, CreatedDate, ModifiedDate) 
 		VALUES(@SiteId, @URL, @Description,@Ingredients,@RecipeInstructions,@AdditionalData,@ImageUrl, @Keywords, @RecipeName, GETUTCDATE(), GETUTCDATE());
-END
+	END
+	GO 
+
+	DECLARE @RecipeId AS INT;
+	SET @RecipeId = (SELECT TOP 1 Id FROM SitePage WHERE URL = @URL AND SiteId = @SiteId ORDER BY ID)
+	
+	exec Data_RecipeData.WordsTF_ComputeWordsTF 
+		@RecipeId = @RecipeId, 
+		@Keywords = @Keywords, 
+		@RecipeName = @Keywords,
+		@Description = @Description,
+		@Ingredients = @Ingredients,
+		@RecipeInstructions = @RecipeInstructions,
+		@AdditionalData = @AdditionalData
 ]]></Implementation>
 </Method>
 
@@ -944,14 +1123,19 @@ END
 <ClassMethod>1</ClassMethod>
 <FormalSpec>SiteId:%Integer</FormalSpec>
 <SqlProc>1</SqlProc>
-<Implementation><![CDATA[	&sql(DELETE %NOLOCK FROM SitePage WHERE SiteID = :SiteId)
+<Implementation><![CDATA[
+	&sql(DELETE %NOLOCK FROM Data_RecipeData.WordsTF 
+		WHERE RecipeId IN (SELECT Id FROM data.SitePage WHERE SiteID = :SiteId))
+	&sql(DELETE %NOLOCK FROM SitePage WHERE SiteID = :SiteId)
 ]]></Implementation>
 </Method>
 
 <Method name="DeleteSitesRecords">
 <ClassMethod>1</ClassMethod>
 <SqlProc>1</SqlProc>
-<Implementation><![CDATA[	&sql(DELETE %NOLOCK FROM SitePage)
+<Implementation><![CDATA[
+	&sql(DELETE %NOLOCK FROM Data_RecipeData.WordsTF)
+	&sql(DELETE %NOLOCK FROM SitePage)
 ]]></Implementation>
 </Method>
 
@@ -1063,6 +1247,9 @@ GROUP BY SiteId</SqlQuery>
 </Value>
 <Value name="15">
 <Value>ImageUrl</Value>
+</Value>
+<Value name="16">
+<Value>ExtendedKeywords</Value>
 </Value>
 </Data>
 </Storage>
@@ -1263,7 +1450,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="RecipeAnalyze.PageAnalyzer">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,76118.779122</TimeChanged>
+<TimeChanged>63683,76339.972944</TimeChanged>
 <TimeCreated>63681,75947.377003</TimeCreated>
 
 <Method name="AddWordsToGlobal">
@@ -1363,6 +1550,55 @@ GROUP BY SiteId</SqlQuery>
     &sql(close byURL)
 ]]></Implementation>
 </Method>
+
+<Method name="CalculateTfIdf">
+<ClassMethod>1</ClassMethod>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	kill ^globalIdf
+	
+	&sql(select COUNT(DISTINCT RecipeId) into :totoalNumberOfDocuments from Data_RecipeData.WordsTF)
+	
+	&sql(declare wordsCursor cursor for
+	      select LCASE(Word), COUNT(Word) as DocumentsCount from Data_RecipeData.WordsTF GROUP BY Word)        
+    &sql(open wordsCursor)
+    for {
+	   &sql(fetch wordsCursor into :word,:documentsCount)
+	   quit:(SQLCODE '= 0)
+
+	   set ^globalIdf(word) = $ZLN(totoalNumberOfDocuments / documentsCount)
+    }
+    &sql(close wordsCursor)
+    
+    &sql(declare recipesCursor cursor for
+	      select id from Data.SitePage)        
+    &sql(open recipesCursor)
+    for {
+	   	&sql(fetch recipesCursor into :recipeId)
+	   	quit:(SQLCODE '= 0)
+
+		set documentTfIdf = ""
+		
+	   	&sql(declare recipeWordsCursor cursor for select Word, TF from Data_RecipeData.WordsTF WHERE RecipeId = :recipeId) 
+	   	&sql(open recipeWordsCursor)
+    	for {
+	   		&sql(fetch recipeWordsCursor into :word, :tf)
+	   		quit:(SQLCODE '= 0)
+	   		
+	   		if $GET(^globalIdf(word), -1) = -1{
+				continue
+			}
+	   		
+	   		set tfidf = tf * ^globalIdf(word)
+	   		set documentTfIdf = documentTfIdf_word_","_tfidf_" "
+    	}
+    	&sql(close recipeWordsCursor) 
+    	
+    	&sql(update data.SitePage SET WordsTfIdf = :documentTfIdf WHERE Id = :recipeId) 	      
+    }
+    &sql(close recipesCursor)
+]]></Implementation>
+</Method>
 </Class>
 
 
@@ -1392,7 +1628,7 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-09 21:20:06.758746">
+<Project name="RecipesSearch" LastModified="2015-05-11 21:21:02.774494">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="Data" type="PKG"></ProjectItem>
@@ -1413,7 +1649,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="SearchAPI.PredicateBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,79853.116646</TimeChanged>
+<TimeChanged>63683,76727.152976</TimeChanged>
 <TimeCreated>63640,44416.350546</TimeCreated>
 
 <Method name="BuildPredicate">
@@ -1431,7 +1667,7 @@ GROUP BY SiteId</SqlQuery>
 		return predicate
 	}
 	
-	set predicate = "Keywords %CONTAINS("
+	set predicate = "ExtendedKeywords %CONTAINS("
 	
 	for i=1:1:listLength{
 		if i '= 1{
