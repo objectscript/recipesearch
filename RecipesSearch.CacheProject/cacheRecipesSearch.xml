@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-13 23:47:17">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-14 00:10:08">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -566,7 +566,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Base.Entity">
 <Super>%Persistent</Super>
-<TimeChanged>63685,84100.296795</TimeChanged>
+<TimeChanged>63685,85672</TimeChanged>
 <TimeCreated>63610,79980.536971</TimeCreated>
 
 <Property name="CreatedDate">
@@ -684,7 +684,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.CrawlingHistoryItem">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63685,84264.910666</TimeChanged>
+<TimeChanged>63686,17.696687</TimeChanged>
 <TimeCreated>63610,86227.669281</TimeCreated>
 
 <Property name="SiteId">
@@ -721,7 +721,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <ClassMethod>1</ClassMethod>
 <Language>tsql</Language>
 <SqlProc>1</SqlProc>
-<Implementation><![CDATA[	UPDATE Data.CrawlingHistoryItem SET IsActive = 0
+<Implementation><![CDATA[	UPDATE RecipeSearch_Data.CrawlingHistoryItem SET IsActive = 0
 ]]></Implementation>
 </Method>
 
@@ -1672,7 +1672,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="RecipeSearch.SearchAPI.PredicateBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63685,83852</TimeChanged>
+<TimeChanged>63685,76011.646594</TimeChanged>
 <TimeCreated>63640,44416.350546</TimeCreated>
 
 <Method name="BuildPredicate">
@@ -1732,7 +1732,7 @@ GROUP BY SiteId</SqlQuery>
 		
 		set subquery = subquery_" + "
 										
-		set subquery = subquery_"(SELECT SUM(TF)* "_^globalIdf(word)_" from Data_RecipeData.WordsTF WHERE RecipeId = sp.Id AND word = '"_word_"')"
+		set subquery = subquery_"(SELECT SUM(TF)* "_^globalIdf(word)_" from RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = sp.Id AND word = '"_word_"')"
 	}
 	
 	set subquery = subquery_") AS Relevancy"
@@ -1800,7 +1800,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63685,84747.554997</TimeChanged>
+<TimeChanged>63685,76041.624881</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
@@ -1834,7 +1834,7 @@ GROUP BY SiteId</SqlQuery>
 	set predicate = ##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildPredicate(query)
 	
 	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY Relevancy DESC, URL, SiteId"	
-		
+	
 	set result = ##class(%Library.ResultSet).%New() 
 	set tSC = result.Prepare(sqlQuery) 
     set tSC = result.Execute()
@@ -2304,7 +2304,7 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-13 23:24:39.96554">
+<Project name="RecipesSearch" LastModified="2015-05-14 00:08:34.293431">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
