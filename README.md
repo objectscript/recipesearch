@@ -20,10 +20,10 @@ Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will 
 - Main Cache project (cacheRecipesSearch.xml) is located in the RecipesSearch.CacheProject folder.
 
 #### Run database seed sproc
-- The seed procedure must be executed in order to populate initial data. Seed function - Data.Utils.Seed.Run(). E. g. you can call it from SQL using the following command:
+- The seed procedure must be executed in order to populate initial data. Seed function - RecipeSearch.Data.Utils.Seed.Run(). E. g. you can call it from SQL using the following command:
 
   ```
-  call Data_Utils.Seed_Run()
+  call RecipeSearch_Data_Utils.Seed_Run()
   ```
 - To seed the stemming and spellchecking dictionaries another seed procedure must be executed - Data.Utils.Seed.LoadDictionaries(directory). Where 'directory' - *full path* to the directory with dictionaries (\RecipesSearch.CacheProject\Dictionaries).
 
@@ -34,7 +34,7 @@ Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will 
 4. Choose correct namespace
 5. Enable iKnow for this application
 6. Add password to Allowed Authentication Methods
-7. Set SearchAPI.RESTBroker as Dispatch Class
+7. Set RecipeSearch.SearchAPI.RESTBroker as Dispatch Class
 8. Save application
 
 #### Ensure Cache connection settings are valid
