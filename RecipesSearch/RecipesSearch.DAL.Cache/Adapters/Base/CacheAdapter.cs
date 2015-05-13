@@ -18,13 +18,27 @@ namespace RecipesSearch.DAL.Cache.Adapters.Base
 {
     public class CacheAdapter : IDisposable
     {
-        protected readonly CacheConnection CacheConnection = new CacheConnection();
+        protected CacheConnection CacheConnection = new CacheConnection();
 
         public CacheAdapter()
+        {
+            OpenConnection();
+        }
+
+        protected void OpenConnection()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["Cache"].ConnectionString;
             CacheConnection.ConnectionString = connectionString;
             CacheConnection.Open();
+        }
+
+        protected void EnsureConnectionOpened()
+        {
+            if (CacheConnection.State == ConnectionState.Closed || CacheConnection.State == ConnectionState.Broken)
+            {
+                CacheConnection = new CacheConnection();
+                OpenConnection();
+            }
         }
 
         public List<T> GetEntities<T>() where T : IEntity, new()

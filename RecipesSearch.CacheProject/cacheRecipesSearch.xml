@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-10 18:47:11">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-13 23:47:17">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -564,9 +564,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Class name="Data.Base.Entity">
+<Class name="RecipeSearch.Data.Base.Entity">
 <Super>%Persistent</Super>
-<TimeChanged>63611,44290.858824</TimeChanged>
+<TimeChanged>63685,84100.296795</TimeChanged>
 <TimeCreated>63610,79980.536971</TimeCreated>
 
 <Property name="CreatedDate">
@@ -586,11 +586,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
-<DataLocation>^Data.Base.EntityD</DataLocation>
+<DataLocation>^RecipeSearch.Data.Base.EntityD</DataLocation>
 <DefaultData>EntityDefaultData</DefaultData>
-<IdLocation>^Data.Base.EntityD</IdLocation>
-<IndexLocation>^Data.Base.EntityI</IndexLocation>
-<StreamLocation>^Data.Base.EntityS</StreamLocation>
+<IdLocation>^RecipeSearch.Data.Base.EntityD</IdLocation>
+<IndexLocation>^RecipeSearch.Data.Base.EntityI</IndexLocation>
+<StreamLocation>^RecipeSearch.Data.Base.EntityS</StreamLocation>
 <Data name="EntityDefaultData">
 <Structure>listnode</Structure>
 <Subscript/>
@@ -611,9 +611,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Class name="Data.Config">
-<Super>Data.Base.Entity</Super>
-<TimeChanged>63681,78966.645546</TimeChanged>
+<Class name="RecipeSearch.Data.Config">
+<Super>RecipeSearch.Data.Base.Entity</Super>
+<TimeChanged>63685,84255.435902</TimeChanged>
 <TimeCreated>63610,79444.886551</TimeCreated>
 
 <Property name="LoggingEnabled">
@@ -669,22 +669,22 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Value>MaxCrawlDepth</Value>
 </Value>
 <Value name="5">
-<Value>CrawlTimeoutSeconds</Value>
+<Value>MaxConcurrentThreads</Value>
 </Value>
 <Value name="6">
-<Value>EnableSpellcheckDictionaryUpdate</Value>
+<Value>CrawlTimeoutSeconds</Value>
 </Value>
 <Value name="7">
-<Value>MaxConcurrentThreads</Value>
+<Value>EnableSpellcheckDictionaryUpdate</Value>
 </Value>
 </Data>
 </Storage>
 </Class>
 
 
-<Class name="Data.CrawlingHistoryItem">
-<Super>Data.Base.Entity</Super>
-<TimeChanged>63611,45537.303607</TimeChanged>
+<Class name="RecipeSearch.Data.CrawlingHistoryItem">
+<Super>RecipeSearch.Data.Base.Entity</Super>
+<TimeChanged>63685,84264.910666</TimeChanged>
 <TimeCreated>63610,86227.669281</TimeCreated>
 
 <Property name="SiteId">
@@ -714,7 +714,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <ForeignKey name="SiteToCrawl">
 <Properties>SiteId</Properties>
-<ReferencedClass>Data.SiteToCrawl</ReferencedClass>
+<ReferencedClass>RecipeSearch.Data.SiteToCrawl</ReferencedClass>
 </ForeignKey>
 
 <Method name="ClearAllHistory">
@@ -750,12 +750,213 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Package name="Data" sqlname="Data"/>
+<Class name="RecipeSearch.Data.RecipeData.NearestResult">
+<Super>%Persistent</Super>
+<TimeChanged>63685,84205.481568</TimeChanged>
+<TimeCreated>63683,79491.18148</TimeCreated>
+
+<Property name="RecipeId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="SimilarRecipeId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="Order">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Index name="MainIDX">
+<PrimaryKey>1</PrimaryKey>
+<Properties>RecipeId,SimilarRecipeId</Properties>
+</Index>
+
+<ForeignKey name="SitePage">
+<Properties>RecipeId</Properties>
+<ReferencedClass>RecipeSearch.Data.SitePage</ReferencedClass>
+</ForeignKey>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^RecipeSearch769D.NearestResultD</DataLocation>
+<DefaultData>NearestResultDefaultData</DefaultData>
+<IdLocation>^RecipeSearch769D.NearestResultD</IdLocation>
+<IndexLocation>^RecipeSearch769D.NearestResultI</IndexLocation>
+<StreamLocation>^RecipeSearch769D.NearestResultS</StreamLocation>
+<Data name="NearestResultDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>RecipeId</Value>
+</Value>
+<Value name="3">
+<Value>SimilarRecipeId</Value>
+</Value>
+<Value name="4">
+<Value>Order</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
 
 
-<Class name="Data.SearchSettings">
-<Super>Data.Base.Entity</Super>
-<TimeChanged>63650,75279.792166</TimeChanged>
+<Class name="RecipeSearch.Data.RecipeData.WordsTF">
+<Super>%Persistent</Super>
+<TimeChanged>63685,84502.52744</TimeChanged>
+<TimeCreated>63683,65238.598919</TimeCreated>
+
+<Property name="RecipeId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="Word">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="TF">
+<Type>%Double</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="WordCount">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<ForeignKey name="SitePage">
+<Properties>RecipeId</Properties>
+<ReferencedClass>RecipeSearch.Data.SitePage</ReferencedClass>
+</ForeignKey>
+
+<Index name="MainIDX">
+<PrimaryKey>1</PrimaryKey>
+<Properties>RecipeId,Word</Properties>
+</Index>
+
+<Index name="WordIDX">
+<Properties>Word</Properties>
+</Index>
+
+<Method name="ComputeWordsTF">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>RecipeId:%Integer,Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000)</FormalSpec>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	
+	set extendedKeywords = 
+		RecipeName_"; "_Description_"; "_Ingredients
+		_"; "_RecipeInstructions_"; "_AdditionalData
+		
+	set extendedKeywordsList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(extendedKeywords)
+	set extendedKeywordsCountList = $LISTFROMSTRING("")
+	set extendedKeywords = ""
+	
+	set maxCount = -1
+	set length = $LISTLENGTH(extendedKeywordsList)
+	
+	for i=1:1:length{
+		set word = $LIST(extendedKeywordsList, i)
+		
+		if word = ""{
+			set extendedKeywordsCountList = extendedKeywordsCountList_$LISTBUILD("")
+			continue
+		}
+		
+		set extendedKeywords = extendedKeywords_" "_word
+		
+		set count = 1
+		for j=i+1:1:length{
+			if $LIST(extendedKeywordsList,j) = word{
+				set $LIST(extendedKeywordsList,j) = ""
+				set count = count + 1
+			}
+		}
+		
+		if count > maxCount{
+			set maxCount = count
+		}
+		
+		set extendedKeywordsCountList = extendedKeywordsCountList_$LISTBUILD(count)		
+	}
+	
+	&sql(UPDATE RecipeSearch_Data.SitePage SET ExtendedKeywords = :extendedKeywords WHERE Id = :RecipeId)
+	&sql(DELETE FROM RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :RecipeId)
+	
+	for i=1:1:length{
+		set word = $LIST(extendedKeywordsList, i)
+		set wordCount = $LIST(extendedKeywordsCountList, i)
+		
+		if word = ""{
+			continue
+		}
+		
+		set wordTf = 0.5 + 0.5 * wordCount / maxCount
+		
+		&sql(INSERT INTO RecipeSearch_Data_RecipeData.WordsTF
+			(RecipeId, Word, TF, WordCount)
+			VALUES(:RecipeId, :word, :wordTf, :wordCount))
+	}
+]]></Implementation>
+</Method>
+
+<Method name="ComputeWordsTFForAllRecipes">
+<ClassMethod>1</ClassMethod>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	&sql(declare recipesCursor cursor for
+	      select ID, Keywords, RecipeName, Description, Ingredients, RecipeInstructions,AdditionalData
+          from RecipeSearch_Data.SitePage)
+          
+    &sql(open recipesCursor)
+    for {
+	   &sql(fetch recipesCursor into :curID,:Keywords,:RecipeName,:Description,:Ingredients,:RecipeInstructions, :AdditionalData)
+	   quit:(SQLCODE '= 0)
+
+	   do ##class(RecipeSearch.Data.RecipeData.WordsTF).ComputeWordsTF(curID, Keywords, RecipeName, Description, Ingredients, RecipeInstructions, AdditionalData)
+    }
+    &sql(close recipesCursor)
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^RecipeSearch.Data769D.WordsTFD</DataLocation>
+<DefaultData>WordsTFDefaultData</DefaultData>
+<IdLocation>^RecipeSearch.Data769D.WordsTFD</IdLocation>
+<IndexLocation>^RecipeSearch.Data769D.WordsTFI</IndexLocation>
+<StreamLocation>^RecipeSearch.Data769D.WordsTFS</StreamLocation>
+<Data name="WordsTFDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>RecipeId</Value>
+</Value>
+<Value name="3">
+<Value>Word</Value>
+</Value>
+<Value name="4">
+<Value>TF</Value>
+</Value>
+<Value name="5">
+<Value>WordCount</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="RecipeSearch.Data.SearchSettings">
+<Super>RecipeSearch.Data.Base.Entity</Super>
+<TimeChanged>63685,84268.122453</TimeChanged>
 <TimeCreated>63610,79681.607063</TimeCreated>
 
 <Property name="ResultsOnPage">
@@ -800,9 +1001,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Class name="Data.SitePage">
+<Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63681,82578.319434</TimeChanged>
+<TimeChanged>63685,84664.017257</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -820,6 +1021,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Type>%Text</Type>
 <Parameter name="LANGUAGECLASS" value="%Text.Russian"/>
 <Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Property name="ExtendedKeywords">
+<Type>%Text</Type>
+<Parameter name="LANGUAGECLASS" value="%Text.Russian"/>
+<Parameter name="MAXLEN" value="10000"/>
 </Property>
 
 <Property name="Description">
@@ -847,11 +1054,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Parameter name="MAXLEN" value="100000"/>
 </Property>
 
-<Property name="NearestResults">
-<Type>%String</Type>
-<Parameter name="MAXLEN" value="1000"/>
-</Property>
-
 <Property name="ImageUrl">
 <Type>%String</Type>
 <Parameter name="MAXLEN" value="2000"/>
@@ -874,7 +1076,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <ForeignKey name="SiteToCrawl">
 <Properties>SiteId</Properties>
-<ReferencedClass>Data.SiteToCrawl</ReferencedClass>
+<ReferencedClass>RecipeSearch.Data.SiteToCrawl</ReferencedClass>
 </ForeignKey>
 
 <Index name="MainIDX">
@@ -883,7 +1085,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Index>
 
 <Index name="KeywordsIDX">
-<Properties>Keywords(KEYS)</Properties>
+<Properties>ExtendedKeywords(KEYS)</Properties>
 </Index>
 
 <Index name="RecipeUQIDX">
@@ -897,7 +1099,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF ProcessKeywords{
-		set keywordsList = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(Keywords)
+		set keywordsList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(Keywords)
 		set keywordsAnalyzed = ""
 		set listLength = $LISTLENGTH(keywordsList)
 		for i=1:1:listLength {		
@@ -911,7 +1113,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	}
 	
 	IF UpdateSpellcheckDict{
-		do ##class(Spellcheck.SpellcheckDictionaryCreator).AddSitePageData(
+		do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddSitePageData(
 			Keywords,
 			Ingredients,
 			RecipeInstructions,
@@ -920,7 +1122,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			Description)
 	}
 
-	do ##class(Data.SitePage).UpsertSQL(URL, keywordsAnalyzed, RecipeName, Description,Ingredients,RecipeInstructions,AdditionalData, ImageUrl, SiteId)
+	do ##class(RecipeSearch.Data.SitePage).UpsertSQL(URL, keywordsAnalyzed, RecipeName, Description,Ingredients,RecipeInstructions,AdditionalData, ImageUrl, SiteId)
 ]]></Implementation>
 </Method>
 
@@ -931,12 +1133,33 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF EXISTS(SELECT * FROM SitePage WHERE URL = @URL AND SiteId = @SiteId) THEN BEGIN
-		UPDATE SitePage SET AdditionalData = @AdditionalData,Description = @Description,Ingredients = @Ingredients,RecipeInstructions = @RecipeInstructions, Keywords = @Keywords, RecipeName = @RecipeName, ImageUrl = @ImageUrl, ModifiedDate = GETUTCDATE()
+		UPDATE SitePage SET 
+			AdditionalData = @AdditionalData,
+			Description = @Description,
+			Ingredients = @Ingredients,
+			RecipeInstructions = @RecipeInstructions, 
+			Keywords = @Keywords, 
+			RecipeName = @RecipeName, 
+			ImageUrl = @ImageUrl, 
+			ModifiedDate = GETUTCDATE()
 		WHERE URL = @URL AND SiteId = @SiteId;
 	END ELSE BEGIN
 		INSERT INTO SitePage(SiteId, URL, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl, Keywords,RecipeName, CreatedDate, ModifiedDate) 
 		VALUES(@SiteId, @URL, @Description,@Ingredients,@RecipeInstructions,@AdditionalData,@ImageUrl, @Keywords, @RecipeName, GETUTCDATE(), GETUTCDATE());
-END
+	END
+	GO 
+
+	DECLARE @RecipeId AS INT;
+	SET @RecipeId = (SELECT TOP 1 Id FROM SitePage WHERE URL = @URL AND SiteId = @SiteId ORDER BY ID)
+	
+	exec RecipeSearch_Data_RecipeData.WordsTF_ComputeWordsTF 
+		@RecipeId = @RecipeId, 
+		@Keywords = @Keywords, 
+		@RecipeName = @Keywords,
+		@Description = @Description,
+		@Ingredients = @Ingredients,
+		@RecipeInstructions = @RecipeInstructions,
+		@AdditionalData = @AdditionalData
 ]]></Implementation>
 </Method>
 
@@ -944,14 +1167,19 @@ END
 <ClassMethod>1</ClassMethod>
 <FormalSpec>SiteId:%Integer</FormalSpec>
 <SqlProc>1</SqlProc>
-<Implementation><![CDATA[	&sql(DELETE %NOLOCK FROM SitePage WHERE SiteID = :SiteId)
+<Implementation><![CDATA[
+	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.WordsTF 
+		WHERE RecipeId IN (SELECT Id FROM RecipeSearch_data.SitePage WHERE SiteID = :SiteId))
+	&sql(DELETE %NOLOCK FROM RecipeSearch_Data.SitePage WHERE SiteID = :SiteId)
 ]]></Implementation>
 </Method>
 
 <Method name="DeleteSitesRecords">
 <ClassMethod>1</ClassMethod>
 <SqlProc>1</SqlProc>
-<Implementation><![CDATA[	&sql(DELETE %NOLOCK FROM SitePage)
+<Implementation><![CDATA[
+	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.WordsTF)
+	&sql(DELETE %NOLOCK FROM SitePage)
 ]]></Implementation>
 </Method>
 
@@ -978,11 +1206,18 @@ GROUP BY SiteId</SqlQuery>
 <Method name="UpdateNearestResults">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>PageId:%Integer,NearestResults:%String</FormalSpec>
-<Language>tsql</Language>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
+	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.NearestResult WHERE RecipeId = :PageId)
+	
+	set similarResults = $LISTFROMSTRING(NearestResults," ")
+	for i=1:1:$LISTLENGTH(similarResults){
+		set recipeId = $LIST(similarResults,i)
 		
-		UPDATE SitePage SET NearestResults = @NearestResults WHERE Id = @PageId
+		&sql(INSERT %NOLOCK INTO RecipeSearch_Data_RecipeData.NearestResult
+			(RecipeId, SimilarRecipeId, Order) 
+			VALUES(:PageId, CAST(:recipeId AS INT), :i))
+	}
 ]]></Implementation>
 </Method>
 
@@ -990,7 +1225,7 @@ GROUP BY SiteId</SqlQuery>
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetTFIDFStatistic</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>	SELECT COUNT(*) AS EmptyTfIdf from data.SitePage WHERE WordsTfIdf IS NULL OR WordsTfIdf = ''</SqlQuery>
+<SqlQuery>	SELECT COUNT(*) AS EmptyTfIdf from RecipeSearch_data.SitePage WHERE WordsTfIdf IS NULL OR WordsTfIdf = ''</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -999,7 +1234,7 @@ GROUP BY SiteId</SqlQuery>
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetNearestResultsStatistic</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>	SELECT COUNT(*) AS EmptyNearestResults from data.SitePage WHERE NearestResults IS NULL OR NearestResults = ''</SqlQuery>
+<SqlQuery>	select ((select COUNT(Id) FROM RecipeSearch_data.SitePage) - (select COUNT(DISTINCT RecipeId) FROM RecipeSearch_Data_RecipeData.NearestResult)) AS NearestResults</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1007,17 +1242,17 @@ GROUP BY SiteId</SqlQuery>
 <Method name="UpdateTfIdf">
 <ClassMethod>1</ClassMethod>
 <SqlProc>1</SqlProc>
-<Implementation><![CDATA[	do ##class(RecipeAnalyze.PageAnalyzer).CountTfIdf()
+<Implementation><![CDATA[	do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).CountTfIdf()
 ]]></Implementation>
 </Method>
 
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
-<DataLocation>^Data.SitePageD</DataLocation>
+<DataLocation>^RecipeSearch.Data.SitePageD</DataLocation>
 <DefaultData>SitePageDefaultData</DefaultData>
-<IdLocation>^Data.SitePageD</IdLocation>
-<IndexLocation>^Data.SitePageI</IndexLocation>
-<StreamLocation>^Data.SitePageS</StreamLocation>
+<IdLocation>^RecipeSearch.Data.SitePageD</IdLocation>
+<IndexLocation>^RecipeSearch.Data.SitePageI</IndexLocation>
+<StreamLocation>^RecipeSearch.Data.SitePageS</StreamLocation>
 <Data name="SitePageDefaultData">
 <Value name="1">
 <Value>%%CLASSNAME</Value>
@@ -1026,52 +1261,49 @@ GROUP BY SiteId</SqlQuery>
 <Value>URL</Value>
 </Value>
 <Value name="3">
-<Value>Content</Value>
+<Value>RecipeName</Value>
 </Value>
 <Value name="4">
 <Value>Keywords</Value>
 </Value>
 <Value name="5">
-<Value>SiteId</Value>
+<Value>ExtendedKeywords</Value>
 </Value>
 <Value name="6">
-<Value>CreatedDate</Value>
-</Value>
-<Value name="7">
-<Value>ModifiedDate</Value>
-</Value>
-<Value name="8">
-<Value>RecipeName</Value>
-</Value>
-<Value name="9">
 <Value>Description</Value>
 </Value>
-<Value name="10">
+<Value name="7">
 <Value>Ingredients</Value>
 </Value>
-<Value name="11">
+<Value name="8">
 <Value>RecipeInstructions</Value>
 </Value>
-<Value name="12">
+<Value name="9">
 <Value>AdditionalData</Value>
 </Value>
-<Value name="13">
+<Value name="10">
 <Value>WordsTfIdf</Value>
 </Value>
-<Value name="14">
-<Value>NearestResults</Value>
-</Value>
-<Value name="15">
+<Value name="11">
 <Value>ImageUrl</Value>
+</Value>
+<Value name="12">
+<Value>SiteId</Value>
+</Value>
+<Value name="13">
+<Value>CreatedDate</Value>
+</Value>
+<Value name="14">
+<Value>ModifiedDate</Value>
 </Value>
 </Data>
 </Storage>
 </Class>
 
 
-<Class name="Data.SiteToCrawl">
-<Super>Data.Base.Entity</Super>
-<TimeChanged>63619,69539.191074</TimeChanged>
+<Class name="RecipeSearch.Data.SiteToCrawl">
+<Super>RecipeSearch.Data.Base.Entity</Super>
+<TimeChanged>63685,84272.753661</TimeChanged>
 <TimeCreated>63610,79732.940998</TimeCreated>
 
 <Property name="Name">
@@ -1095,7 +1327,7 @@ GROUP BY SiteId</SqlQuery>
 
 <ForeignKey name="Config">
 <Properties>ConfigId</Properties>
-<ReferencedClass>Data.Config</ReferencedClass>
+<ReferencedClass>RecipeSearch.Data.Config</ReferencedClass>
 </ForeignKey>
 
 <Storage name="Default">
@@ -1120,9 +1352,9 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="Data.Utils.Seed">
+<Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,75519.735878</TimeChanged>
+<TimeChanged>63685,84839.354096</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1131,32 +1363,32 @@ GROUP BY SiteId</SqlQuery>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	// Seed crawler config
-	IF NOT EXISTS(SELECT * FROM Data.Config) THEN BEGIN
-		INSERT INTO Data.Config(LoggingEnabled, EnhancedKeywordProcessing, EnableSpellcheckDictionaryUpdate, MaxPagesToCrawl, MaxConcurrentThreads, MaxCrawlDepth, CrawlTimeoutSeconds, IsActive, CreatedDate, ModifiedDate) 
+	IF NOT EXISTS(SELECT * FROM RecipeSearch_Data.Config) THEN BEGIN
+		INSERT INTO RecipeSearch_Data.Config(LoggingEnabled, EnhancedKeywordProcessing, EnableSpellcheckDictionaryUpdate, MaxPagesToCrawl, MaxConcurrentThreads, MaxCrawlDepth, CrawlTimeoutSeconds, IsActive, CreatedDate, ModifiedDate) 
 		VALUES(0, 1, 1, 100000, 10, 100000, 0, 1, GETUTCDATE(), GETUTCDATE());
 		
 		DECLARE @ConfigId AS INT;
-		SELECT TOP 1 @ConfigId = Id FROM Data.Config;
+		SELECT TOP 1 @ConfigId = Id FROM RecipeSearch_Data.Config;
 
 		// Seed sites to crawl		
-		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId, ParserId, IsActive, CreatedDate, ModifiedDate) 
+		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId, ParserId, IsActive, CreatedDate, ModifiedDate) 
 		VALUES('say7', 'http://www.say7.info/', @ConfigId, 'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
-		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
+		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
 		VALUES('edimdoma', 'http://www.edimdoma.ru/', @ConfigId,'EdimDoma', 1, GETUTCDATE(), GETUTCDATE());
-		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
+		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
 		VALUES('kedem', 'http://kedem.ru/', @ConfigId,'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
-		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
+		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
 		VALUES('gotovim-doma', 'http://gotovim-doma.ru/', @ConfigId,'GotovimDoma', 1, GETUTCDATE(), GETUTCDATE());
-		INSERT INTO Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
+		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
 		VALUES('koolinar', 'http://www.koolinar.ru', @ConfigId,'Kulinar', 1, GETUTCDATE(), GETUTCDATE());
 		END
 	
 	// Delete crawling history
-	DELETE FROM Data.CrawlingHistoryItem
+	DELETE FROM RecipeSearch_Data.CrawlingHistoryItem
 	
 	// Seed search settings
-	IF NOT EXISTS(SELECT * FROM Data.SearchSettings) THEN BEGIN
-		INSERT INTO Data.SearchSettings(ResultsOnPage, SuggestionsCount,EnableSpellchecking,EnableSpellcheckingForSuggest, IsActive, CreatedDate, ModifiedDate) 
+	IF NOT EXISTS(SELECT * FROM RecipeSearch_Data.SearchSettings) THEN BEGIN
+		INSERT INTO RecipeSearch_Data.SearchSettings(ResultsOnPage, SuggestionsCount,EnableSpellchecking,EnableSpellcheckingForSuggest, IsActive, CreatedDate, ModifiedDate) 
 		VALUES(25, 10, 1, 1, 1, GETUTCDATE(), GETUTCDATE());
 	END
 ]]></Implementation>
@@ -1171,9 +1403,9 @@ GROUP BY SiteId</SqlQuery>
 	do ##class(%Text.Russian).LoadDict(directory_"\morphs.mrd")
 	
 	kill ^SpellcheckDict
-	do ##class(Spellcheck.SpellcheckDictionaryCreator).LoadSpellcheckDictionaryFromFile(directory_"\spellcheck.txt")
-	do ##class(Spellcheck.SpellcheckDictionaryCreator).CreateSpellcheckDictionaryFromDB()
-	do ##class(Data.Utils.Seed).ReadRecipesDictionaryToGlobal(directory_"\dictionary.txt")
+	do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).LoadSpellcheckDictionaryFromFile(directory_"\RecipeSearch.Spellcheck.txt")
+	do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).CreateSpellcheckDictionaryFromDB()
+	do ##class(RecipeSearch.Data.Utils.Seed).ReadRecipesDictionaryToGlobal(directory_"\dictionary.txt")
 ]]></Implementation>
 </Method>
 
@@ -1201,7 +1433,7 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="Logging.LogRecord">
+<Class name="RecipeSearch.Logging.LogRecord">
 <Super>%Persistent</Super>
 <TimeChanged>63682,64488.949431</TimeChanged>
 <TimeCreated>63611,44722.841798</TimeCreated>
@@ -1229,11 +1461,11 @@ GROUP BY SiteId</SqlQuery>
 
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
-<DataLocation>^Logging.LogRecordD</DataLocation>
+<DataLocation>^RecipeSearch.Logging.LogRecordD</DataLocation>
 <DefaultData>LogRecordDefaultData</DefaultData>
-<IdLocation>^Logging.LogRecordD</IdLocation>
-<IndexLocation>^Logging.LogRecordI</IndexLocation>
-<StreamLocation>^Logging.LogRecordS</StreamLocation>
+<IdLocation>^RecipeSearch.Logging.LogRecordD</IdLocation>
+<IndexLocation>^RecipeSearch.Logging.LogRecordI</IndexLocation>
+<StreamLocation>^RecipeSearch.Logging.LogRecordS</StreamLocation>
 <Data name="LogRecordDefaultData">
 <Value name="1">
 <Value>%%CLASSNAME</Value>
@@ -1258,12 +1490,9 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Package name="Logging" sqlname="Logging"/>
-
-
-<Class name="RecipeAnalyze.PageAnalyzer">
+<Class name="RecipeSearch.RecipeAnalyze.PageAnalyzer">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,76118.779122</TimeChanged>
+<TimeChanged>63685,84728.827679</TimeChanged>
 <TimeCreated>63681,75947.377003</TimeCreated>
 
 <Method name="AddWordsToGlobal">
@@ -1272,7 +1501,7 @@ GROUP BY SiteId</SqlQuery>
 <Private>1</Private>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set wordsStemmed = ##class(RecipeAnalyze.StringAnalyzer).StemText(words)
+	set wordsStemmed = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).StemText(words)
 	set wordList = $LISTFROMSTRING(wordsStemmed, " ")
 	for i=1:1:$listlength(wordList) {
 		set curWord = $list(wordList,i)
@@ -1300,17 +1529,17 @@ GROUP BY SiteId</SqlQuery>
 	#sqlcompile SELECT = odbc
 	&sql(declare byalldata cursor for
 	      select ID,Keywords, RecipeName, Ingredients, RecipeInstructions
-          from Data.SitePage)
+          from RecipeSearch_Data.SitePage)
     &sql(open byalldata)
     set numberOfDocuments = 0
     for {
 	   &sql(fetch byalldata into :curID,:Keywords,:RecipeName,:Ingredients,:RecipeInstructions)
 	   quit:(SQLCODE '= 0)
 	   set numberOfDocuments = numberOfDocuments + 1 
-	   do ##class(RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(Keywords)
-	   do ##class(RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(RecipeName)
-	   do ##class(RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(Ingredients)
-	   do ##class(RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(RecipeInstructions)
+	   do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(Keywords)
+	   do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(RecipeName)
+	   do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(Ingredients)
+	   do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(RecipeInstructions)
 
 	   set termFrequency = ""
 	   set maxFrequency = 0
@@ -1333,13 +1562,13 @@ GROUP BY SiteId</SqlQuery>
 	   set ^maxtf(curID) = maxFrequency
 	   kill ^tempWords
 	   
-	   // &sql(update data.SitePage set AdvancedKeywords = :enhancedKeywords where ID = :ID)
+	   // &sql(update RecipeSearch_data.SitePage set AdvancedKeywords = :enhancedKeywords where ID = :ID)
     }
     &sql(close byalldata)
     
     &sql(declare byURL cursor for
 	      select ID,URL
-	      from Data.SitePage)
+	      from RecipeSearch_Data.SitePage)
     &sql(open byURL)
     for {
 	   &sql(fetch byURL into :curID,:curURL)
@@ -1358,15 +1587,64 @@ GROUP BY SiteId</SqlQuery>
 		   set curTfIdf = curTf * curIdf
 		   set documentTfIdf = documentTfIdf_curWord_","_curTfIdf_" "
 	   }
-	   &sql(update data.SitePage set WordsTfIdf = :documentTfIdf where ID = :curID)
+	   &sql(update RecipeSearch_Data.SitePage set WordsTfIdf = :documentTfIdf where ID = :curID)
     }
     &sql(close byURL)
+]]></Implementation>
+</Method>
+
+<Method name="CalculateTfIdf">
+<ClassMethod>1</ClassMethod>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	kill ^globalIdf
+	
+	&sql(select COUNT(DISTINCT RecipeId) into :totoalNumberOfDocuments from RecipeSearch_Data_RecipeData.WordsTF)
+	
+	&sql(declare wordsCursor cursor for
+	      select LCASE(Word), COUNT(Word) as DocumentsCount from RecipeSearch_Data_RecipeData.WordsTF GROUP BY Word)        
+    &sql(open wordsCursor)
+    for {
+	   &sql(fetch wordsCursor into :word,:documentsCount)
+	   quit:(SQLCODE '= 0)
+
+	   set ^globalIdf(word) = $ZLN(totoalNumberOfDocuments / documentsCount)
+    }
+    &sql(close wordsCursor)
+    
+    &sql(declare recipesCursor cursor for
+	      select id from RecipeSearch_Data.SitePage)        
+    &sql(open recipesCursor)
+    for {
+	   	&sql(fetch recipesCursor into :recipeId)
+	   	quit:(SQLCODE '= 0)
+
+		set documentTfIdf = ""
+		
+	   	&sql(declare recipeWordsCursor cursor for select Word, TF from RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :recipeId) 
+	   	&sql(open recipeWordsCursor)
+    	for {
+	   		&sql(fetch recipeWordsCursor into :word, :tf)
+	   		quit:(SQLCODE '= 0)
+	   		
+	   		if $GET(^globalIdf(word), -1) = -1{
+				continue
+			}
+	   		
+	   		set tfidf = tf * ^globalIdf(word)
+	   		set documentTfIdf = documentTfIdf_word_","_tfidf_" "
+    	}
+    	&sql(close recipeWordsCursor) 
+    	
+    	&sql(update RecipeSearch_data.SitePage SET WordsTfIdf = :documentTfIdf WHERE Id = :recipeId) 	      
+    }
+    &sql(close recipesCursor)
 ]]></Implementation>
 </Method>
 </Class>
 
 
-<Class name="RecipeAnalyze.StringAnalyzer">
+<Class name="RecipeSearch.RecipeAnalyze.StringAnalyzer">
 <TimeChanged>63681,75995.758964</TimeChanged>
 <TimeCreated>63610,80153.007685</TimeCreated>
 
@@ -1375,7 +1653,7 @@ GROUP BY SiteId</SqlQuery>
 <FormalSpec>text:%String</FormalSpec>
 <ReturnType>%Library.List</ReturnType>
 <Implementation><![CDATA[
-	set words = ##class(RecipeAnalyze.StringAnalyzer).StemText(text) 
+	set words = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).StemText(text) 
 	return $LISTFROMSTRING(words, " ")
 ]]></Implementation>
 </Method>
@@ -1392,28 +1670,9 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-09 21:20:06.758746">
-  <Items>
-    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
-    <ProjectItem name="Data" type="PKG"></ProjectItem>
-    <ProjectItem name="Logging" type="PKG"></ProjectItem>
-    <ProjectItem name="RecipeAnalyze.PageAnalyzer" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeAnalyze.StringAnalyzer" type="CLS"></ProjectItem>
-    <ProjectItem name="SearchAPI.PredicateBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="SearchAPI.RESTBroker" type="CLS"></ProjectItem>
-    <ProjectItem name="SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="SearchAPI.Search.SearchResult" type="CLS"></ProjectItem>
-    <ProjectItem name="SearchAPI.Search.SitePageResult" type="CLS"></ProjectItem>
-    <ProjectItem name="SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
-    <ProjectItem name="Spellcheck.Spellchecker" type="CLS"></ProjectItem>
-  </Items>
-</Project>
-
-
-<Class name="SearchAPI.PredicateBuilder">
+<Class name="RecipeSearch.SearchAPI.PredicateBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,79853.116646</TimeChanged>
+<TimeChanged>63685,83852</TimeChanged>
 <TimeCreated>63640,44416.350546</TimeCreated>
 
 <Method name="BuildPredicate">
@@ -1421,7 +1680,7 @@ GROUP BY SiteId</SqlQuery>
 <FormalSpec>query:%String</FormalSpec>
 <Implementation><![CDATA[
 	
-	set queryParts = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(query)
+	set queryParts = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(query)
 	
 	set predicate = ""
 	set i = 1
@@ -1431,7 +1690,7 @@ GROUP BY SiteId</SqlQuery>
 		return predicate
 	}
 	
-	set predicate = "Keywords %CONTAINS("
+	set predicate = "ExtendedKeywords %CONTAINS("
 	
 	for i=1:1:listLength{
 		if i '= 1{
@@ -1446,10 +1705,45 @@ GROUP BY SiteId</SqlQuery>
 	return predicate
 ]]></Implementation>
 </Method>
+
+<Method name="BuildRelevancySubQuery">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>query:%String</FormalSpec>
+<Implementation><![CDATA[
+	
+	set queryParts = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(query)
+	
+	set subquery = ""
+	set i = 1
+	set listLength = $LISTLENGTH(queryParts)
+	
+	IF listLength = 0 {
+		return subquery
+	}
+	
+	set subquery = "(0"
+	
+	for i=1:1:listLength{
+		set word = $LIST(queryParts, i)
+		
+		if $GET(^globalIdf(word), -1) = -1{
+			continue
+		}
+		
+		set subquery = subquery_" + "
+										
+		set subquery = subquery_"(SELECT SUM(TF)* "_^globalIdf(word)_" from Data_RecipeData.WordsTF WHERE RecipeId = sp.Id AND word = '"_word_"')"
+	}
+	
+	set subquery = subquery_") AS Relevancy"
+	
+	return subquery
+]]></Implementation>
+</Method>
 </Class>
 
 
-<Class name="SearchAPI.RESTBroker">
+<Class name="RecipeSearch.SearchAPI.RESTBroker">
 <Super>%CSP.REST</Super>
 <TimeChanged>63681,76503.316604</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
@@ -1475,7 +1769,7 @@ GROUP BY SiteId</SqlQuery>
 	set exactMatch = %request.Get("exactMatch", 0) // ignore spellchecking result
 	
 	try {
-    	do ##class(SearchAPI.Search.SearchEngine).SearchPages(query, spellcheck, exactMatch, pageNumber, pageSize)
+    	do ##class(RecipeSearch.SearchAPI.Search.SearchEngine).SearchPages(query, spellcheck, exactMatch, pageNumber, pageSize)
 	} catch err {
     	write err.AsSystemError()
     }
@@ -1493,7 +1787,7 @@ GROUP BY SiteId</SqlQuery>
 	set spellcheck = %request.Get("spellcheck", 0)
 	
 	try {
-    	do ##class(SearchAPI.Suggestion.SuggestionEngine).SuggestRecipes(query, count, spellcheck)
+    	do ##class(RecipeSearch.SearchAPI.Suggestion.SuggestionEngine).SuggestRecipes(query, count, spellcheck)
 	} catch err {
     	write err.AsSystemError()
     }
@@ -1504,35 +1798,48 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="SearchAPI.Search.SearchEngine">
+<Class name="RecipeSearch.SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,79880.648633</TimeChanged>
+<TimeChanged>63685,84747.554997</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
 <Implementation><![CDATA[
-	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
-	_" FROM Data.SitePage"
-	
 	if spellcheck {
-		set spellcheckedQuery = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
+		set spellcheckedQuery = ##class(RecipeSearch.Spellcheck.Spellchecker).SpellcheckText(query)
 		
 		if 'exactMatch{
 			set query = spellcheckedQuery
 		}
 	}
 	
-	set predicate = ##class(SearchAPI.PredicateBuilder).BuildPredicate(query)
+	set sqlQuery = "SELECT %NOLOCK" 
+			_" ID,"
+			_" Description,"
+			_" Ingredients,"
+			_" RecipeInstructions,"
+			_" AdditionalData,"
+			_" ImageUrl,"
+			_" Keywords,"
+			_" SiteId,"
+			_" URL,"
+			_" RecipeName, "
+			_##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildRelevancySubQuery(query)_","
+			_" CreatedDate," 
+			_" ModifiedDate"
+		_" FROM RecipeSearch_Data.SitePage sp"
 	
-	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"	
+	set predicate = ##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildPredicate(query)
+	
+	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY Relevancy DESC, URL, SiteId"	
 		
 	set result = ##class(%Library.ResultSet).%New() 
 	set tSC = result.Prepare(sqlQuery) 
     set tSC = result.Execute()
      
-    set searchResult = ##class(SearchAPI.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
+    set searchResult = ##class(RecipeSearch.SearchAPI.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
 	
 	if spellcheck{
 		set searchResult.SpellcheckedQuery = spellcheckedQuery
@@ -1544,13 +1851,13 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="SearchAPI.Search.SearchResult">
+<Class name="RecipeSearch.SearchAPI.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,58741.559997</TimeChanged>
+<TimeChanged>63685,85497.727724</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
-<Type>SearchAPI.Search.SitePageResult</Type>
+<Type>RecipeSearch.SearchAPI.Search.SitePageResult</Type>
 <Collection>list</Collection>
 </Property>
 
@@ -1575,7 +1882,7 @@ GROUP BY SiteId</SqlQuery>
 	// TODO: make it more performant
 	set startIndex = (pageNumber - 1) * pageSize + 1
 	
-	set searchResults = ##class(SearchAPI.Search.SearchResult).%New()
+	set searchResults = ##class(RecipeSearch.SearchAPI.Search.SearchResult).%New()
 	set searchResults.Items = ##class(%ListOfObjects).%New()
 	
 	set count = 0
@@ -1589,10 +1896,10 @@ GROUP BY SiteId</SqlQuery>
 			continue
         } 
         
-        set sitePageResult = ##class(SearchAPI.Search.SitePageResult).%New()
+        set sitePageResult = ##class(RecipeSearch.SearchAPI.Search.SitePageResult).%New()
         
-        set sitePageResult.Result = ##class(SearchAPI.Search.SearchResult).MapResultToSitePage(result)
-        set sitePageResult.SimilarResults = ##class(SearchAPI.Search.SearchResult).GetSimilarResults(sitePageResult.Result.NearestResults)
+        set sitePageResult.Result = ##class(RecipeSearch.SearchAPI.Search.SearchResult).MapResultToSitePage(result)
+        set sitePageResult.SimilarResults = ##class(RecipeSearch.SearchAPI.Search.SearchResult).GetSimilarResults(result.Data("ID"))
               
         set tSC = searchResults.Items.Insert(sitePageResult) 
         
@@ -1607,77 +1914,50 @@ GROUP BY SiteId</SqlQuery>
 
 <Method name="GetSimilarResults">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>NearestResults:%String</FormalSpec>
+<FormalSpec>RecipeId:%Integer</FormalSpec>
 <ReturnType>%ListOfObjects</ReturnType>
 <Implementation><![CDATA[
 	set similarResultsObjects = ##class(%ListOfObjects).%New()
-	
-   	set similarResultsIds = $LISTFROMSTRING(NearestResults, " ")            
-   	set length = $LISTLENGTH(similarResultsIds)
-   	
-   	if length = 0{
-	   	return similarResultsObjects
-   	}
 
-   	set sqlQuery = "SELECT %NOLOCK ID, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl,Keywords,SiteId,URL,RecipeName, NearestResults, CreatedDate, ModifiedDate"
-   	_" FROM Data.SitePage WHERE ID IN ("
-   	
-   	for i=1:1:length{
-	   	if $LIST(similarResultsIds, i) = ""{
-	      	continue
-      	}
-   		if i '= 1{
-       		set sqlQuery = sqlQuery_", "
-      	}
-     	set sqlQuery = sqlQuery_$LIST(similarResultsIds, i)
-    }
-    set sqlQuery = sqlQuery_")"
+	set sqlQuery = "SELECT %NOLOCK" 
+			_" sp.ID,"
+			_" Description,"
+			_" Ingredients,"
+			_" RecipeInstructions,"
+			_" AdditionalData,"
+			_" ImageUrl,"
+			_" Keywords,"
+			_" SiteId,"
+			_" URL,"
+			_" RecipeName, "
+			_" CreatedDate," 
+			_" ModifiedDate"
+		_" FROM  RecipeSearch_Data_RecipeData.NearestResult"
+		_" INNER JOIN RecipeSearch_Data.SitePage sp ON sp.Id = SimilarRecipeId"
+		_" WHERE RecipeId = "_RecipeId
+		_" ORDER BY Order"
     
     set result = ##class(%Library.ResultSet).%New() 
 	set tSC = result.Prepare(sqlQuery) 
     set tSC = result.Execute()
     
-    set actulaIdsOrder = $LISTFROMSTRING("")
     
     while (result.Next()) 
     {
-	    set similarResult = ##class(SearchAPI.Search.SearchResult).MapResultToSitePage(result)
-	    do similarResultsObjects.Insert(similarResult)
-	    
-	    set id = result.Data("ID")	    	
-	    set actulaIdsOrder = actulaIdsOrder_$LISTBUILD(id)
-	    
+	    set similarResult = ##class(RecipeSearch.SearchAPI.Search.SearchResult).MapResultToSitePage(result)
+	    do similarResultsObjects.Insert(similarResult)	    	    
     }   
-    
-    // Order results by distance
-    set similarResultsObjectsOrdered = ##class(%ListOfObjects).%New()
-    
-    set actualResultsLength = $LISTLENGTH(actulaIdsOrder)
-    
-    for i=1:1:length{
-	    set id = $LIST(similarResultsIds, i)
-	    
-	    if id = ""{
-	      	continue
-      	}
-	    
-	    for j=1:1:actualResultsLength{
-		   if $LIST(actulaIdsOrder, j) = id{
-			    do similarResultsObjectsOrdered.Insert(similarResultsObjects.GetAt(j))
-		    }
-	    }
-    }
 			    
-    return similarResultsObjectsOrdered
+    return similarResultsObjects
 ]]></Implementation>
 </Method>
 
 <Method name="MapResultToSitePage">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>result:%Library.ResultSet</FormalSpec>
-<ReturnType>Data.SitePage</ReturnType>
+<ReturnType>RecipeSearch.Data.SitePage</ReturnType>
 <Implementation><![CDATA[
-	set sitePage = ##class(Data.SitePage).%New() 
+	set sitePage = ##class(RecipeSearch.Data.SitePage).%New() 
     set sitePage.Description = result.Data("Description") 
     set sitePage.Ingredients = result.Data("Ingredients") 
     set sitePage.RecipeInstructions = result.Data("RecipeInstructions")
@@ -1688,8 +1968,7 @@ GROUP BY SiteId</SqlQuery>
     set sitePage.Keywords = result.Data("Keywords") 
     set sitePage.ModifiedDate = result.Data("ModifiedDate") 
     set sitePage.CreatedDate = result.Data("CreatedDate") 
-    set sitePage.RecipeName = result.Data("RecipeName") 
-    set sitePage.NearestResults = result.Data("NearestResults") 
+    set sitePage.RecipeName = result.Data("RecipeName")
        
     return sitePage
 ]]></Implementation>
@@ -1697,43 +1976,50 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="SearchAPI.Search.SitePageResult">
+<Class name="RecipeSearch.SearchAPI.Search.SitePageResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63673,75886.369848</TimeChanged>
+<TimeChanged>63685,84338.233819</TimeChanged>
 <TimeCreated>63673,70073.256262</TimeCreated>
 
 <Property name="Result">
-<Type>Data.SitePage</Type>
+<Type>RecipeSearch.Data.SitePage</Type>
 </Property>
 
 <Property name="SimilarResults">
-<Type>Data.SitePage</Type>
+<Type>RecipeSearch.Data.SitePage</Type>
 <Collection>list</Collection>
 </Property>
 </Class>
 
 
-<Class name="SearchAPI.Suggestion.SuggestionEngine">
+<Class name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,75578.268084</TimeChanged>
+<TimeChanged>63685,84759.338212</TimeChanged>
 <TimeCreated>63640,44078.352651</TimeCreated>
 
 <Method name="SuggestRecipes">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>query:%String,count:%Integer,spellcheck:%Boolean</FormalSpec>
 <Implementation><![CDATA[
-	set sqlQuery = "SELECT %NOLOCK TOP "_count_" Keywords,SiteId,URL,RecipeName FROM Data.SitePage"
 	
 	if spellcheck {
-		set query = ##class(Spellcheck.Spellchecker).SpellcheckText(query)
+		set query = ##class(RecipeSearch.Spellcheck.Spellchecker).SpellcheckText(query)
 	}
 	
-	set predicate = ##class(SearchAPI.PredicateBuilder).BuildPredicate(query)
+	set sqlQuery = "SELECT %NOLOCK TOP "_count 
+			_" Keywords,"
+			_" SiteId,"
+			_" URL,"
+			_" RecipeName,"
+			_##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildRelevancySubQuery(query)
+		_" FROM RecipeSearch_Data.SitePage sp"
+	
+	set predicate = ##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildPredicate(query)
 	
 	if predicate = ""{
 		set predicate = "(1 = 0)"
 	}
-	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY URL, SiteId"
+	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY Relevancy DESC, URL, SiteId"
 	
 	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
 ]]></Implementation>
@@ -1741,7 +2027,7 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="Spellcheck.SpellcheckDictionaryCreator">
+<Class name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator">
 <Super>%RegisteredObject</Super>
 <TimeChanged>63681,81044.462611</TimeChanged>
 <TimeCreated>63681,75479.498522</TimeCreated>
@@ -1780,7 +2066,7 @@ GROUP BY SiteId</SqlQuery>
     
     while (result.Next()) 
     {
-	    do ##class(Spellcheck.SpellcheckDictionaryCreator).AddSitePageData(
+	    do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddSitePageData(
 	    	result.Data("Keywords"),
 	    	result.Data("Ingredients"),
 	    	result.Data("RecipeInstructions"),
@@ -1797,12 +2083,12 @@ GROUP BY SiteId</SqlQuery>
 <FormalSpec>keywords:%String,ingredients:%String,instructions:%String,name:%String,additionalData:%String,description:%String</FormalSpec>
 <Implementation><![CDATA[
 	    
-	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(keywords)	           
-	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(ingredients)	          
-	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(instructions)	    	      
-	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(name)        
-	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(additionalData)	    	      
-	 do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(description)
+	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(keywords)	           
+	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(ingredients)	          
+	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(instructions)	    	      
+	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(name)        
+	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(additionalData)	    	      
+	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(description)
 ]]></Implementation>
 </Method>
 
@@ -1810,12 +2096,12 @@ GROUP BY SiteId</SqlQuery>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>text:%String</FormalSpec>
 <Implementation><![CDATA[
-	set stemmedList = ##class(RecipeAnalyze.StringAnalyzer).GetEntitiesInText(text)	
-	do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromList(stemmedList)
+	set stemmedList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(text)	
+	do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromList(stemmedList)
 	
 	// TODO: Revisit. Hack to get words list stripped from other symbols
 	set orignalWordsList = $LISTFROMSTRING(##class(%iKnow.Stemming.TextStemmer).%New("en").StemWord(text)," ")
-	do ##class(Spellcheck.SpellcheckDictionaryCreator).AddDataFromList(orignalWordsList)
+	do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromList(orignalWordsList)
 ]]></Implementation>
 </Method>
 
@@ -1834,7 +2120,7 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Class name="Spellcheck.Spellchecker">
+<Class name="RecipeSearch.Spellcheck.Spellchecker">
 <Super>%RegisteredObject</Super>
 <TimeChanged>63681,75772.571092</TimeChanged>
 <TimeCreated>63681,75436.493578</TimeCreated>
@@ -1850,7 +2136,7 @@ GROUP BY SiteId</SqlQuery>
 	// try to spellcheck each word
 	set length = $LISTLENGTH(wordsList)
 	for i=1:1:length{
-		set resultText = resultText_##class(Spellcheck.Spellchecker).SpellcheckWord($LIST(wordsList, i))
+		set resultText = resultText_##class(RecipeSearch.Spellcheck.Spellchecker).SpellcheckWord($LIST(wordsList, i))
 		if i '= length{
 			set resultText = resultText_" "
 		}		
@@ -1869,7 +2155,7 @@ GROUP BY SiteId</SqlQuery>
 		return word
 	}
 	
-	set editsList = ##class(Spellcheck.Spellchecker).GenerateEdits(word)
+	set editsList = ##class(RecipeSearch.Spellcheck.Spellchecker).GenerateEdits(word)
 	
 	set maxProbability = 0
 	set maxProbableWord = word
@@ -1894,28 +2180,28 @@ GROUP BY SiteId</SqlQuery>
 <Implementation><![CDATA[
 	set resultListItemsCount = 0
 	
-	set deletions = ##class(Spellcheck.Spellchecker).GenerateDeletions(word)
+	set deletions = ##class(RecipeSearch.Spellcheck.Spellchecker).GenerateDeletions(word)
 	for i=1:1:$LISTLENGTH(deletions){
 		set $LIST(resultList, resultListItemsCount + 1) = $LIST(deletions,i)
 		
 		set resultListItemsCount = resultListItemsCount + 1
 	}
 	
-	set transpositions = ##class(Spellcheck.Spellchecker).GenerateTranspositions(word)
+	set transpositions = ##class(RecipeSearch.Spellcheck.Spellchecker).GenerateTranspositions(word)
 	for i=1:1:$LISTLENGTH(transpositions){
 		set $LIST(resultList, resultListItemsCount + 1) = $LIST(transpositions,i)
 		
 		set resultListItemsCount = resultListItemsCount + 1
 	}
 	
-	set alterations = ##class(Spellcheck.Spellchecker).GenerateAlterations(word)
+	set alterations = ##class(RecipeSearch.Spellcheck.Spellchecker).GenerateAlterations(word)
 	for i=1:1:$LISTLENGTH(alterations){
 		set $LIST(resultList, resultListItemsCount + 1) = $LIST(alterations,i)
 		
 		set resultListItemsCount = resultListItemsCount + 1
 	}
 	
-	set insertions = ##class(Spellcheck.Spellchecker).GenerateInsertions(word)
+	set insertions = ##class(RecipeSearch.Spellcheck.Spellchecker).GenerateInsertions(word)
 	for i=1:1:$LISTLENGTH(insertions){
 		set $LIST(resultList, resultListItemsCount + 1) = $LIST(insertions,i)
 		
@@ -2016,4 +2302,31 @@ GROUP BY SiteId</SqlQuery>
 ]]></Implementation>
 </Method>
 </Class>
+
+
+<Project name="RecipesSearch" LastModified="2015-05-13 23:24:39.96554">
+  <Items>
+    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.Config" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.CrawlingHistoryItem" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.RecipeData.NearestResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.RecipeData.WordsTF" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.SearchSettings" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.SitePage" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.SiteToCrawl" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.Utils.Seed" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Logging.LogRecord" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.PageAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.StringAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.PredicateBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.RESTBroker" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SitePageResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
+  </Items>
+</Project>
 </Export>

@@ -19,6 +19,8 @@ namespace RecipesSearch.DAL.Cache.Adapters
     {
         public bool AddSitePage(SitePage sitePage, bool enableKeywordsProcessing, bool updateSpellcheckDict)
         {
+            EnsureConnectionOpened();
+
             var command = new CacheCommand(GetFullProcedureName("SitePage_Upsert"), CacheConnection);
             command.CommandType = CommandType.StoredProcedure;
 
