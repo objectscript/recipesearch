@@ -38,15 +38,15 @@ namespace RecipesSearch.WebApplication.ViewModels
             };
         }
 
-        public static SiteToCrawlViewModel GetViewModel(SiteToCrawl enity)
+        public static SiteToCrawlViewModel GetViewModel(SiteToCrawl entity)
         {
             return new SiteToCrawlViewModel
             {
-                Id = enity.Id,
-                Name = enity.Name,
-                URL = enity.URL,
-                ConfigId = enity.ConfigId,
-                ParserId = enity.ParserId
+                Id = entity.Id,
+                Name = entity.Name,
+                URL = entity.URL,
+                ConfigId = entity.ConfigId,
+                ParserId = entity.ParserId
             };
         }
     }

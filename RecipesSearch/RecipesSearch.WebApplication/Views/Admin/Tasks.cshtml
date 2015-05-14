@@ -4,58 +4,96 @@
 @using RecipesSearch.WebApplication.ViewModels
 @model TasksViewModel
 
-<div class="row">
+<div class="row">   
     <div class="col-md-6 control-panel">
-
-        @if (Model.TfIdfUpdatingInProgress)
-        {
-            <div class="alert alert-success" role="alert">Tf/Idf update in progress.</div>
-            <label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
-        }
-        else
-        {
-            <div class="alert alert-warning" role="alert">Tf/Idf update idle</div>
-            <label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
-            @Html.Partial("_PostButton", new PostButtonModel
+        <div>
+            @if (Model.TfUpdatingInProgress)
             {
-                Action = "StartTfIdfUpdating",
-                Controller = "Admin",
-                ButtonClass = "btn-link",
-                Text = "Update tf/idf"
-            })
-        }
-    </div>
-    <div class="col-md-6 control-panel">
-        @if (Model.NearestsResultsUpdatingInProgress)
-        {
-            if (@Model.NearestsResultsUpdatedCount == -1)
-            {
-                <div class="alert alert-success" role="alert">Nearest results update in progress. Fetching data.</div>
+                <div class="alert alert-success" role="alert">Tf update in progress.</div>
             }
             else
             {
-                <div class="alert alert-success" role="alert">Nearest results update in progress. Updated pages: @Model.NearestsResultsUpdatedCount</div>
+                <div class="alert alert-warning" role="alert">Tf update idle</div>
+                @Html.Partial("_PostButton", new PostButtonModel
+                {
+                    Action = "StartTfUpdating",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Update tf"
+                })
             }
-            <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount</label>
-            @Html.Partial("_PostButton", new PostButtonModel
+        </div>
+        <div>
+            @if (Model.IdfUpdatingInProgress)
             {
-                Action = "StopNearestResultsUpdating",
-                Controller = "Admin",
-                ButtonClass = "btn-link",
-                Text = "Stop updating"
-            })
-        }
-        else
-        {
-            <div class="alert alert-warning" role="alert">Nearest results update idle</div>
-            <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount</label>
-            @Html.Partial("_PostButton", new PostButtonModel
+                <div class="alert alert-success" role="alert">Idf update in progress.</div>
+            }
+            else
             {
-                Action = "StartNearestResultsUpdating",
-                Controller = "Admin",
-                ButtonClass = "btn-link",
-                Text = "Update nearest results"
-            })
-        }
+                <div class="alert alert-warning" role="alert">Idf update idle</div>
+                @Html.Partial("_PostButton", new PostButtonModel
+                {
+                    Action = "StartIdfUpdating",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Update idf"
+                })
+            }
+        </div>
+        <div>
+            @if (Model.TfIdfUpdatingInProgress)
+            {
+                <div class="alert alert-success" role="alert">Tf/Idf update in progress.</div>
+                <label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
+            }
+            else
+            {
+                <div class="alert alert-warning" role="alert">Tf/Idf update idle</div>
+                <label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
+                @Html.Partial("_PostButton", new PostButtonModel
+                {
+                    Action = "StartTfIdfUpdating",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Update tf/idf"
+                })
+            }
+        </div>
+        <div>
+            @if (Model.NearestsResultsUpdatingInProgress)
+            {
+                if (@Model.NearestsResultsUpdatedCount == -1)
+                {
+                    <div class="alert alert-success" role="alert">Nearest results update in progress. Fetching data.</div>
+                }
+                else
+                {
+                    <div class="alert alert-success" role="alert">Nearest results update in progress. Updated pages: @Model.NearestsResultsUpdatedCount</div>
+                }
+                <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount</label>
+                @Html.Partial("_PostButton", new PostButtonModel
+                {
+                    Action = "StopNearestResultsUpdating",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Stop updating"
+                })
+            }
+            else
+            {
+                <div class="alert alert-warning" role="alert">Nearest results update idle</div>
+                <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount</label>
+                @Html.Partial("_PostButton", new PostButtonModel
+                {
+                    Action = "StartNearestResultsUpdating",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Update nearest results"
+                })
+            }
+        </div>
+    </div>
+    <div class="col-md-6 control-panel">
+        @Html.Action("TfIdfConfig", "Admin")
     </div>
 </div>

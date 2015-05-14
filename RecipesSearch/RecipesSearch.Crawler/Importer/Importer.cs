@@ -171,7 +171,11 @@ namespace RecipesSearch.SitePagesImporter.Importer
                         _sitesQueue.RemoveAt(0);
                     }
 
-                    using (var pageSaver = new PageSaver(_currentCrawledSite, crawlerConfig.EnhancedKeywordProcessing, crawlerConfig.EnableSpellcheckDictionaryUpdate))
+                    using (var pageSaver = new PageSaver(
+                        _currentCrawledSite, 
+                        crawlerConfig.EnhancedKeywordProcessing, 
+                        crawlerConfig.EnableSpellcheckDictionaryUpdate,
+                        crawlerConfig.TfBuilderName))
                     {
                         _currentCrawlingHistoryItem = new CrawlingHistoryItem
                         {

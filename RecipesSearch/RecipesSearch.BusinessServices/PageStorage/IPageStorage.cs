@@ -10,7 +10,7 @@ namespace RecipesSearch.BusinessServices.PageStorage
 {
     public interface IPageStorage : IDisposable
     {
-        bool SaveSitePage(SitePage sitePage, bool processKeywords, bool updateSpellcheckDict);
+        bool SaveSitePage(SitePage sitePage, bool processKeywords, bool updateSpellcheckDict, string tfBuilderName);
 
         List<SiteInfo> GetSitesInfo();
 

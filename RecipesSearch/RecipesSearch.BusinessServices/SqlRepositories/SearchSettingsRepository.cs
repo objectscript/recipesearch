@@ -1,38 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using RecipesSearch.DAL.Cache.Adapters.Base;
 using RecipesSearch.Data.Models;
 using RecipesSearch.BusinessServices.SqlRepositories.Base;
 
 namespace RecipesSearch.BusinessServices.SqlRepositories
 {
-    public class ConfigRepository : SqlRepositoryBase
+    public class SearchSettingsRepository : SqlRepositoryBase
     {
-        public Config SaveConfig(Config config)
+        public SearchSettings SaveSearchSettings(SearchSettings searchSettings)
         {
-            return SaveEntity(config);
-        }       
-
-        public Config GetConfig()
-        {
-            return GetConfigs().First();
+            return SaveEntity(searchSettings);
         }
 
-        private List<Config> GetConfigs()
+        public SearchSettings GetSearchSettings()
         {
-            var configs = GetEntities<Config>();
-            using (var cacheAdapter = new CacheAdapter())
-            {
-                foreach (var config in configs)
-                {
-                    config.SitesToCrawl = cacheAdapter
-                        .GetEntities<SiteToCrawl>()
-                        .Where(siteToCrawl => siteToCrawl.ConfigId == config.Id)
-                        .ToList();
-                }
-            }
-            
-            return configs;
+            return GetEntities<SearchSettings>().First();
         }
     }
 }

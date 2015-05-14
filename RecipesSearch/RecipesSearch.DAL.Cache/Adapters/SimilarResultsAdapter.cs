@@ -40,18 +40,7 @@ namespace RecipesSearch.DAL.Cache.Adapters
             command.Parameters.Add("NearestResults", String.Join(" ", results)); 
 
             return command.ExecuteNonQuery() != 0;
-        }
-
-
-        public int GetTfIdfStatistic()
-        {
-            var command = new CacheCommand(GetFullProcedureName("SitePage_GetTFIDFStatistic"), CacheConnection);
-            command.CommandType = CommandType.StoredProcedure;
-
-            var result = command.ExecuteScalar();
-
-            return (int)result;
-        }
+        }    
 
         public int GetNearestResultsStatistic()
         {
@@ -61,16 +50,6 @@ namespace RecipesSearch.DAL.Cache.Adapters
             var result = command.ExecuteScalar();
 
             return (int)(decimal)result;
-        }
-
-        public void UpdateTfIdf()
-        {
-            var command = new CacheCommand(GetFullProcedureName("SitePage_UpdateTfIdf"), CacheConnection);
-            command.CommandType = CommandType.StoredProcedure;
-
-            command.CommandTimeout = 60*60; // 1 hour
-            
-            command.ExecuteNonQuery();
-        }
+        }      
     }
 }

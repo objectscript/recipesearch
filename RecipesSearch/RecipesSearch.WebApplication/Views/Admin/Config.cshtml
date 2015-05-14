@@ -2,6 +2,10 @@
 @model ConfigViewModel
 @{
     ViewBag.Title = "Admin Config";
+
+    var tfBuildersList = Model.AvailableTfBuilders
+       .Select(name => new SelectListItem { Text = name, Value = name })
+       .ToList();
 }
 <div class="settings row">
     <div class="col-md-6">
@@ -27,6 +31,14 @@
                 @Html.LabelFor(model => model.MaxConcurrentThreads)
                 @Html.TextBoxFor(model => model.MaxConcurrentThreads, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.MaxConcurrentThreads)
+            </div>
+             <div class="form-group">
+                 @Html.LabelFor(model => model.TfBuilderName)
+                 @Html.DropDownListFor(
+                    model => model.TfBuilderName,
+                    tfBuildersList,
+                    new { @class = "form-control" })
+                 @Html.ValidationMessageFor(model => model.TfBuilderName)
             </div>
             <div class="form-group">
                 @Html.LabelFor(model => model.LoggingEnabled)

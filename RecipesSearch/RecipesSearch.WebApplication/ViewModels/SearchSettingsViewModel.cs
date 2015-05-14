@@ -43,15 +43,15 @@ namespace RecipesSearch.WebApplication.ViewModels
             };
         }
 
-        public static SearchSettingsViewModel GetViewModel(SearchSettings enity)
+        public static SearchSettingsViewModel GetViewModel(SearchSettings entity)
         {
             return new SearchSettingsViewModel
             {
-                Id = enity.Id,
-                ResultsOnPage = enity.ResultsOnPage,
-                SuggestionsCount = enity.SuggestionsCount,
-                EnableSpellchecking = enity.EnableSpellchecking,
-                EnableSpellcheckingForSuggest = enity.EnableSpellcheckingForSuggest
+                Id = entity.Id,
+                ResultsOnPage = entity.ResultsOnPage,
+                SuggestionsCount = entity.SuggestionsCount,
+                EnableSpellchecking = entity.EnableSpellchecking,
+                EnableSpellcheckingForSuggest = entity.EnableSpellcheckingForSuggest
             };
         }
     }

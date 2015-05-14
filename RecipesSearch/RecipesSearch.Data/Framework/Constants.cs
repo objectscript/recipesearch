@@ -11,5 +11,9 @@ namespace RecipesSearch.Data.Framework
         public const string DefaultCachePackage = "RecipeSearch_Data";
 
         public const string LoggingCachePackage = "RecipeSearch_Logging";
+
+        public const string TfBuilderCachePackage = "RecipeSearch_RecipeAnalyze_TfBuild";
+
+        public const string IdfBuilderCachePackage = "RecipeSearch_RecipeAnalyze_IdfBuild";
     }
 }

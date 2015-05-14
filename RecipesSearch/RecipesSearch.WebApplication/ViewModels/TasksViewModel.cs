@@ -18,6 +18,10 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public bool TfIdfUpdatingInProgress { get; set; }
 
+        public bool TfUpdatingInProgress { get; set; }
+
+        public bool IdfUpdatingInProgress { get; set; }
+
         public int EmptyTfIdfCount { get; set; }
 
         public int EmptyNearestResultsCount { get; set; }

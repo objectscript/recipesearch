@@ -15,7 +15,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
         {
             try
             {
-                using (var cacheAdapter = new SimilarResultsAdapter())
+                using (var cacheAdapter = new TfIdfAdapter())
                 {
                     return cacheAdapter.GetTfIdfStatistic();
                 }

@@ -102,9 +102,13 @@ namespace RecipesSearch.DAL.Cache.Adapters.Base
             }            
         }
 
-        protected string GetFullProcedureName(string procedureName)
+        protected string GetFullProcedureName(string procedureName, string packageName = "")
         {
-            return String.Format("{0}.{1}", Constants.DefaultCachePackage, procedureName);
+            if(String.IsNullOrEmpty(packageName))
+            {
+                packageName = Constants.DefaultCachePackage;
+            }
+            return String.Format("{0}.{1}", packageName, procedureName);
         }
 
         private bool UpsertEntity<T>(T entity, Func<T, string> queryBuilder)

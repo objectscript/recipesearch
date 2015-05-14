@@ -48,11 +48,12 @@
     <Compile Include="PageStorage\IPageStorage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlRepositories\Base\SqlRepositoryBase.cs" />
+    <Compile Include="SqlRepositories\TfIdfConfigRepository.cs" />
     <Compile Include="SqlRepositories\PageStatsRepository.cs" />
-    <Compile Include="SqlRepositories\SearchSettingsRepository.cs" />
+    <Compile Include="SqlRepositories\ConfigRepository.cs" />
     <Compile Include="SqlRepositories\CrawlingHistoryRepository.cs" />
     <Compile Include="SqlRepositories\SiteToCrawlRepository.cs" />
-    <Compile Include="SqlRepositories\ConfigRepository.cs" />
+    <Compile Include="SqlRepositories\SearchSettingsRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RecipesSearch.DAL.Cache\RecipesSearch.DAL.Cache.csproj">

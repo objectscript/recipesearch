@@ -46,6 +46,12 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Update spellcheck dictionary on crawling")]
         public bool EnableSpellcheckDictionaryUpdate { get; set; }
 
+        [Required(ErrorMessage = "Field is required")]
+        [Display(Name = "Tf builder to use")]
+        public string TfBuilderName { get; set; }
+
+        public List<string> AvailableTfBuilders { get; set; } 
+
         public static Config GetEntity(ConfigViewModel viewModel)
         {
             return new Config
@@ -58,22 +64,25 @@ namespace RecipesSearch.WebApplication.ViewModels
                 CrawlTimeoutSeconds = viewModel.CrawlTimeoutSeconds,
                 EnableSpellcheckDictionaryUpdate = viewModel.EnableSpellcheckDictionaryUpdate,
                 MaxConcurrentThreads = viewModel.MaxConcurrentThreads,
+                TfBuilderName = viewModel.TfBuilderName,
                 SitesToCrawl = new List<SiteToCrawl>()
             };
         }
 
-        public static ConfigViewModel GetViewModel(Config enity)
+        public static ConfigViewModel GetViewModel(Config entity, List<string> availableTfBuilders)
         {
             return new ConfigViewModel
             {
-                Id = enity.Id,
-                EnhancedKeywordProcessing = enity.EnhancedKeywordProcessing,
-                LoggingEnabled = enity.LoggingEnabled,
-                MaxCrawlDepth = enity.MaxCrawlDepth,
-                MaxPagesToCrawl = enity.MaxPagesToCrawl,
-                CrawlTimeoutSeconds = enity.CrawlTimeoutSeconds,
-                EnableSpellcheckDictionaryUpdate = enity.EnableSpellcheckDictionaryUpdate,
-                MaxConcurrentThreads = enity.MaxConcurrentThreads
+                Id = entity.Id,
+                EnhancedKeywordProcessing = entity.EnhancedKeywordProcessing,
+                LoggingEnabled = entity.LoggingEnabled,
+                MaxCrawlDepth = entity.MaxCrawlDepth,
+                MaxPagesToCrawl = entity.MaxPagesToCrawl,
+                CrawlTimeoutSeconds = entity.CrawlTimeoutSeconds,
+                EnableSpellcheckDictionaryUpdate = entity.EnableSpellcheckDictionaryUpdate,
+                TfBuilderName = entity.TfBuilderName,
+                MaxConcurrentThreads = entity.MaxConcurrentThreads,
+                AvailableTfBuilders = availableTfBuilders
             };
         }
     }

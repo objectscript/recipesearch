@@ -22,6 +22,8 @@ namespace RecipesSearch.Data.Models
 
         public int CrawlTimeoutSeconds { get; set; }
 
+        public string TfBuilderName { get; set; }
+
         [NotMapped]
         public List<SiteToCrawl> SitesToCrawl { get; set; }
     }

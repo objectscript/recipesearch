@@ -49,6 +49,7 @@
     <Compile Include="Adapters\CrawlingHistoryAdapter.cs" />
     <Compile Include="Adapters\SimilarResultsAdapter.cs" />
     <Compile Include="Adapters\SitePageAdapter.cs" />
+    <Compile Include="Adapters\TfIdfAdapter.cs" />
     <Compile Include="Utilities\ObjectMapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\ParametersBuilder.cs" />

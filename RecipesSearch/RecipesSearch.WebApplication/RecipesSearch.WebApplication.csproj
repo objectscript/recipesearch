@@ -179,6 +179,7 @@
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
     <Compile Include="Startup.cs" />
+    <Compile Include="ViewModels\TfIdfConfigViewModel.cs" />
     <Compile Include="ViewModels\TasksViewModel.cs" />
     <Compile Include="ViewModels\SearchViewModel.cs" />
     <Compile Include="ViewModels\SearchSettingsViewModel.cs" />
@@ -268,6 +269,7 @@
     <Content Include="Views\Admin\CrawlingHistory.cshtml" />
     <Content Include="Views\Home\_ResultItem.cshtml" />
     <Content Include="Views\Admin\Tasks.cshtml" />
+    <Content Include="Views\Admin\_TfIdfConfig.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RecipesSearch.BusinessServices\RecipesSearch.BusinessServices.csproj">
