@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-15 00:10:32">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-16 14:17:12">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -930,7 +930,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63686,81666.488913</TimeChanged>
+<TimeChanged>63688,51122.202111</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1144,9 +1144,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetRecordsBySiteId</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>SELECT SiteId AS SiteId, COUNT(*) AS PageCount
-FROM SitePage
-GROUP BY SiteId</SqlQuery>
+<SqlQuery>	SELECT SiteId AS SiteId, COUNT(*) AS PageCount
+	FROM SitePage
+	GROUP BY SiteId</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1155,7 +1155,7 @@ GROUP BY SiteId</SqlQuery>
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetTFIDF</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>SELECT ID, WordsTfIdf FROM SitePage</SqlQuery>
+<SqlQuery>	SELECT ID, WordsTfIdf FROM SitePage</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1182,7 +1182,7 @@ GROUP BY SiteId</SqlQuery>
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetTFIDFStatistic</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>	SELECT COUNT(*) AS EmptyTfIdf from RecipeSearch_data.SitePage WHERE WordsTfIdf IS NULL OR WordsTfIdf = ''</SqlQuery>
+<SqlQuery>	SELECT COUNT(*) AS EmptyTfIdf from RecipeSearch_Data.SitePage WHERE WordsTfIdf IS NULL OR WordsTfIdf = ''</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1191,15 +1191,39 @@ GROUP BY SiteId</SqlQuery>
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetNearestResultsStatistic</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>	select ((select COUNT(Id) FROM RecipeSearch_data.SitePage) - (select COUNT(DISTINCT RecipeId) FROM RecipeSearch_Data_RecipeData.NearestResult)) AS NearestResults</SqlQuery>
+<SqlQuery>	select ((select COUNT(Id) FROM RecipeSearch_Data.SitePage) - (select COUNT(DISTINCT RecipeId) FROM RecipeSearch_Data_RecipeData.NearestResult)) AS NearestResults</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
+</Query>
+
+<Query name="GetTfStatistic">
+<Type>%SQLQuery</Type>
+<SqlProc>1</SqlProc>
+<SqlQuery>	SELECT CAST(((select COUNT(Id) FROM RecipeSearch_Data.SitePage) - (select COUNT(DISTINCT RecipeId) from RecipeSearch_Data_RecipeData.WordsTf)) AS INT) AS EmptyTfCount</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+<Parameter name="SELECTMODE" value="RUNTIME"/>
+</Query>
+
+<Method name="GetIdfStatisticProc">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Integer</ReturnType>
+<SqlProc>1</SqlProc>
+<Implementation><![CDATA[
+	set hasGlobalIdf = $DATA(^globalIdf) '= 0
+	return hasGlobalIdf
+]]></Implementation>
+</Method>
+
+<Query name="GetIdfStatistic">
+<Type>%SQLQuery</Type>
+<SqlProc>1</SqlProc>
+<SqlQuery>	SELECT CAST(RecipeSearch_Data.SitePage_GetIdfStatisticProc() AS INT) AS IdfGlobalExists</SqlQuery>
 </Query>
 
 <Method name="UpdateTfIdf">
 <ClassMethod>1</ClassMethod>
 <SqlProc>1</SqlProc>
-<Implementation><![CDATA[	do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).CountTfIdf()
+<Implementation><![CDATA[	do ##class(RecipeSearch.RecipeAnalyze.TfIdfBuilder).CalculateTfIdf()
 ]]></Implementation>
 </Method>
 
@@ -1311,7 +1335,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="RecipeSearch.Data.TfIdfConfig">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63686,83320.128786</TimeChanged>
+<TimeChanged>63688,45448.298389</TimeChanged>
 <TimeCreated>63610,79444.886551</TimeCreated>
 
 <Property name="TfBuilderName">
@@ -1332,6 +1356,11 @@ GROUP BY SiteId</SqlQuery>
 <Type>%String</Type>
 </Property>
 
+<Property name="SimilarResultsCount">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
 <DefaultData>TfIdfConfigDefaultData</DefaultData>
@@ -1349,6 +1378,9 @@ GROUP BY SiteId</SqlQuery>
 <Value name="6">
 <Value>LastUsedIdfBuilder</Value>
 </Value>
+<Value name="7">
+<Value>SimilarResultsCount</Value>
+</Value>
 </Data>
 </Storage>
 </Class>
@@ -1356,7 +1388,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63686,83390.81438</TimeChanged>
+<TimeChanged>63688,45104.887096</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1397,8 +1429,8 @@ GROUP BY SiteId</SqlQuery>
 	
 	// Seed tfIdf config
 	IF NOT EXISTS(SELECT * FROM RecipeSearch_Data.TfIdfConfig) THEN BEGIN
-		INSERT INTO RecipeSearch_Data.TfIdfConfig(TfBuilderName, IdfBuilderName, IsActive, CreatedDate, ModifiedDate) 
-		VALUES('DefaultTfBuilder', 'DefaultIdfBuilder', 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO RecipeSearch_Data.TfIdfConfig(TfBuilderName, IdfBuilderName, SimilarResultsCount, IsActive, CreatedDate, ModifiedDate) 
+		VALUES('DefaultTfBuilder', 'DefaultIdfBuilder', 10, 1, GETUTCDATE(), GETUTCDATE());
 	END
 ]]></Implementation>
 </Method>
@@ -1522,7 +1554,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="RecipeSearch.RecipeAnalyze.IdfBuild.Builder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63686,83872.456031</TimeChanged>
+<TimeChanged>63688,45022.536295</TimeChanged>
 <TimeCreated>63686,75832.310213</TimeCreated>
 
 <Method name="BuildIdf">
@@ -1534,11 +1566,13 @@ GROUP BY SiteId</SqlQuery>
 	
 	try {
     	do $classmethod("RecipeSearch.RecipeAnalyze.IdfBuild.Implementations."_builderName, "BuildIdf")
+		&sql(update RecipeSearch_Data.TfIdfConfig SET LastUsedIdfBuilder = :builderName)
 	}
 	catch {
 		do ##class(RecipeSearch.Logging.LogRecord).AddRecord(1, "IdfBuilder failed", $zerror)
+		return
 	}
-	
+		
 	do ##class(RecipeSearch.Logging.LogRecord).AddRecord(4, "IdfBuilder finished", "")
 ]]></Implementation>
 </Method>
@@ -1714,7 +1748,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="RecipeSearch.RecipeAnalyze.TfBuild.Builder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63686,83878.939217</TimeChanged>
+<TimeChanged>63688,45039.06141</TimeChanged>
 <TimeCreated>63686,75654.215346</TimeCreated>
 
 <Method name="BuildTf">
@@ -1744,9 +1778,12 @@ GROUP BY SiteId</SqlQuery>
     			AdditionalData)
     	}
     	&sql(close recipesCursor)
+    	
+    	&sql(update RecipeSearch_Data.TfIdfConfig SET LastUsedTfBuilder = :builderName)
 	}
 	catch {
 		do ##class(RecipeSearch.Logging.LogRecord).AddRecord(1, "TfBuilder failed", $zerror)
+		return
 	}
 	
 	do ##class(RecipeSearch.Logging.LogRecord).AddRecord(4, "TfBuilder finished", "")
@@ -1833,8 +1870,8 @@ GROUP BY SiteId</SqlQuery>
 
 
 <Class name="RecipeSearch.RecipeAnalyze.TfIdfBuilder">
-<Super>%Persistent</Super>
-<TimeChanged>63686,77149.076018</TimeChanged>
+<Super>%RegisteredObject</Super>
+<TimeChanged>63688,51110.013736</TimeChanged>
 <TimeCreated>63686,77142.637964</TimeCreated>
 
 <Method name="CalculateTfIdf">
@@ -1842,6 +1879,10 @@ GROUP BY SiteId</SqlQuery>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
   
+  try {
+	  
+	do ##class(RecipeSearch.Logging.LogRecord).AddRecord(4, "TfIdfBuilder started", "")
+	
     &sql(declare recipesCursor cursor for
 	      select id from RecipeSearch_Data.SitePage)        
     &sql(open recipesCursor)
@@ -1869,30 +1910,20 @@ GROUP BY SiteId</SqlQuery>
     	&sql(update RecipeSearch_data.SitePage SET WordsTfIdf = :documentTfIdf WHERE Id = :recipeId) 	      
     }
     &sql(close recipesCursor)
+    
+    do ##class(RecipeSearch.Logging.LogRecord).AddRecord(4, "TfIdfBuilder finished", "")
+  }
+  catch{
+	  do ##class(RecipeSearch.Logging.LogRecord).AddRecord(1, "TfBuilder failed", $zerror)
+  }
 ]]></Implementation>
 </Method>
-
-<Storage name="Default">
-<Type>%Library.CacheStorage</Type>
-<DataLocation>^RecipeSearchAAF0.TfIdfBuilderD</DataLocation>
-<DefaultData>TfIdfBuilderDefaultData</DefaultData>
-<IdLocation>^RecipeSearchAAF0.TfIdfBuilderD</IdLocation>
-<IndexLocation>^RecipeSearchAAF0.TfIdfBuilderI</IndexLocation>
-<StreamLocation>^RecipeSearchAAF0.TfIdfBuilderS</StreamLocation>
-<Data name="TfIdfBuilderDefaultData">
-<Structure>listnode</Structure>
-<Subscript/>
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-</Data>
-</Storage>
 </Class>
 
 
 <Class name="RecipeSearch.SearchAPI.PredicateBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63685,76011.646594</TimeChanged>
+<TimeChanged>63688,50450.815037</TimeChanged>
 <TimeCreated>63640,44416.350546</TimeCreated>
 
 <Method name="BuildPredicate">
@@ -1933,7 +1964,7 @@ GROUP BY SiteId</SqlQuery>
 	
 	set queryParts = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(query)
 	
-	set subquery = ""
+	set subquery = "0 AS Relevancy"
 	set i = 1
 	set listLength = $LISTLENGTH(queryParts)
 	
@@ -2214,7 +2245,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63685,84759.338212</TimeChanged>
+<TimeChanged>63688,50325.834861</TimeChanged>
 <TimeCreated>63640,44078.352651</TimeCreated>
 
 <Method name="SuggestRecipes">
@@ -2239,6 +2270,7 @@ GROUP BY SiteId</SqlQuery>
 	if predicate = ""{
 		set predicate = "(1 = 0)"
 	}
+	
 	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY Relevancy DESC, URL, SiteId"
 	
 	do ##class(%ZEN.Auxiliary.jsonSQLProvider).%WriteJSONFromSQL(,sqlQuery)
@@ -2342,7 +2374,7 @@ GROUP BY SiteId</SqlQuery>
 
 <Class name="RecipeSearch.Spellcheck.Spellchecker">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,75772.571092</TimeChanged>
+<TimeChanged>63688,50208.48879</TimeChanged>
 <TimeCreated>63681,75436.493578</TimeCreated>
 
 <Method name="SpellcheckText">
@@ -2352,7 +2384,7 @@ GROUP BY SiteId</SqlQuery>
 <Implementation><![CDATA[
 	set wordsList = $LISTFROMSTRING(text, " ")
 	set resultText = ""
-	
+
 	// try to spellcheck each word
 	set length = $LISTLENGTH(wordsList)
 	for i=1:1:length{
@@ -2371,12 +2403,15 @@ GROUP BY SiteId</SqlQuery>
 <FormalSpec>word:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
+	if $LENGTH(word) < 3{
+		return word
+	}
+	
 	if $GET(^SpellcheckDict(word), -1) '= -1{
 		return word
 	}
 	
 	set editsList = ##class(RecipeSearch.Spellcheck.Spellchecker).GenerateEdits(word)
-	
 	set maxProbability = 0
 	set maxProbableWord = word
 	
@@ -2524,7 +2559,7 @@ GROUP BY SiteId</SqlQuery>
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-14 23:07:46.590741">
+<Project name="RecipesSearch" LastModified="2015-05-14 23:07:46.590337">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
@@ -2535,10 +2570,16 @@ GROUP BY SiteId</SqlQuery>
     <ProjectItem name="RecipeSearch.Data.SearchSettings" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.SitePage" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.SiteToCrawl" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.TfIdfConfig" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Utils.Seed" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Logging.LogRecord" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Builder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.DefaultIdfBuilder" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.RecipeAnalyze.PageAnalyzer" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.RecipeAnalyze.StringAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Builder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.DefaultTfBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfIdfBuilder" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.PredicateBuilder" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.RESTBroker" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
@@ -2547,12 +2588,6 @@ GROUP BY SiteId</SqlQuery>
     <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.DefaultTfBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Builder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Builder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.DefaultIdfBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfIdfBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.TfIdfConfig" type="CLS"></ProjectItem>
   </Items>
 </Project>
 </Export>

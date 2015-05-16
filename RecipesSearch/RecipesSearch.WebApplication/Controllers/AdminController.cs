@@ -284,6 +284,8 @@ namespace RecipesSearch.WebApplication.Controllers
                 TfIdfUpdatingInProgress = tfIdfBuilder.UpdateInProgress,
                 EmptyNearestResultsCount = pageStatsRepository.GetNearestResultsStatistic(),
                 EmptyTfIdfCount = pageStatsRepository.GetTfIdfStatistic(),
+                EmptyTfCount = pageStatsRepository.GetTfStatistic(),
+                IdfGlobalExists = pageStatsRepository.GetIdfStatistic() == 1,
                 TfUpdatingInProgress = TfBuilder.GetInstance().UpdateInProgress,
                 IdfUpdatingInProgress = IdfBuilder.GetInstance().UpdateInProgress
             });
@@ -292,8 +294,11 @@ namespace RecipesSearch.WebApplication.Controllers
         [HttpPost]
         public ActionResult StartNearestResultsUpdating()
         {
+            var tfIdfConfigRepository = new TfIdfConfigRepository();
+            var tfIdfConfig = tfIdfConfigRepository.GetConfig();
+
             var similarResultsBuilder = SimilarResultsBuilder.GetSimilarResultsBuilder();
-            similarResultsBuilder.FindNearestResults();
+            similarResultsBuilder.FindNearestResults(tfIdfConfig.SimilarResultsCount);
 
             return RedirectToAction("Tasks");
         }

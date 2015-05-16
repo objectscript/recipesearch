@@ -27,6 +27,38 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
             }
         }
 
+        public int GetTfStatistic()
+        {
+            try
+            {
+                using (var cacheAdapter = new TfIdfAdapter())
+                {
+                    return cacheAdapter.GetTfStatistic();
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.LogError("PageStatsRepository.GetTfStatistic() failed", exception);
+                return -1;
+            }
+        }
+
+        public int GetIdfStatistic()
+        {
+            try
+            {
+                using (var cacheAdapter = new TfIdfAdapter())
+                {
+                    return cacheAdapter.GetIdfStatistic();
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.LogError("PageStatsRepository.GetIdfStatistic() failed", exception);
+                return -1;
+            }
+        }
+
         public int GetNearestResultsStatistic()
         {
             try

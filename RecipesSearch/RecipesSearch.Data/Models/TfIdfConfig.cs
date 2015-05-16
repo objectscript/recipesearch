@@ -15,5 +15,7 @@ namespace RecipesSearch.Data.Models
         public string LastUsedTfBuilder { get; set; }
 
         public string LastUsedIdfBuilder { get; set; }
+
+        public int SimilarResultsCount { get; set; }
     }
 }

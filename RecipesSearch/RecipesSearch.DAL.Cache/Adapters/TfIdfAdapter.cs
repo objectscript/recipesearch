@@ -14,12 +14,16 @@ namespace RecipesSearch.DAL.Cache.Adapters
     {
         public int GetTfIdfStatistic()
         {
-            var command = new CacheCommand(GetFullProcedureName("SitePage_GetTFIDFStatistic"), CacheConnection);
-            command.CommandType = CommandType.StoredProcedure;
+            return GetStatistic("SitePage_GetTFIDFStatistic", Constants.DefaultCachePackage);
+        }
 
-            var result = command.ExecuteScalar();
-
-            return (int)result;
+        public int GetTfStatistic()
+        {
+            return GetStatistic("SitePage_GetTfStatistic", Constants.DefaultCachePackage);
+        }
+        public int GetIdfStatistic()
+        {
+            return GetStatistic("SitePage_GetIdfStatistic", Constants.DefaultCachePackage);
         }
 
         public void UpdateTfIdf()
@@ -29,18 +33,20 @@ namespace RecipesSearch.DAL.Cache.Adapters
 
         public void UpdateTf(string builderName)
         {
-            RunTfIdfTask("Builder_BuildTf", Constants.TfBuilderCachePackage, command =>
-            {
-                command.Parameters.AddWithValue("builderName", builderName);
-            });
+            RunTfIdfTask(
+                "Builder_BuildTf", 
+                Constants.TfBuilderCachePackage, 
+                command => command.Parameters.AddWithValue("builderName", builderName)
+            );
         }
 
         public void UpdateIdf(string builderName)
         {
-            RunTfIdfTask("Builder_BuildIdf", Constants.IdfBuilderCachePackage, command =>
-            {
-                command.Parameters.AddWithValue("builderName", builderName);
-            });
+            RunTfIdfTask(
+                "Builder_BuildIdf", 
+                Constants.IdfBuilderCachePackage, 
+                command => command.Parameters.AddWithValue("builderName", builderName)
+            );
         }
 
         public List<string> GetTfBuilders()
@@ -51,6 +57,16 @@ namespace RecipesSearch.DAL.Cache.Adapters
         public List<string> GetIdfBuilders()
         {
             return GetBuilders("Builder_GetIdfBuilders", Constants.IdfBuilderCachePackage);
+        }
+
+        private int GetStatistic(string sprocName, string packageName)
+        {
+            var command = new CacheCommand(GetFullProcedureName(sprocName, packageName), CacheConnection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            var result = command.ExecuteScalar();
+
+            return (int)result;
         }
 
         private List<string> GetBuilders(string sprocName, string packageName)

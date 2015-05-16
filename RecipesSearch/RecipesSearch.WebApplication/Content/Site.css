@@ -191,10 +191,22 @@ form.post-button {
 .admin .control-panel .queue .list-group-item {
     padding: 6px 15px
 }
-.admin .control-panel .page-stat {
-    margin-top: -18px;
+
+/* Tasks */
+.admin .tasks .page-stat {
+    margin-bottom: 0;
     display: block;
     font-size: 12px;
+}
+.admin .tasks .page-stat.active {
+    margin-bottom: 10px;
+}
+.admin .tasks .alert {
+    margin-bottom: 0;
+}
+.admin .tasks > div > .post-button {
+    margin-bottom: 10px;
+    display: block;
 }
 
 /* Crawling history */

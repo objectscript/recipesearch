@@ -42,12 +42,14 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             return _instance;
         }
 
-        public void FindNearestResults()
+        public void FindNearestResults(int resultsCount)
         {
             Task.Factory.StartNew(() =>
             {
                 try
                 {
+                    Logger.LogInfo("Similar results build started");
+
                     _updatedPagesCount = -1;
                     UpdateInProgress = true;
                     _cancellationTokenSource = new CancellationTokenSource();
@@ -56,9 +58,11 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
                     _updatedPagesCount = 0;
 
-                    GetKNearest(tfIdfInfos, 10);
+                    GetKNearest(tfIdfInfos, resultsCount);
 
                     UpdateInProgress = false;
+
+                    Logger.LogInfo("Similar results build finished");
                 }
                 catch (Exception exception)
                 {

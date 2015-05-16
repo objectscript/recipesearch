@@ -5,15 +5,17 @@
 @model TasksViewModel
 
 <div class="row">   
-    <div class="col-md-6 control-panel">
+    <div class="col-md-6 tasks">
         <div>
             @if (Model.TfUpdatingInProgress)
             {
                 <div class="alert alert-success" role="alert">Tf update in progress.</div>
+                <label class="page-stat active">Empty tf results: @Model.EmptyTfCount</label>
             }
             else
             {
                 <div class="alert alert-warning" role="alert">Tf update idle</div>
+                <label class="page-stat">Empty tf results: @Model.EmptyTfCount</label>
                 @Html.Partial("_PostButton", new PostButtonModel
                 {
                     Action = "StartTfUpdating",
@@ -27,10 +29,12 @@
             @if (Model.IdfUpdatingInProgress)
             {
                 <div class="alert alert-success" role="alert">Idf update in progress.</div>
+                <label class="page-stat active">Idf global exists: @Model.IdfGlobalExists</label>
             }
             else
             {
                 <div class="alert alert-warning" role="alert">Idf update idle</div>
+                <label class="page-stat">Idf global exists: @Model.IdfGlobalExists</label>
                 @Html.Partial("_PostButton", new PostButtonModel
                 {
                     Action = "StartIdfUpdating",
@@ -44,7 +48,7 @@
             @if (Model.TfIdfUpdatingInProgress)
             {
                 <div class="alert alert-success" role="alert">Tf/Idf update in progress.</div>
-                <label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
+    <label class="page-stat active">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
             }
             else
             {
@@ -93,7 +97,7 @@
             }
         </div>
     </div>
-    <div class="col-md-6 control-panel">
+    <div class="col-md-6 tasks">
         @Html.Action("TfIdfConfig", "Admin")
     </div>
 </div>

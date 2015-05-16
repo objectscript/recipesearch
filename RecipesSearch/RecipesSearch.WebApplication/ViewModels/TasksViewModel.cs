@@ -24,6 +24,10 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public int EmptyTfIdfCount { get; set; }
 
+        public int EmptyTfCount { get; set; }
+
+        public bool IdfGlobalExists { get; set; }
+
         public int EmptyNearestResultsCount { get; set; }
     }
 }

@@ -11,33 +11,36 @@
 @using (Html.BeginForm("UpdateTfIdfConfig", "Admin", FormMethod.Post, new { id = "updateConfigForm" }))
 {
     @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.LastUsedTfBuilder)
+    @Html.HiddenFor(model => model.LastUsedIdfBuilder)
     <div class="form-group">
         @Html.LabelFor(model => model.TfBuilderName)
-        
-        @if (!String.IsNullOrEmpty(Model.LastUsedTfBuilder))
-        {
-           <div>Last used TF builder: @Model.LastUsedTfBuilder</div> 
-        }
-        
         @Html.DropDownListFor(
                 model => model.TfBuilderName,
                 tfBuildersList,
                 new { @class = "form-control" })
         @Html.ValidationMessageFor(model => model.TfBuilderName)
+        @if (!String.IsNullOrEmpty(Model.LastUsedTfBuilder))
+        {
+            <div class="page-stat">Last used TF builder: @Model.LastUsedTfBuilder</div>
+        }
     </div>
     <div class="form-group">
         @Html.LabelFor(model => model.IdfBuilderName)
-        
-        @if (!String.IsNullOrEmpty(Model.LastUsedTfBuilder))
-        {
-            <div>Last used IDF builder: @Model.LastUsedTfBuilder</div>
-        }
-        
         @Html.DropDownListFor(
-                model => model.IdfBuilderName,
-                idfBuildersList,
-                new { @class = "form-control" })
+            model => model.IdfBuilderName,
+            idfBuildersList,
+            new { @class = "form-control" })
         @Html.ValidationMessageFor(model => model.IdfBuilderName)
+        @if (!String.IsNullOrEmpty(Model.LastUsedIdfBuilder))
+        {
+            <div class="page-stat">Last used IDF builder: @Model.LastUsedIdfBuilder</div>
+        }
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.SimilarResultsCount)
+        @Html.TextBoxFor(model => model.SimilarResultsCount, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.SimilarResultsCount)
     </div>
     <div class="right">
         <input type="submit" class="btn btn-link" value="Update TF/IDF config" />

@@ -30,6 +30,11 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Last used Idf builder")]
         public string LastUsedIdfBuilder { get; set; }
 
+        [Required(ErrorMessage = "Field is required")]
+        [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
+        [Display(Name = "Count of nearest results to find")]
+        public int SimilarResultsCount { get; set; }
+
         public List<string> AvailableTfBuilders { get; set; }
 
         public List<string> AvailableIdfBuilders { get; set; } 
@@ -38,10 +43,12 @@ namespace RecipesSearch.WebApplication.ViewModels
         {
             return new TfIdfConfig
             {
+                Id = viewModel.Id,
                 TfBuilderName = viewModel.TfBuilderName,
                 IdfBuilderName = viewModel.IdfBuilderName,
                 LastUsedIdfBuilder = viewModel.LastUsedIdfBuilder,
-                LastUsedTfBuilder = viewModel.LastUsedIdfBuilder
+                LastUsedTfBuilder = viewModel.LastUsedTfBuilder,
+                SimilarResultsCount = viewModel.SimilarResultsCount
             };
         }
 
@@ -49,10 +56,14 @@ namespace RecipesSearch.WebApplication.ViewModels
         {
             return new TfIdfConfigViewModel
             {
+                Id = entity.Id,
                 TfBuilderName = entity.TfBuilderName,
                 IdfBuilderName = entity.IdfBuilderName,
+                LastUsedIdfBuilder = entity.LastUsedIdfBuilder,
+                LastUsedTfBuilder = entity.LastUsedTfBuilder,
                 AvailableTfBuilders = availableTfBuilders,
-                AvailableIdfBuilders = availableIdfBuilders
+                AvailableIdfBuilders = availableIdfBuilders,
+                SimilarResultsCount = entity.SimilarResultsCount
             };
         }
     }
