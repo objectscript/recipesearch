@@ -31,15 +31,7 @@
                 @Html.LabelFor(model => model.MaxConcurrentThreads)
                 @Html.TextBoxFor(model => model.MaxConcurrentThreads, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.MaxConcurrentThreads)
-            </div>
-             <div class="form-group">
-                 @Html.LabelFor(model => model.TfBuilderName)
-                 @Html.DropDownListFor(
-                    model => model.TfBuilderName,
-                    tfBuildersList,
-                    new { @class = "form-control" })
-                 @Html.ValidationMessageFor(model => model.TfBuilderName)
-            </div>
+            </div>            
             <div class="form-group">
                 @Html.LabelFor(model => model.LoggingEnabled)
                 @Html.CheckBoxFor(model => model.LoggingEnabled)
@@ -51,6 +43,18 @@
             <div class="form-group">
                 @Html.LabelFor(model => model.EnableSpellcheckDictionaryUpdate)
                 @Html.CheckBoxFor(model => model.EnableSpellcheckDictionaryUpdate)
+            </div>
+             <div class="form-group">
+                @Html.LabelFor(model => model.BuildTf)
+                @Html.CheckBoxFor(model => model.BuildTf)
+            </div>
+             <div class="form-group">
+                 @Html.LabelFor(model => model.TfBuilderName)
+                 @Html.DropDownListFor(
+                    model => model.TfBuilderName,
+                    tfBuildersList,
+                    new { @class = "form-control" })
+                 @Html.ValidationMessageFor(model => model.TfBuilderName)
             </div>
             <div class="right">
                 <input type="submit" class="btn btn-link" value="Update config" />

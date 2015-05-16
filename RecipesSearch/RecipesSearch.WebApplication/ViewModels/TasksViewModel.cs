@@ -22,6 +22,8 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public bool IdfUpdatingInProgress { get; set; }
 
+        public bool AllTasksBuildInProgress { get; set; }
+
         public int EmptyTfIdfCount { get; set; }
 
         public int EmptyTfCount { get; set; }

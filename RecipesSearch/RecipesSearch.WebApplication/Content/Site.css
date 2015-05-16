@@ -173,6 +173,7 @@ th, b {
 .form-group input[type=checkbox] {
     float: left;
     margin-right: 10px;
+    margin-top: 3px;
 }
 form.post-button {
     display: inline;

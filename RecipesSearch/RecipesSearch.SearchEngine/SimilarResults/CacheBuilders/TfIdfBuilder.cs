@@ -10,10 +10,10 @@ using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.CacheService.Services;
 using RecipesSearch.DAL.Cache.Adapters;
 using RecipesSearch.Data.Views;
-using RecipesSearch.SearchEngine.SimilarResults.Builders.Base;
+using RecipesSearch.SearchEngine.SimilarResults.CacheBuilders.Base;
 using Wintellect.PowerCollections;
 
-namespace RecipesSearch.SearchEngine.SimilarResults.Builders
+namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
 {
     public class TfIdfBuilder : BaseCacheBuilder
     {

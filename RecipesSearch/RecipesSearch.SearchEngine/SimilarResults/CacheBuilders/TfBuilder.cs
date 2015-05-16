@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.DAL.Cache.Adapters;
-using RecipesSearch.SearchEngine.SimilarResults.Builders.Base;
+using RecipesSearch.SearchEngine.SimilarResults.CacheBuilders.Base;
 
-namespace RecipesSearch.SearchEngine.SimilarResults.Builders
+namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
 {
     public class TfBuilder : BaseCacheBuilder
     {

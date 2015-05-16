@@ -17,7 +17,7 @@ namespace RecipesSearch.DAL.Cache.Adapters
 {
     public class SitePageAdapter : CacheAdapter
     {
-        public bool AddSitePage(SitePage sitePage, bool enableKeywordsProcessing, bool updateSpellcheckDict, string tfBuilderName)
+        public bool AddSitePage(SitePage sitePage, bool enableKeywordsProcessing, bool updateSpellcheckDict, bool buildTf, string tfBuilderName)
         {
             EnsureConnectionOpened();
 
@@ -48,6 +48,10 @@ namespace RecipesSearch.DAL.Cache.Adapters
             updateSpellcheckDictParameter.Value = updateSpellcheckDict;
             command.Parameters.Add(updateSpellcheckDictParameter);
 
+            var buildTfParameter = new CacheParameter("BuildTf", CacheDbType.Bit);
+            buildTfParameter.Value = buildTf;
+            command.Parameters.Add(buildTfParameter);
+ 
             command.Parameters.Add("TfBuilderName", tfBuilderName); 
 
             return command.ExecuteNonQuery() != 0;

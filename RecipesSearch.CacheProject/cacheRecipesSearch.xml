@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-16 14:17:12">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-16 16:13:18">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -613,7 +613,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Config">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63686,77693.998086</TimeChanged>
+<TimeChanged>63688,56281.282077</TimeChanged>
 <TimeCreated>63610,79444.886551</TimeCreated>
 
 <Property name="LoggingEnabled">
@@ -651,6 +651,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Required>1</Required>
 </Property>
 
+<Property name="BuildTf">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
 <Property name="TfBuilderName">
 <Type>%String</Type>
 <Required>1</Required>
@@ -684,6 +689,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Value>
 <Value name="8">
 <Value>TfBuilderName</Value>
+</Value>
+<Value name="9">
+<Value>BuildTf</Value>
 </Value>
 </Data>
 </Storage>
@@ -930,7 +938,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63688,51122.202111</TimeChanged>
+<TimeChanged>63688,58362.112256</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1022,18 +1030,17 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="Upsert">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),ImageUrl:%String(MAXLEN=2000),SiteId:%Integer,ProcessKeywords:%Boolean,UpdateSpellcheckDict:%Boolean,TfBuilderName:%String</FormalSpec>
+<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),ImageUrl:%String(MAXLEN=2000),SiteId:%Integer,ProcessKeywords:%Boolean,UpdateSpellcheckDict:%Boolean,BuildTf:%Boolean,TfBuilderName:%String</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF ProcessKeywords{
-		set keywordsList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(Keywords)
-		set keywordsAnalyzed = ""
-		set listLength = $LISTLENGTH(keywordsList)
-		for i=1:1:listLength {		
-			set keyword = $LIST(keywordsList, i)
-			
-			set keywordsAnalyzed = keywordsAnalyzed_" "_$LIST(keywordsList, i)
-		}
+		set keywordsAnalyzed = ##class(RecipeSearch.Data.SitePage).BuildExtendedKeywords(
+			Keywords,
+			RecipeName,
+			Description,
+			Ingredients,
+			RecipeInstructions,
+			AdditionalData)
 	}	
 	ELSE {
 		set keywordsAnalyzed = Keywords
@@ -1048,72 +1055,95 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			AdditionalData,
 			Description)
 	}
-
-	do ##class(RecipeSearch.Data.SitePage).UpsertSQL(
-		URL, 
-		keywordsAnalyzed, 
-		RecipeName, 
-		Description,
-		Ingredients,
-		RecipeInstructions,
-		AdditionalData, 
-		ImageUrl, 
-		SiteId, 
-		TfBuilderName)
-]]></Implementation>
-</Method>
-
-<Method name="UpsertSQL">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),ImageUrl:%String(MAXLEN=2000),SiteId:%Integer,TfBuilderName:%String</FormalSpec>
-<Language>tsql</Language>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[
-	IF EXISTS(SELECT * FROM SitePage WHERE URL = @URL AND SiteId = @SiteId) THEN BEGIN
-		UPDATE SitePage SET 
-			AdditionalData = @AdditionalData,
-			Description = @Description,
-			Ingredients = @Ingredients,
-			RecipeInstructions = @RecipeInstructions, 
-			Keywords = @Keywords, 
-			RecipeName = @RecipeName, 
-			ImageUrl = @ImageUrl, 
-			ModifiedDate = GETUTCDATE()
-		WHERE URL = @URL AND SiteId = @SiteId;
-	END ELSE BEGIN
-		INSERT INTO SitePage(SiteId, URL, Description,Ingredients,RecipeInstructions,AdditionalData,ImageUrl, Keywords,RecipeName, CreatedDate, ModifiedDate) 
-		VALUES(@SiteId, @URL, @Description,@Ingredients,@RecipeInstructions,@AdditionalData,@ImageUrl, @Keywords, @RecipeName, GETUTCDATE(), GETUTCDATE());
-	END
-	GO 
-
-	DECLARE @RecipeId AS INT;
-	SET @RecipeId = (SELECT TOP 1 Id FROM SitePage WHERE URL = @URL AND SiteId = @SiteId ORDER BY ID)
 	
-	exec RecipeSearch_Data.SitePage_DispatchTfBuild
-		@RecipeId = @RecipeId, 
-		@Keywords = @Keywords, 
-		@RecipeName = @Keywords,
-		@Description = @Description,
-		@Ingredients = @Ingredients,
-		@RecipeInstructions = @RecipeInstructions,
-		@AdditionalData = @AdditionalData,
-		@TfBuilderName = @TfBuilderName
+	&sql(select id into :recipeId from RecipeSearch_Data.SitePage WHERE url = :URL AND SiteId = :SiteId)
+	
+	if recipeId '= ""{
+		&sql(UPDATE SitePage SET 
+			AdditionalData = :AdditionalData,
+			Description = :Description,
+			Ingredients = :Ingredients,
+			RecipeInstructions = :RecipeInstructions, 
+			Keywords = :Keywords,
+			ExtendedKeywords = :keywordsAnalyzed,
+			RecipeName = :RecipeName, 
+			ImageUrl = :ImageUrl, 
+			ModifiedDate = GETUTCDATE()
+			WHERE id = :recipeId)
+	} else{		
+		&sql(INSERT INTO SitePage(
+			SiteId, 
+			URL, 
+			Description,
+			Ingredients,
+			RecipeInstructions,
+			AdditionalData,
+			ImageUrl, 
+			Keywords, 
+			ExtendedKeywords, 
+			RecipeName, 
+			CreatedDate, 
+			ModifiedDate) 
+		VALUES(
+			:SiteId, 
+			:URL, 
+			:Description,
+			:Ingredients,
+			:RecipeInstructions,
+			:AdditionalData,
+			:ImageUrl, 
+			:Keywords, 
+			:keywordsAnalyzed, 
+			:RecipeName, 
+			GETUTCDATE(), 
+			GETUTCDATE()))
+	}
+	
+	if BuildTf{
+		&sql(select id into :recipeId from RecipeSearch_Data.SitePage WHERE url = :URL AND SiteId = :SiteId)
+		do $classmethod("RecipeSearch.RecipeAnalyze.TfBuild.Implementations."_TfBuilderName, "BuildTF",
+    		recipeId, 
+    		Keywords, 
+    		RecipeName, 
+    		Description, 
+    		Ingredients, 
+    		RecipeInstructions, 
+    		AdditionalData)
+	}
 ]]></Implementation>
 </Method>
 
-<Method name="DispatchTfBuild">
+<Method name="BuildExtendedKeywords">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>RecipeId:%Integer,Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),TfBuilderName:%String</FormalSpec>
-<SqlProc>1</SqlProc>
+<FormalSpec>Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000)</FormalSpec>
+<ReturnType>%String</ReturnType>
+<ReturnTypeParams>MAXLEN=10000</ReturnTypeParams>
 <Implementation><![CDATA[
-	do $classmethod("RecipeSearch.RecipeAnalyze.TfBuild.Implementations."_TfBuilderName, "BuildTF",
-    	RecipeId, 
-    	Keywords, 
-    	RecipeName, 
-    	Description, 
-    	Ingredients, 
-    	RecipeInstructions, 
-    	AdditionalData)
+	set extendedKeywords = 
+		RecipeName_";"_Description_";"_Ingredients
+		_";"_RecipeInstructions_";"_AdditionalData
+		
+	set extendedKeywordsList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(extendedKeywords)
+	set length = $LISTLENGTH(extendedKeywordsList)
+	set extendedKeywords = ""
+	
+	for i=1:1:length{
+		set word = $LIST(extendedKeywordsList, i)
+		
+		if word = ""{
+			continue
+		}
+		
+		for j=i+1:1:length{
+			if $LIST(extendedKeywordsList, j) = word{
+				set $LIST(extendedKeywordsList, j) = ""
+			}
+		}
+		
+		set extendedKeywords = extendedKeywords_" "_word	
+	}
+	
+	return extendedKeywords
 ]]></Implementation>
 </Method>
 
@@ -1162,7 +1192,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="UpdateNearestResults">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>PageId:%Integer,NearestResults:%String</FormalSpec>
+<FormalSpec>PageId:%Integer,NearestResults:%String(MAXLEN=1000)</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.NearestResult WHERE RecipeId = :PageId)
@@ -1388,7 +1418,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63688,45104.887096</TimeChanged>
+<TimeChanged>63688,56740.287024</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1398,8 +1428,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Implementation><![CDATA[
 	// Seed crawler config
 	IF NOT EXISTS(SELECT * FROM RecipeSearch_Data.Config) THEN BEGIN
-		INSERT INTO RecipeSearch_Data.Config(LoggingEnabled, EnhancedKeywordProcessing, EnableSpellcheckDictionaryUpdate, MaxPagesToCrawl, TfBuilderName, MaxConcurrentThreads, MaxCrawlDepth, CrawlTimeoutSeconds, IsActive, CreatedDate, ModifiedDate) 
-		VALUES(0, 1, 1, 100000, 'DefaultTfBuilder', 10, 100000, 0, 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO RecipeSearch_Data.Config(LoggingEnabled, BuildTf, EnhancedKeywordProcessing, EnableSpellcheckDictionaryUpdate, MaxPagesToCrawl, TfBuilderName, MaxConcurrentThreads, MaxCrawlDepth, CrawlTimeoutSeconds, IsActive, CreatedDate, ModifiedDate) 
+		VALUES(0, 0, 1, 1, 100000, 'DefaultTfBuilder', 10, 100000, 0, 1, GETUTCDATE(), GETUTCDATE());
 		
 		DECLARE @ConfigId AS INT;
 		SELECT TOP 1 @ConfigId = Id FROM RecipeSearch_Data.Config;
@@ -1802,7 +1832,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.DefaultTfBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63686,80038.905417</TimeChanged>
+<TimeChanged>63688,54711.332012</TimeChanged>
 <TimeCreated>63686,75614.516478</TimeCreated>
 
 <Method name="BuildTF">
@@ -1810,14 +1840,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <FormalSpec>RecipeId:%Integer,Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000)</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
-	write RecipeId,!
 	set extendedKeywords = 
-		RecipeName_";"_Description_";"_Ingredients
-		_";"_RecipeInstructions_";"_AdditionalData
+		Keywords_";"_RecipeName_"; "_Description_"; "_Ingredients
+		_"; "_RecipeInstructions_"; "_AdditionalData
 		
 	set extendedKeywordsList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(extendedKeywords)
 	set extendedKeywordsCountList = $LISTFROMSTRING("")
-	set extendedKeywords = ""
 	
 	set maxCount = -1
 	set length = $LISTLENGTH(extendedKeywordsList)
@@ -1829,8 +1857,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			set extendedKeywordsCountList = extendedKeywordsCountList_$LISTBUILD("")
 			continue
 		}
-		
-		set extendedKeywords = extendedKeywords_" "_word
 		
 		set count = 1
 		for j=i+1:1:length{
@@ -1847,7 +1873,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 		set extendedKeywordsCountList = extendedKeywordsCountList_$LISTBUILD(count)		
 	}
 	
-	&sql(UPDATE RecipeSearch_Data.SitePage SET ExtendedKeywords = :extendedKeywords WHERE Id = :RecipeId)
 	&sql(DELETE FROM RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :RecipeId)
 	
 	for i=1:1:length{

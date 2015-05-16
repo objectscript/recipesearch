@@ -14,11 +14,11 @@ namespace RecipesSearch.BusinessServices.PageStorage
     public class CachePageStorage : IPageStorage
     {
         private readonly SitePageAdapter _cacheAdapter = new SitePageAdapter();
-        public bool SaveSitePage(SitePage sitePage, bool processKeywords, bool updateSpellcheckDict, string tfBuilderName)
+        public bool SaveSitePage(SitePage sitePage, bool processKeywords, bool updateSpellcheckDict, bool buildTf, string tfBuilderName)
         {
             try
             {
-                return _cacheAdapter.AddSitePage(sitePage, processKeywords, updateSpellcheckDict, tfBuilderName);
+                return _cacheAdapter.AddSitePage(sitePage, processKeywords, updateSpellcheckDict, buildTf, tfBuilderName);
             }
             catch (Exception exception)
             {

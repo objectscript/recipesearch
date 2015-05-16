@@ -32,7 +32,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
         {           
         }
 
-        public static SimilarResultsBuilder GetSimilarResultsBuilder()
+        public static SimilarResultsBuilder GetInstance()
         {
             if (_instance == null)
             {
@@ -42,9 +42,9 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             return _instance;
         }
 
-        public void FindNearestResults(int resultsCount)
+        public Task FindNearestResults(int resultsCount, CancellationTokenSource cancellationTokenSource = null)
         {
-            Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
                 try
                 {
@@ -52,7 +52,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
                     _updatedPagesCount = -1;
                     UpdateInProgress = true;
-                    _cancellationTokenSource = new CancellationTokenSource();
+                    _cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
 
                     var tfIdfInfos = GetTfIdfInfos();
 
@@ -66,8 +66,8 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 }
                 catch (Exception exception)
                 {
-                    Logger.LogError(String.Format("SimilarResultsBuilder.FindNearestResults failed"), exception);
                     UpdateInProgress = false;
+                    Logger.LogError(String.Format("SimilarResultsBuilder.FindNearestResults failed"), exception);                    
                 }               
             }, TaskCreationOptions.AttachedToParent);
         }
@@ -124,9 +124,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
         }
 
         private void GetKNearest(TfIdfInfo[] pages, int k)
-        {
-            var cacheAdapter = new SimilarResultsAdapter();
-
+        {           
             var parallelOptions = new ParallelOptions
             {
                 CancellationToken = _cancellationTokenSource.Token
@@ -134,44 +132,51 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
             Parallel.For(0, pages.Length, parallelOptions, i =>
             {
-                var dists = new OrderedBag<Tuple<double, int>>();
-                double maxDist = double.MaxValue;
-                int distsSize = 0;
-
-                for (int j = 0; j < pages.Length; ++j)
+                using (var cacheAdapter = new SimilarResultsAdapter())
                 {
-                    if (i == j)
+                    var dists = new OrderedBag<Tuple<double, int>>();
+                    double maxDist = double.MaxValue;
+                    int distsSize = 0;
+
+                    for (int j = 0; j < pages.Length; ++j)
                     {
-                        continue;
+                        if (i == j)
+                        {
+                            continue;
+                        }
+
+                        var dist = FindDistance(pages[i].WordsTfIdf, pages[j].WordsTfIdf, maxDist);
+                        if (dist > maxDist)
+                        {
+                            continue;
+                        }
+
+                        dists.Add(new Tuple<double, int>(dist, pages[j].Id));
+
+                        if (distsSize == k)
+                        {
+                            dists.RemoveLast();
+                            var lastDist = dists.GetLast().Item1;
+                            maxDist = lastDist;
+                        }
+                        else
+                        {
+                            distsSize++;
+                        }
                     }
 
-                    var dist = FindDistance(pages[i].WordsTfIdf, pages[j].WordsTfIdf, maxDist);
-                    if (dist > maxDist)
+                    try
                     {
-                        continue;
+                        cacheAdapter.UpdateSimilarResults(pages[i].Id, dists.Select(item => item.Item2));
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.LogError(String.Format("SimilarResultsBuilder.GetKNearest save failed"), exception);
                     }
 
-                    dists.Add(new Tuple<double, int>(dist, pages[j].Id));
-
-                    if (distsSize == k)
-                    {
-                        dists.RemoveLast();
-                        var lastDist = dists.GetLast().Item1;
-                        maxDist = lastDist;
-                    }
-                    else
-                    {
-                        distsSize++;
-                    }
-                }
-
-                cacheAdapter.UpdateSimilarResults(pages[i].Id, dists
-                    .Select(item => item.Item2));
-
-                Interlocked.Increment(ref _updatedPagesCount);
-            });
-
-            cacheAdapter.Dispose();
+                    Interlocked.Increment(ref _updatedPagesCount);
+                }             
+            });         
         }
 
         private double FindDistance(Dictionary<string, double> first, Dictionary<string, double> second, double maxAllowedDist)

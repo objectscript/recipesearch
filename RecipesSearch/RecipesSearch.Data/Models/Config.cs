@@ -10,6 +10,8 @@ namespace RecipesSearch.Data.Models
     {
         public bool LoggingEnabled { get; set; }
 
+        public bool BuildTf { get; set; }
+
         public bool EnhancedKeywordProcessing { get; set; }
 
         public bool EnableSpellcheckDictionaryUpdate { get; set; }

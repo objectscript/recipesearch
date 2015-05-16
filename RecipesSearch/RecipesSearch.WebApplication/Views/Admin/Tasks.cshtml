@@ -96,6 +96,36 @@
                 })
             }
         </div>
+        <hr/>
+        <div>
+            @if (!Model.AllTasksBuildInProgress)
+            {
+                if (Model.TfUpdatingInProgress || Model.IdfUpdatingInProgress || Model.TfUpdatingInProgress || Model.NearestsResultsUpdatingInProgress)
+                {
+                    <label>All update tasks can be started only when all tasks have finished execution.</label>
+                }
+                else
+                {
+                    @Html.Partial("_PostButton", new PostButtonModel
+                    {
+                        Action = "StartAllTasksUpdating",
+                        Controller = "Admin",
+                        ButtonClass = "btn-link",
+                        Text = "Start all tasks"
+                    })
+                }
+            }
+            else
+            {
+                @Html.Partial("_PostButton", new PostButtonModel
+                    {
+                        Action = "StopAllTasksUpdating",
+                        Controller = "Admin",
+                        ButtonClass = "btn-link",
+                        Text = "Stop all tasks"
+                    })
+            }
+        </div>
     </div>
     <div class="col-md-6 tasks">
         @Html.Action("TfIdfConfig", "Admin")

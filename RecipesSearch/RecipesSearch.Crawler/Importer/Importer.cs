@@ -175,6 +175,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
                         _currentCrawledSite, 
                         crawlerConfig.EnhancedKeywordProcessing, 
                         crawlerConfig.EnableSpellcheckDictionaryUpdate,
+                        crawlerConfig.BuildTf,
                         crawlerConfig.TfBuilderName))
                     {
                         _currentCrawlingHistoryItem = new CrawlingHistoryItem

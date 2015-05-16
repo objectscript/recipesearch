@@ -19,7 +19,7 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Logging Enabled")]
         public bool LoggingEnabled { get; set; }
 
-        [Display(Name = "Stem keywords")]
+        [Display(Name = "Build extended keywords")]
         public bool EnhancedKeywordProcessing { get; set; }
 
         [Required(ErrorMessage = "Field is required")]
@@ -46,6 +46,9 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Update spellcheck dictionary on crawling")]
         public bool EnableSpellcheckDictionaryUpdate { get; set; }
 
+        [Display(Name = "Build TF during crawling")]
+        public bool BuildTf { get; set; }
+
         [Required(ErrorMessage = "Field is required")]
         [Display(Name = "Tf builder to use")]
         public string TfBuilderName { get; set; }
@@ -65,6 +68,7 @@ namespace RecipesSearch.WebApplication.ViewModels
                 EnableSpellcheckDictionaryUpdate = viewModel.EnableSpellcheckDictionaryUpdate,
                 MaxConcurrentThreads = viewModel.MaxConcurrentThreads,
                 TfBuilderName = viewModel.TfBuilderName,
+                BuildTf = viewModel.BuildTf,
                 SitesToCrawl = new List<SiteToCrawl>()
             };
         }
@@ -82,6 +86,7 @@ namespace RecipesSearch.WebApplication.ViewModels
                 EnableSpellcheckDictionaryUpdate = entity.EnableSpellcheckDictionaryUpdate,
                 TfBuilderName = entity.TfBuilderName,
                 MaxConcurrentThreads = entity.MaxConcurrentThreads,
+                BuildTf = entity.BuildTf,
                 AvailableTfBuilders = availableTfBuilders
             };
         }

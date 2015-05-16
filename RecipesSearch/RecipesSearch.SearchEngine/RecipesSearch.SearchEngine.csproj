@@ -46,10 +46,11 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Search\SearchProvider.cs" />
-    <Compile Include="SimilarResults\Builders\Base\BaseCacheBuilder.cs" />
-    <Compile Include="SimilarResults\Builders\IdfBuilder.cs" />
-    <Compile Include="SimilarResults\Builders\TfBuilder.cs" />
-    <Compile Include="SimilarResults\Builders\TfIdfBuilder.cs" />
+    <Compile Include="SimilarResults\CacheBuilders\Base\BaseCacheBuilder.cs" />
+    <Compile Include="SimilarResults\CacheBuilders\IdfBuilder.cs" />
+    <Compile Include="SimilarResults\CacheBuilders\TfBuilder.cs" />
+    <Compile Include="SimilarResults\CacheBuilders\TfIdfBuilder.cs" />
+    <Compile Include="SimilarResults\AllTasksBuilder.cs" />
     <Compile Include="SimilarResults\SimilarResultsBuilder.cs" />
     <Compile Include="SimilarResults\TfIdfInfo.cs" />
     <Compile Include="Suggestion\SuggestionProvider.cs" />

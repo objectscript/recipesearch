@@ -11,7 +11,7 @@ using RecipesSearch.BusinessServices.PageStorage;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.Data.Views;
 using RecipesSearch.SearchEngine.SimilarResults;
-using RecipesSearch.SearchEngine.SimilarResults.Builders;
+using RecipesSearch.SearchEngine.SimilarResults.CacheBuilders;
 using RecipesSearch.SitePagesImporter.Importer;
 using RecipesSearch.WebApplication.Enums;
 using RecipesSearch.WebApplication.ImporterService;
@@ -273,7 +273,7 @@ namespace RecipesSearch.WebApplication.Controllers
         {
             ViewBag.AdminPage = AdminPages.Tasks;
 
-            var similarResultsBuilder = SimilarResultsBuilder.GetSimilarResultsBuilder();
+            var similarResultsBuilder = SimilarResultsBuilder.GetInstance();
             var tfIdfBuilder = TfIdfBuilder.GetInstance();
             var pageStatsRepository = new PageStatsRepository();
 
@@ -287,7 +287,8 @@ namespace RecipesSearch.WebApplication.Controllers
                 EmptyTfCount = pageStatsRepository.GetTfStatistic(),
                 IdfGlobalExists = pageStatsRepository.GetIdfStatistic() == 1,
                 TfUpdatingInProgress = TfBuilder.GetInstance().UpdateInProgress,
-                IdfUpdatingInProgress = IdfBuilder.GetInstance().UpdateInProgress
+                IdfUpdatingInProgress = IdfBuilder.GetInstance().UpdateInProgress,
+                AllTasksBuildInProgress = AllTasksBuilder.GetInstance().UpdateInProgress
             });
         }
 
@@ -297,7 +298,7 @@ namespace RecipesSearch.WebApplication.Controllers
             var tfIdfConfigRepository = new TfIdfConfigRepository();
             var tfIdfConfig = tfIdfConfigRepository.GetConfig();
 
-            var similarResultsBuilder = SimilarResultsBuilder.GetSimilarResultsBuilder();
+            var similarResultsBuilder = SimilarResultsBuilder.GetInstance();
             similarResultsBuilder.FindNearestResults(tfIdfConfig.SimilarResultsCount);
 
             return RedirectToAction("Tasks");
@@ -306,8 +307,24 @@ namespace RecipesSearch.WebApplication.Controllers
         [HttpPost]
         public ActionResult StopNearestResultsUpdating()
         {
-            var similarResultsBuilder = SimilarResultsBuilder.GetSimilarResultsBuilder();
+            var similarResultsBuilder = SimilarResultsBuilder.GetInstance();
             similarResultsBuilder.StopUpdating();
+
+            return RedirectToAction("Tasks");
+        }
+
+        [HttpPost]
+        public ActionResult StartAllTasksUpdating()
+        {
+            AllTasksBuilder.GetInstance().RunAllTasks();
+
+            return RedirectToAction("Tasks");
+        }
+
+        [HttpPost]
+        public ActionResult StopAllTasksUpdating()
+        {
+            AllTasksBuilder.GetInstance().StopUpdating();
 
             return RedirectToAction("Tasks");
         }
