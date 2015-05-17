@@ -40,6 +40,9 @@ th, b {
     border-top: none;
     padding: 10px;
 }
+.search-results .tab-pane#graph {
+    padding: 0;
+}
 .search-results .empty-placeholder{
     font-size: 24px;
     text-align: center;

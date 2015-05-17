@@ -47,7 +47,7 @@ function prepareGraphData(results) {
             edges.push({
                 from: recipe.Id,
                 to: similarRecipe.Id,
-                length: 200 + similarRecipe.SimilarRecipeWeight
+                length: 100 + Math.sqrt(similarRecipe.SimilarRecipeWeight)*100
             });
         }
     }
@@ -70,12 +70,13 @@ function prepareGraphData(results) {
     var options = {
         width: '100%',
         height: 'calc(100vh - 190px)',
-        hover: true,
+        hover: false,
         navigation: true,
         configurePhysics: false,
         nodes: {
             shape: 'box',
             borderWidth: 1,
+            radius: 3
             //color: {
             //    background: '#fff'
             //}
@@ -86,9 +87,10 @@ function prepareGraphData(results) {
         edges: {
             color: {
                 color: 'rgba(0,0,0,0)',
-                highlight: '#93c54b',
+                highlight: 'rgba(147, 197, 75, 0.75)',
                 hover: 'rgba(0,0,0,0)'
-            }
+            },
+            width: 0.3
         },
         physics: {
             barnesHut: {
@@ -106,12 +108,19 @@ function prepareGraphData(results) {
 
     network.on('stabilizationIterationsDone', function () {
         network.freezeSimulation(true);
-        network.focusOnNode(maxEdgeCountRecipeId, {
-            scale: 0.75,
-            locked: false,
-            animation: true
-        });
+        focusOnNode(maxEdgeCountRecipeId);
         network.selectNodes([maxEdgeCountRecipeId]);
+        //showNodeTooltip(maxEdgeCountRecipeId);
+    });
+
+    network.on('select', function (selected) {
+        if (!selected.nodes.length) {
+            deselectEdges();
+        } else {
+            focusOnNode(selected.nodes[0]);
+            //showNodeTooltip(selected.nodes[0]);
+        } 
+        
     });
 
     network.on('stabilized', function (iterations) {
@@ -119,6 +128,34 @@ function prepareGraphData(results) {
     });
 
     network.setData(data, false);
+}
+
+function focusOnNode(nodeId) {
+    network.focusOnNode(nodeId, {
+        scale: 0.75,
+        locked: false,
+        animation: true
+    });
+}
+
+function showNodeTooltip(nodeId) {
+    $('.recipe-modal').remove();
+
+    var position = network.getPositions([nodeId])[nodeId];
+    position = network.canvasToDOM(position);
+    console.log(position);
+
+    var element = $('<div class="recipe-modal">expand</div>');
+    element.css({
+        position: 'absolute',
+        top: position.y + $('#graphContainer').offset().top,
+        left: position.x + $('#graphContainer').offset().left
+    });
+    $('body').append(element);
+}
+
+function deselectEdges() {
+    network.selectEdges([]);
 }
 
 function ensureRecipeAdded(map, nodes, recipe, isMain) {
@@ -130,8 +167,9 @@ function ensureRecipeAdded(map, nodes, recipe, isMain) {
             id: recipe.Id,
             label: recipe.Name,
             color: {
-                background: !!isMain ? '#93c54b' : '#C2C2C0'
-            }
+                background: !!isMain ? 'rgba(147, 197, 75, 0.75)' : 'rgba(194, 194, 192, 0.75)'
+            },
+            tooltip: recipe.Name
         });
     }
 }
