@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.SearchEngine.Search;
 using RecipesSearch.SearchEngine.Suggestion;
+using RecipesSearch.WebApplication.Enums;
 using RecipesSearch.WebApplication.ViewModels;
 
 namespace RecipesSearch.WebApplication.Controllers
@@ -44,7 +45,8 @@ namespace RecipesSearch.WebApplication.Controllers
                     CurrentQuery = query,
                     SpellcheckingEnabled = searchSettings.EnableSpellchecking,
                     SpellcheckedQuery = spellcheckedQuery,
-                    ExactMatch = exactMatch
+                    ExactMatch = exactMatch,
+                    DefaultResultView = (ResultsViews)searchSettings.DefaultResultsView
                 };
 
                 return View(searchViewModel);
@@ -77,7 +79,7 @@ namespace RecipesSearch.WebApplication.Controllers
                 string spellcheckedQuery;
 
                 results = _searchProvider
-                    .SearchByQuery(query, 1, 50, searchSettings.EnableSpellchecking, exactMatch, out totalCount, out spellcheckedQuery)
+                    .SearchByQuery(query, 1, searchSettings.ResultsForGraphView, searchSettings.EnableSpellchecking, exactMatch, out totalCount, out spellcheckedQuery)
                     .Select(result => new SearchResultItemViewModel(result))
                     .ToList();               
             }

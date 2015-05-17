@@ -1,7 +1,19 @@
-﻿@using RecipesSearch.WebApplication.ViewModels
+﻿@using RecipesSearch.WebApplication.Enums
+@using RecipesSearch.WebApplication.ViewModels
 @model SearchSettingsViewModel
 @{
     ViewBag.Title = "Search Settings";
+
+    var resultViews = new List<SelectListItem>();
+    resultViews.Add(new SelectListItem()
+    {
+        Text = "Graph", Value = ResultsViews.Graph.ToString()
+    });
+    resultViews.Add(new SelectListItem()
+    {
+        Text = "List",
+        Value = ResultsViews.List.ToString()
+    });
 }
 
 <div class="row settings">
@@ -13,6 +25,19 @@
                 @Html.LabelFor(model => model.ResultsOnPage)
                 @Html.TextBoxFor(model => model.ResultsOnPage, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.ResultsOnPage)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.ResultsForGraphView)
+                @Html.TextBoxFor(model => model.ResultsForGraphView, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ResultsForGraphView)
+            </div>
+            <div class="form-group">
+                 @Html.LabelFor(model => model.DefaultResultsView)
+                 @Html.DropDownListFor(
+                    model => model.DefaultResultsView,
+                    resultViews,
+                    new { @class = "form-control" })
+                 @Html.ValidationMessageFor(model => model.DefaultResultsView)
             </div>
             <div class="form-group">
                 @Html.LabelFor(model => model.SuggestionsCount)

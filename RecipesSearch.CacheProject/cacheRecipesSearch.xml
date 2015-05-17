@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-17 15:57:51">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-17 18:54:58">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -899,7 +899,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SearchSettings">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63685,84268.122453</TimeChanged>
+<TimeChanged>63689,66860.897512</TimeChanged>
 <TimeCreated>63610,79681.607063</TimeCreated>
 
 <Property name="ResultsOnPage">
@@ -908,6 +908,16 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Property>
 
 <Property name="SuggestionsCount">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="ResultsForGraphView">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="DefaultResultsView">
 <Type>%Integer</Type>
 <Required>1</Required>
 </Property>
@@ -938,6 +948,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Value>
 <Value name="4">
 <Value>EnableSpellcheckingForSuggest</Value>
+</Value>
+<Value name="5">
+<Value>ResultsForGraphView</Value>
+</Value>
+<Value name="6">
+<Value>DefaultResultsView</Value>
 </Value>
 </Data>
 </Storage>
@@ -1428,7 +1444,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63688,56740.287024</TimeChanged>
+<TimeChanged>63689,54678.034405</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1463,8 +1479,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	
 	// Seed search settings
 	IF NOT EXISTS(SELECT * FROM RecipeSearch_Data.SearchSettings) THEN BEGIN
-		INSERT INTO RecipeSearch_Data.SearchSettings(ResultsOnPage, SuggestionsCount,EnableSpellchecking,EnableSpellcheckingForSuggest, IsActive, CreatedDate, ModifiedDate) 
-		VALUES(25, 10, 1, 1, 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO RecipeSearch_Data.SearchSettings(ResultsOnPage,ResultsForGraphView, SuggestionsCount,EnableSpellchecking,EnableSpellcheckingForSuggest, IsActive, CreatedDate, ModifiedDate) 
+		VALUES(25, 50, 10, 1, 1, 1, GETUTCDATE(), GETUTCDATE());
 	END
 	
 	// Seed tfIdf config
@@ -2685,7 +2701,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-17 14:56:28.893392">
+<Project name="RecipesSearch" LastModified="2015-05-17 18:15:18.741449">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
@@ -2710,11 +2726,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     <ProjectItem name="RecipeSearch.SearchAPI.RESTBroker" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResultItem" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.Search.SitePageResult" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResultItem" type="CLS"></ProjectItem>
   </Items>
 </Project>
 </Export>

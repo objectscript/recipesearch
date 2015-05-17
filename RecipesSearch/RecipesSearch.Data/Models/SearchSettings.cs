@@ -11,6 +11,10 @@ namespace RecipesSearch.Data.Models
 
         public int SuggestionsCount { get; set; }
 
+        public int ResultsForGraphView { get; set; }
+
+        public int DefaultResultsView { get; set; }
+
         public bool EnableSpellchecking { get; set; }
 
         public bool EnableSpellcheckingForSuggest { get; set; }

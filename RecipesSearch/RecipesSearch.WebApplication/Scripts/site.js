@@ -49,6 +49,7 @@ function initPagination(itemsOnPage, items, currentPage, currentQuery) {
         selectOnClick: false,
         onPageClick: function (pageNumber) {
             window.location.href = '/Home/Index?query=' + currentQuery + '&pageNumber=' + pageNumber;
+            return false;
         }
     });
 }
@@ -69,7 +70,7 @@ function initExpander($item) {
 }
 
 function toggleRecipe(id, $item) {
-    var $recipeHolder = $('#recipe_' + id);
+    var $recipeHolder = $('#' + id);
     var showText = $item.data('showText');
     var hideText = $item.data('hideText');
 

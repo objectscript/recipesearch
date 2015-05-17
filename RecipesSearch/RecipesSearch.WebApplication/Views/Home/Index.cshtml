@@ -1,7 +1,20 @@
 ﻿@{
     ViewBag.Title = "Search";
 }
+@using RecipesSearch.WebApplication.Enums
 @model RecipesSearch.WebApplication.ViewModels.SearchViewModel
+
+@{
+    Func<ResultsViews, string> getTabActiveClass = (view) =>
+    {
+        const string activeClass = "active";
+        if (Model.CurrentPage != 1)
+        {
+            return view == ResultsViews.List ? activeClass : String.Empty;
+        }
+        return Model.DefaultResultView == view ? activeClass : String.Empty;
+    };
+}
 
 <div class="row search-box">
     <div class="col-md-8">
@@ -74,15 +87,15 @@
             }
             <div role="tabpanel">
                 <ul class="nav nav-tabs" role="tablist">
-                    <li role="presentation" class="active graph-view-tab">
-                        <a href="#graph" aria-controls="home" role="tab" data-toggle="tab">Graph view</a>
+                    <li role="presentation" class="@getTabActiveClass(ResultsViews.Graph) graph-view-tab">
+                        <a href="#graph" role="tab" data-toggle="tab">Graph view</a>
                     </li>
-                    <li role="presentation">
-                        <a href="#list" aria-controls="profile" role="tab" data-toggle="tab">List view</a>
+                    <li role="presentation" class="@getTabActiveClass(ResultsViews.List)">
+                        <a href="#list" role="tab" data-toggle="tab">List view</a>
                     </li>
                 </ul>
                 <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane" id="list">
+                    <div role="tabpanel" class="tab-pane @getTabActiveClass(ResultsViews.List)" id="list">
                         @for (var i = 0; i < Model.ResultItems.Count; ++i)
                         {
                             var searchResult = Model.ResultItems[i];
@@ -92,48 +105,50 @@
                                         <h4 class="recipe-name"><a href="@searchResult.URL" target=" _blank">@searchResult.Name</a></h4>
                                         @Html.Partial("_ResultItem", searchResult)
                                     </div>
-                                    <a href="#" data-expander="@i" data-show-text="More" data-hide-text="Less" class="expander">More</a>
-
+                                    <a href="#" data-expander="recipe_@i" data-show-text="More" data-hide-text="Less" class="expander">More</a>
+                                    <a href="#" data-expander="similar_@i" data-show-text="Show Similar" data-hide-text="Hide Similar" class="expander">Show Similar</a>
 
                                     @if (searchResult.SimilarResults.Any())
                                     {
-                                        <span class="similar-label">Similar results:</span>
-                                        <ul class="similar">
-                                            @for (var j = 0; j < searchResult.SimilarResults.Count; ++j)
-                                            {
-                                                <li>
-                                                    <div class="result-item-similar" id="recipe_@(i + "_" + j)">
-                                                        <h4 class="recipe-name">
-                                                            <a href="@searchResult.SimilarResults[j].URL" target=" _blank">@searchResult.SimilarResults[j].Name</a>
-                                                            <a href="#"
-                                                               data-expander="@(i + "_" + j)"
-                                                               data-show-text="Expand"
-                                                               data-hide-text="Collapse"
-                                                               class="expander">Expand</a>
-                                                        </h4>
-                                                        @Html.Partial("_ResultItem", searchResult.SimilarResults[j])
-                                                    </div>
-                                                </li>
-                                            }
-                                        </ul>
+                                        <div id="similar_@i" class="similar-results-holder">
+                                            <span class="similar-label">Similar results:</span>
+                                            <ul class="similar">
+                                                @for (var j = 0; j < searchResult.SimilarResults.Count; ++j)
+                                                {
+                                                    <li>
+                                                        <div class="result-item-similar" id="recipe_@(i + "_" + j)">
+                                                            <h4 class="recipe-name">
+                                                                <a href="@searchResult.SimilarResults[j].URL" target=" _blank">@searchResult.SimilarResults[j].Name</a>
+                                                                <a href="#"
+                                                                   data-expander="recipe_@(i + "_" + j)"
+                                                                   data-show-text="Expand"
+                                                                   data-hide-text="Collapse"
+                                                                   class="expander">Expand</a>
+                                                            </h4>
+                                                            @Html.Partial("_ResultItem", searchResult.SimilarResults[j])
+                                                        </div>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
                                     }
                                 </div>
                             </div>
                         }
                         <div class="row">
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 @if (Model.TotalCount > Model.ResultsOnPage)
                                 {
                                     <div class="pagination-holder"></div>
                                 }
-                                @if (Model.TotalCount > 10)
+                                @if (Model.TotalCount > 5)
                                 {
                                     <a href="#" class="back-to-top">Back to top</a>
                                 }
                             </div>
                         </div>
                     </div>
-                    <div role="tabpanel" class="tab-pane active loading" id="graph">
+                    <div role="tabpanel" class="tab-pane @getTabActiveClass(ResultsViews.Graph) loading" id="graph">
                         <div id="graphContainer"></div>
                         <div class="loading-holder">
                             <i class="loader"></i>

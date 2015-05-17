@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RecipesSearch.Data.Models;
+using RecipesSearch.WebApplication.Enums;
 
 namespace RecipesSearch.WebApplication.ViewModels
 {
@@ -27,5 +28,7 @@ namespace RecipesSearch.WebApplication.ViewModels
         public string SpellcheckedQuery { get; set; }
 
         public bool ExactMatch { get; set; }
+
+        public ResultsViews DefaultResultView { get; set; }
     }
 }

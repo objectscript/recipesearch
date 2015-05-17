@@ -26,7 +26,6 @@ function showGraph(query, exactMatch) {
 
 function prepareGraphData(results) {
     var recipeMap = {};
-    var edgeCount = {};
     var nodes = [];
     var edges = [];
 
@@ -41,24 +40,14 @@ function prepareGraphData(results) {
             var similarRecipe = recipe.SimilarResults[j];
             ensureRecipeAdded(recipeMap, nodes, similarRecipe);
 
-            edgeCount[recipe.Id] = !edgeCount[recipe.Id] ? 1 : edgeCount[recipe.Id] + 1;
-            edgeCount[similarRecipe.Id] = !edgeCount[similarRecipe.Id] ? 1 : edgeCount[similarRecipe.Id] + 1;
-
             edges.push({
                 from: recipe.Id,
                 to: similarRecipe.Id,
-                length: 200 + similarRecipe.SimilarRecipeWeight
+                length: 200 + similarRecipe.SimilarRecipeWeight,
+                title: function() {
+                    return '<div>' + similarRecipe.SimilarRecipeWeight + '</div>';
+                }
             });
-        }
-    }
-
-    var maxEdgeCount = -1;
-    var maxEdgeCountRecipeId;
-
-    for (var key in edgeCount) {
-        if (edgeCount[key] > maxEdgeCount) {
-            maxEdgeCount = edgeCount[key];
-            maxEdgeCountRecipeId = key;
         }
     }
 
@@ -69,32 +58,28 @@ function prepareGraphData(results) {
     };
     var options = {
         width: '100%',
-        height: 'calc(100vh - 190px)',
+        height: '600px',
         hover: true,
-        configurePhysics: false,
+        configurePhysics: true,
         nodes: {
             shape: 'box',
             borderWidth: 1,
             //color: {
             //    background: '#fff'
             //}
-        },
-        smoothCurves: {
-            dynamic: false
-        },
-        edges: {
-            color: {
-                color: 'rgba(0,0,0,0)',
-                highlight: '#93c54b'
-            }
-        },
+        },      
+        smoothCurves: false,
+        //edges: {
+        //   color: {
+        //       color: 'white',
+        //       highlight: 'red'
+        //   }
+        //},
         physics: {
             barnesHut: {
                 gravitationalConstant: -20000,
                 springLength: 400,
-                centralGravity: 0.1,
-                springConstant: 0.0002,
-                damping: 0.04
+                springConstant: 0.0005
             }
         },
         stabilize: true,
@@ -103,17 +88,11 @@ function prepareGraphData(results) {
     network = new vis.Network(container, null, options);
 
     network.on('stabilizationIterationsDone', function () {
-        network.freezeSimulation(true);
-        network.focusOnNode(maxEdgeCountRecipeId, {
-            scale: 0.75,
-            locked: false,
-            animation: true
-        });
-        network.selectNodes([maxEdgeCountRecipeId]);
+        //network.freezeSimulation(true);
     });
 
-    network.on('stabilized', function (iterations) {
-        console.log('stabilized', iterations);
+    network.on('stabilized', function () {
+        console.log('stabilized');
     });
 
     network.setData(data, false);
@@ -127,11 +106,11 @@ function ensureRecipeAdded(map, nodes, recipe, isMain) {
         nodes.push({
             id: recipe.Id,
             label: recipe.Name,
-            title: function () {
+            title: function() {
                 return recipe.Name;
             },
             color: {
-                background: !!isMain ? '#93c54b' : '#C2C2C0'
+                background: !!isMain ? 'red' : 'yellow'
             }
         });
     }
