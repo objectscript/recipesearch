@@ -77,7 +77,7 @@ namespace RecipesSearch.WebApplication.Controllers
                 string spellcheckedQuery;
 
                 results = _searchProvider
-                    .SearchByQuery(query, 1, 40, searchSettings.EnableSpellchecking, exactMatch, out totalCount, out spellcheckedQuery)
+                    .SearchByQuery(query, 1, 50, searchSettings.EnableSpellchecking, exactMatch, out totalCount, out spellcheckedQuery)
                     .Select(result => new SearchResultItemViewModel(result))
                     .ToList();               
             }

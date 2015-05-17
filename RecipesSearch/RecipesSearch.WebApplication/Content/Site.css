@@ -145,7 +145,7 @@ th, b {
     position: relative;
     top: calc(50% - 50px);
     left: calc(50% - 61px);
-    width: 122px;
+    width: 125px;
 }
 #graph .loading-holder .loader{
     display: block;
