@@ -59,5 +59,30 @@ namespace RecipesSearch.WebApplication.Controllers
             var items = _suggestionProvider.SuggestByQuery(query, searchSettings.SuggestionsCount, searchSettings.EnableSpellcheckingForSuggest);
             return Json(items, JsonRequestBehavior.AllowGet);
         }
+
+        public JsonResult GetGraphData(string query, bool exactMatch)
+        {
+            var searchSettings = _searchSettingsRepository.GetSearchSettings();
+
+            query = query ?? String.Empty;
+            query = query.Trim();
+
+            ViewBag.SearchQuery = query;
+
+            var results = new List<SearchResultItemViewModel>();
+
+            if (!string.IsNullOrEmpty(query))
+            {
+                int totalCount;
+                string spellcheckedQuery;
+
+                results = _searchProvider
+                    .SearchByQuery(query, 1, 40, searchSettings.EnableSpellchecking, exactMatch, out totalCount, out spellcheckedQuery)
+                    .Select(result => new SearchResultItemViewModel(result))
+                    .ToList();               
+            }
+
+            return Json(results, JsonRequestBehavior.AllowGet);
+        }
     }
 }

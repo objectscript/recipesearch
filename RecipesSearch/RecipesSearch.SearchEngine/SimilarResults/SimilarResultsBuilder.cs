@@ -167,7 +167,10 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
                     try
                     {
-                        cacheAdapter.UpdateSimilarResults(pages[i].Id, dists.Select(item => item.Item2));
+                        cacheAdapter.UpdateSimilarResults(
+                            pages[i].Id, 
+                            dists.Select(item => item.Item2).ToList(), 
+                            dists.Select(item => (int)item.Item1).ToList());
                     }
                     catch (Exception exception)
                     {

@@ -35,6 +35,11 @@ th, b {
 .search-results {
     width: 100%;
 }
+.search-results .tab-pane{
+    border: 1px solid #dfd7ca;
+    border-top: none;
+    padding: 10px;
+}
 .search-results .empty-placeholder{
     font-size: 24px;
     text-align: center;
@@ -127,6 +132,30 @@ th, b {
     font-size: 10px;
     color: #aaa;
     margin-right: -5px;
+}
+
+/* Graph view*/
+#graph.loading {
+    width: 100%;
+    height: calc(100vh - 167px);
+    position: relative;
+}
+#graph .loading-holder {
+    display: none;
+    position: relative;
+    top: calc(50% - 50px);
+    left: calc(50% - 61px);
+    width: 122px;
+}
+#graph .loading-holder .loader{
+    display: block;
+    width: 35px;
+    height: 35px;
+    background: url('/Content/loader.gif');
+    margin: 0 auto;
+}
+#graph.loading .loading-holder {
+    display: block;
 }
 
 /* Login */

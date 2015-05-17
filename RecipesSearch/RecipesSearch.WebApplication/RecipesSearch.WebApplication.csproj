@@ -198,11 +198,12 @@
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.js" />
-    <Content Include="fonts\glyphicons-halflings-regular.woff" />
+    <None Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="Properties\DataSources\RecipesSearch.Data.Models.SiteToCrawl.datasource" />
     <Compile Include="App_Start\Startup.Auth.cs" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff2" />
     <None Include="Properties\PublishProfiles\SOMEE.pubxml">
       <SubType>Designer</SubType>
     </None>
@@ -212,8 +213,10 @@
     <Content Include="Scripts\jquery.unobtrusive-ajax.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="Scripts\graphView.js" />
     <Content Include="Scripts\site.js" />
     <Content Include="Scripts\typeahead.bundle.js" />
+    <Content Include="Scripts\vis.js" />
     <Content Include="Scripts\_references.js" />
     <None Include="Service References\ImporterService\ImporterService.disco" />
     <None Include="Service References\ImporterService\configuration91.svcinfo" />

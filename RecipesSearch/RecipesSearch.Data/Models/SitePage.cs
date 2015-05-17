@@ -29,6 +29,12 @@ namespace RecipesSearch.Data.Models
         public string ImageUrl { get; set; }
 
         [NotMapped]
+        public int? SimilarRecipeWeight { get; set; }
+
+        [NotMapped]
+        public int Id { get; set; }
+
+        [NotMapped]
         public DateTime CreatedDate { get; set; }
 
         [NotMapped]

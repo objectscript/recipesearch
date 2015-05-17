@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -29,7 +30,7 @@ namespace RecipesSearch.DAL.Cache.Adapters
             return tfIdf;
         }
 
-        public bool UpdateSimilarResults(int pageId, IEnumerable<int> results)
+        public bool UpdateSimilarResults(int pageId, IList<int> results, IList<int> weigths)
         {
             EnsureConnectionOpened();
 
@@ -37,7 +38,13 @@ namespace RecipesSearch.DAL.Cache.Adapters
             command.CommandType = CommandType.StoredProcedure;
 
             command.Parameters.Add("PageId", pageId);
-            command.Parameters.Add("NearestResults", String.Join(" ", results)); 
+
+            // Serialize to string to reduce the number of DB requests
+            // TODO: Revisit
+            var resultsWithWeights = results.Select((val, idx) =>
+                String.Format("{0};{1}", val, weigths[idx].ToString(CultureInfo.InvariantCulture)));
+
+            command.Parameters.Add("NearestResults", String.Join(" ", resultsWithWeights)); 
 
             return command.ExecuteNonQuery() != 0;
         }    

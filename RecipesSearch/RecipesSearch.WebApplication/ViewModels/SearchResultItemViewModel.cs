@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ namespace RecipesSearch.WebApplication.ViewModels
     public class SearchResultItemViewModel
     {
         public string Name { get; set; }
+
+        public int SiteId { get; set; }
 
         public string URL { get; set; }
 
@@ -26,10 +29,15 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public string ImageUrl { get; set; }
 
+        public int? SimilarRecipeWeight { get; set; }
+
+        public int Id { get; set; }
+
         public List<SearchResultItemViewModel> SimilarResults { get; set; } 
 
         public SearchResultItemViewModel(SitePage entity)
         {
+            Id = entity.Id;
             URL = entity.URL;
             Description = entity.Description;
             Ingredients = entity.Ingredients;
@@ -37,6 +45,8 @@ namespace RecipesSearch.WebApplication.ViewModels
             AdditionalData = entity.AdditionalData;
             Name = String.IsNullOrEmpty(entity.RecipeName) ? entity.URL : entity.RecipeName;
             ImageUrl = entity.ImageUrl;
+            SiteId = entity.SiteID;
+            SimilarRecipeWeight = entity.SimilarRecipeWeight;
 
             if (entity.SimilarResults != null)
             {

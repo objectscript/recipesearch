@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-16 16:13:18">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-17 15:57:51">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -768,7 +768,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.RecipeData.NearestResult">
 <Super>%Persistent</Super>
-<TimeChanged>63685,84205.481568</TimeChanged>
+<TimeChanged>63689,52233.42439</TimeChanged>
 <TimeCreated>63683,79491.18148</TimeCreated>
 
 <Property name="RecipeId">
@@ -782,6 +782,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Property>
 
 <Property name="Order">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="Weight">
 <Type>%Integer</Type>
 <Required>1</Required>
 </Property>
@@ -815,6 +820,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Value>
 <Value name="4">
 <Value>Order</Value>
+</Value>
+<Value name="5">
+<Value>Weight</Value>
 </Value>
 </Data>
 </Storage>
@@ -938,7 +946,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63688,58362.112256</TimeChanged>
+<TimeChanged>63689,52675.510602</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1192,18 +1200,20 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="UpdateNearestResults">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>PageId:%Integer,NearestResults:%String(MAXLEN=1000)</FormalSpec>
+<FormalSpec>PageId:%Integer,NearestResults:%String(MAXLEN=2000)</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.NearestResult WHERE RecipeId = :PageId)
 	
 	set similarResults = $LISTFROMSTRING(NearestResults," ")
 	for i=1:1:$LISTLENGTH(similarResults){
-		set recipeId = $LIST(similarResults,i)
+		set recipeData = $LISTFROMSTRING($LIST(similarResults,i),";")
+		set recipeId = $LIST(recipeData, 1)
+		set recipeWeight = $LIST(recipeData, 2)
 		
 		&sql(INSERT %NOLOCK INTO RecipeSearch_Data_RecipeData.NearestResult
-			(RecipeId, SimilarRecipeId, Order) 
-			VALUES(:PageId, CAST(:recipeId AS INT), :i))
+			(RecipeId, SimilarRecipeId, Order, Weight) 
+			VALUES(:PageId, CAST(:recipeId AS INT), :i, CAST(:recipeWeight AS INT)))
 	}
 ]]></Implementation>
 </Method>
@@ -2129,7 +2139,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63685,85497.727724</TimeChanged>
+<TimeChanged>63689,54048.433752</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
@@ -2174,7 +2184,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
         
         set sitePageResult = ##class(RecipeSearch.SearchAPI.Search.SitePageResult).%New()
         
-        set sitePageResult.Result = ##class(RecipeSearch.SearchAPI.Search.SearchResult).MapResultToSitePage(result)
+        set sitePageResult.Result = ##class(RecipeSearch.SearchAPI.Search.SearchResult).MapResultToSitePage(result, 0)
         set sitePageResult.SimilarResults = ##class(RecipeSearch.SearchAPI.Search.SearchResult).GetSimilarResults(result.Data("ID"))
               
         set tSC = searchResults.Items.Insert(sitePageResult) 
@@ -2207,7 +2217,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			_" URL,"
 			_" RecipeName, "
 			_" CreatedDate," 
-			_" ModifiedDate"
+			_" ModifiedDate,"
+			_" Weight AS SimilarRecipeWeight"
 		_" FROM  RecipeSearch_Data_RecipeData.NearestResult"
 		_" INNER JOIN RecipeSearch_Data.SitePage sp ON sp.Id = SimilarRecipeId"
 		_" WHERE RecipeId = "_RecipeId
@@ -2220,7 +2231,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     
     while (result.Next()) 
     {
-	    set similarResult = ##class(RecipeSearch.SearchAPI.Search.SearchResult).MapResultToSitePage(result)
+	    set similarResult = ##class(RecipeSearch.SearchAPI.Search.SearchResult).MapResultToSitePage(result, 1)
 	    do similarResultsObjects.Insert(similarResult)	    	    
     }   
 			    
@@ -2230,10 +2241,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="MapResultToSitePage">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>result:%Library.ResultSet</FormalSpec>
-<ReturnType>RecipeSearch.Data.SitePage</ReturnType>
+<FormalSpec>result:%Library.ResultSet,includeNearest:%Boolean</FormalSpec>
+<ReturnType>RecipeSearch.SearchAPI.Search.SearchResultItem</ReturnType>
 <Implementation><![CDATA[
-	set sitePage = ##class(RecipeSearch.Data.SitePage).%New() 
+	set sitePage = ##class(RecipeSearch.SearchAPI.Search.SearchResultItem).%New() 
+    set sitePage.ID = result.Data("ID")
     set sitePage.Description = result.Data("Description") 
     set sitePage.Ingredients = result.Data("Ingredients") 
     set sitePage.RecipeInstructions = result.Data("RecipeInstructions")
@@ -2245,6 +2257,10 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     set sitePage.ModifiedDate = result.Data("ModifiedDate") 
     set sitePage.CreatedDate = result.Data("CreatedDate") 
     set sitePage.RecipeName = result.Data("RecipeName")
+    
+    if includeNearest {
+		set sitePage.SimilarRecipeWeight = result.Data("SimilarRecipeWeight")   
+    }   
        
     return sitePage
 ]]></Implementation>
@@ -2252,17 +2268,102 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
+<Class name="RecipeSearch.SearchAPI.Search.SearchResultItem">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63689,53465.508571</TimeChanged>
+<TimeCreated>63689,53434.688769</TimeCreated>
+
+<Property name="ID">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="URL">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="255"/>
+</Property>
+
+<Property name="RecipeName">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100"/>
+</Property>
+
+<Property name="Keywords">
+<Type>%Text</Type>
+<Parameter name="LANGUAGECLASS" value="%Text.Russian"/>
+<Parameter name="MAXLEN" value="1000"/>
+</Property>
+
+<Property name="ExtendedKeywords">
+<Type>%Text</Type>
+<Parameter name="LANGUAGECLASS" value="%Text.Russian"/>
+<Parameter name="MAXLEN" value="10000"/>
+</Property>
+
+<Property name="Description">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="Ingredients">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="RecipeInstructions">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="AdditionalData">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="WordsTfIdf">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="100000"/>
+</Property>
+
+<Property name="ImageUrl">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="2000"/>
+</Property>
+
+<Property name="SiteId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="CreatedDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="ModifiedDate">
+<Type>%DateTime</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="SimilarRecipeWeight">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+</Class>
+
+
 <Class name="RecipeSearch.SearchAPI.Search.SitePageResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63685,84338.233819</TimeChanged>
+<TimeChanged>63689,53538.942846</TimeChanged>
 <TimeCreated>63673,70073.256262</TimeCreated>
 
 <Property name="Result">
-<Type>RecipeSearch.Data.SitePage</Type>
+<Type>RecipeSearch.SearchAPI.Search.SearchResultItem</Type>
 </Property>
 
 <Property name="SimilarResults">
-<Type>RecipeSearch.Data.SitePage</Type>
+<Type>RecipeSearch.SearchAPI.Search.SearchResultItem</Type>
 <Collection>list</Collection>
 </Property>
 </Class>
@@ -2584,7 +2685,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-14 23:07:46.590337">
+<Project name="RecipesSearch" LastModified="2015-05-17 14:56:28.893392">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
@@ -2613,6 +2714,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResultItem" type="CLS"></ProjectItem>
   </Items>
 </Project>
 </Export>
