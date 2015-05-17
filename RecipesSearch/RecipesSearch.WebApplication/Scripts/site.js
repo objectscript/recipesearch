@@ -3,6 +3,7 @@
         removeBanners();
         initSearchTypeahed();
         initExpanders();
+        loadGraph();
 
         $('.back-to-top').on('click', backToTop);
         $('.graph-view-tab').on('click', loadGraph);

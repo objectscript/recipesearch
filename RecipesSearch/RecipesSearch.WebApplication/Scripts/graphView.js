@@ -71,6 +71,7 @@ function prepareGraphData(results) {
         width: '100%',
         height: 'calc(100vh - 190px)',
         hover: true,
+        navigation: true,
         configurePhysics: false,
         nodes: {
             shape: 'box',
@@ -85,7 +86,8 @@ function prepareGraphData(results) {
         edges: {
             color: {
                 color: 'rgba(0,0,0,0)',
-                highlight: '#93c54b'
+                highlight: '#93c54b',
+                hover: 'rgba(0,0,0,0)'
             }
         },
         physics: {
@@ -127,9 +129,6 @@ function ensureRecipeAdded(map, nodes, recipe, isMain) {
         nodes.push({
             id: recipe.Id,
             label: recipe.Name,
-            title: function () {
-                return recipe.Name;
-            },
             color: {
                 background: !!isMain ? '#93c54b' : '#C2C2C0'
             }

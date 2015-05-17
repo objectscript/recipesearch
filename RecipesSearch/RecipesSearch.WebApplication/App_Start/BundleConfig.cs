@@ -24,6 +24,7 @@ namespace RecipesSearch.WebApplication
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/simplePagination.css",
+                      "~/Content/vis.css",
                       "~/Content/site.css"));
         }
     }
