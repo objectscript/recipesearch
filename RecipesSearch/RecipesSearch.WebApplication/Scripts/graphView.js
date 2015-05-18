@@ -70,7 +70,7 @@ function prepareGraphData(results) {
     var options = {
         width: '100%',
         height: 'calc(100vh - 190px)',
-        hover: false,
+        hover: true,
         navigation: true,
         configurePhysics: false,
         nodes: {
@@ -110,7 +110,6 @@ function prepareGraphData(results) {
         network.freezeSimulation(true);
         focusOnNode(maxEdgeCountRecipeId);
         network.selectNodes([maxEdgeCountRecipeId]);
-        //showNodeTooltip(maxEdgeCountRecipeId);
     });
 
     network.on('select', function (selected) {
@@ -118,13 +117,24 @@ function prepareGraphData(results) {
             deselectEdges();
         } else {
             focusOnNode(selected.nodes[0]);
-            //showNodeTooltip(selected.nodes[0]);
-        } 
-        
+        }         
     });
 
     network.on('stabilized', function (iterations) {
         console.log('stabilized', iterations);
+    });
+
+    network.on('viewChanged', function () {
+        //console.log('viewChanged');
+        removeNodeTooltip();
+    });
+
+    network.on('hoverNode', function (object) {
+        showNodeTooltip(object.node);
+    });
+
+    network.on('blurNode', function (object) {
+        removeNodeTooltip(object.node);
     });
 
     network.setData(data, false);
@@ -134,23 +144,64 @@ function focusOnNode(nodeId) {
     network.focusOnNode(nodeId, {
         scale: 0.75,
         locked: false,
-        animation: true
+        animation: {
+            duration: 1000
+        }
     });
 }
 
 function showNodeTooltip(nodeId) {
-    $('.recipe-modal').remove();
+    removeNodeTooltip(nodeId);
 
-    var position = network.getPositions([nodeId])[nodeId];
-    position = network.canvasToDOM(position);
-    console.log(position);
+    var nodePosition = network.getBoundingBox(nodeId);
+    var domPostionTopLeft = network.canvasToDOM({ y: nodePosition.top, x: nodePosition.left });
+    var domPostionBottomRight = network.canvasToDOM({ y: nodePosition.bottom, x: nodePosition.right });
+    var nodeHeight = domPostionBottomRight.y - domPostionTopLeft.y + 2;
 
-    var element = $('<div class="recipe-modal">expand</div>');
+    var element = $(
+        '<div class="recipe-expand-tooltip" data-id="' + nodeId + '">' +
+        '   <i class="glyphicon glyphicon-fullscreen"></i>' +
+        '</div>'
+    );
+    element.find('i').css({ 'font-size': nodeHeight - 6 });
     element.css({
         position: 'absolute',
-        top: position.y + $('#graphContainer').offset().top,
-        left: position.x + $('#graphContainer').offset().left
+        top: domPostionTopLeft.y + $('#graphContainer').offset().top - 1,
+        left: domPostionBottomRight.x + $('#graphContainer').offset().left - nodeHeight + 1,
+        height: nodeHeight
     });
+    element.on('click', function() {
+        expandNode(nodeId);
+    });
+    $('body').append(element);
+}
+
+function removeNodeTooltip(nodeId) {
+    if (!nodeId) {
+        $('.recipe-expand-tooltip').remove();
+    } else {
+        $('.recipe-expand-tooltip[data-id=' + nodeId + ']').remove();
+    }   
+}
+
+function expandNode(nodeId) {
+    $('.recipe-expanded-modal').remove();
+
+    var nodePosition = network.getBoundingBox(nodeId);
+    var domPostionTopLeft = network.canvasToDOM({ y: nodePosition.top, x: nodePosition.left });
+    var domPostionBottomRight = network.canvasToDOM({ y: nodePosition.bottom, x: nodePosition.right });
+    var element = $(
+       '<div class="recipe-expanded-modal" data-id="' + nodeId + '">' +
+       '   recipe content' +
+       '</div>'
+    );
+
+    element.css({
+        position: 'absolute',
+        top: domPostionTopLeft.y + $('#graphContainer').offset().top - 100,
+        left: domPostionTopLeft.x + $('#graphContainer').offset().left,
+    });
+
     $('body').append(element);
 }
 

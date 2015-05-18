@@ -2,14 +2,9 @@
     $(document).ready(function () {
         removeBanners();
         initSearchTypeahed();
-        initExpanders();
-
-        if (!!loadGraph) {
-            loadGraph();
-        }    
+        initExpanders();   
 
         $('.back-to-top').on('click', backToTop);
-        $('.graph-view-tab').on('click', loadGraph);
     });
 })();
 

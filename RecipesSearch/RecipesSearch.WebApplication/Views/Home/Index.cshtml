@@ -161,9 +161,7 @@
             <script>
                 initPagination(@Model.ResultsOnPage, @Model.TotalCount, @Model.CurrentPage, '@Model.CurrentQuery');
 
-                function loadGraph() {
-                    showGraph('@Model.CurrentQuery', '@Model.ExactMatch');
-                };                
+                showGraph('@Model.CurrentQuery', '@Model.ExactMatch');            
             </script>
         }
     </div>

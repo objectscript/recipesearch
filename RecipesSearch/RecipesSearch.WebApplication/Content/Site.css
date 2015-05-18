@@ -170,6 +170,18 @@ th, b {
     display: block;
 }
 
+.recipe-expand-tooltip {
+    background-color: #F8F5F0;
+    border-radius: 3px;
+}
+.recipe-expand-tooltip i {
+    margin: 3px;
+}
+.recipe-expanded-modal {
+    height: 100px;
+    background-color: white;
+}
+
 /* Login */
 .login {
     float: left;
