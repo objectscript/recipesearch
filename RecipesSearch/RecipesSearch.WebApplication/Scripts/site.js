@@ -8,6 +8,16 @@
     });
 })();
 
+var graphView;
+
+function initGraphView(query, exactMatch) {
+    if (graphView) {
+        graphView.dispose();
+    }
+    graphView = new GraphView(query, exactMatch);
+    graphView.showGraph();
+}
+
 function initSearchTypeahed() {
     $('#searchInput').typeahead({
         highlight: true,
