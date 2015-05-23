@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.SearchEngine.Search;
 using RecipesSearch.SearchEngine.Suggestion;
+using RecipesSearch.WebApplication.Controllers.Filters;
 using RecipesSearch.WebApplication.Enums;
 using RecipesSearch.WebApplication.ViewModels;
 
@@ -62,7 +65,8 @@ namespace RecipesSearch.WebApplication.Controllers
             return Json(items, JsonRequestBehavior.AllowGet);
         }
 
-        public JsonResult GetGraphData(string query, bool exactMatch)
+        [Compress]
+        public ActionResult GetGraphData(string query, bool exactMatch)
         {
             var searchSettings = _searchSettingsRepository.GetSearchSettings();
 

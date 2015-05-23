@@ -51,6 +51,10 @@ th, b {
     background-color: #f8f5f0;
     border-radius: 5px;
     color: #999;
+    margin-top: 20px;
+}
+.search-results .no-results-holder {
+    margin-top: 20px;
 }
 
 .search-results .results-list .row{

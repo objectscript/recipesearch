@@ -31,7 +31,7 @@
         },
         interaction: {
             dragNodes: false,
-            hideEdgesOnDrag: true,
+            hideEdgesOnDrag: false,
             hover: true,
             navigationButtons: true,
             selectable: false,
