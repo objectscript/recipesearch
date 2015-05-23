@@ -10,6 +10,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Pp]ublish/
+[Tt]humbs.db
 
 # NuGet Packages
 *.nupkg
