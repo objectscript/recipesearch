@@ -14,10 +14,11 @@ th, b {
     border-radius: 0;
 }
 .search-box {
-   padding-left: 15px;
+    padding-left: 15px;
 }
 .search-box #searchForm {
-   width: 100%;
+    width: 100%;
+    height: 46px;
 }
 .search-box #searchForm button{
     font-size: 16px;
@@ -161,23 +162,29 @@ th, b {
     left: 0;
     background-color: #fff
 }
+#graph.loading .loading-info {
+    position: relative;
+    top: calc(50% - 50px);
+}
 #graph .loading-holder .loader{
     display: block;
     width: 35px;
     height: 35px;
     background: url('/Content/loader.gif');
-    margin: 0 auto;
-    position: relative;
-    top: calc(50% - 50px);
+    margin: 0 auto;    
 }
+#graph .loading-holder .note {
+    margin: 0 auto;
+    text-align: center;
+}
+#graph .loading-holder .progress .progress-bar{
+    background-color: #93c54b;
+}
+
 #graph.loading .loading-holder {
     display: block;
 }
 
-.recipe-expand-tooltip {
-    background-color: #F8F5F0;
-    border-radius: 3px;
-}
 .recipe-expand-tooltip i {
     margin: 3px;
 }
@@ -189,6 +196,18 @@ th, b {
     border-radius: 3px;
     padding: 5px;
     z-index: 1000;
+    overflow: auto;
+}
+.recipe-expanded-modal .image {
+    width: 90px;
+    float: left;
+    box-sizing: content-box;
+    padding: 5px 10px 0 0;
+}
+.recipe-expanded-modal .recipe-url {
+    font-size: 9px;
+    margin-top: 5px;
+    display: block;
 }
 
 /* Login */
