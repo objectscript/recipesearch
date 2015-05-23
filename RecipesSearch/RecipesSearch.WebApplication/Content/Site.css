@@ -154,10 +154,12 @@ th, b {
 }
 #graph .loading-holder {
     display: none;
-    position: relative;
-    top: calc(50% - 50px);
-    left: calc(50% - 61px);
-    width: 125px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: #fff
 }
 #graph .loading-holder .loader{
     display: block;
@@ -165,6 +167,8 @@ th, b {
     height: 35px;
     background: url('/Content/loader.gif');
     margin: 0 auto;
+    position: relative;
+    top: calc(50% - 50px);
 }
 #graph.loading .loading-holder {
     display: block;
@@ -178,8 +182,13 @@ th, b {
     margin: 3px;
 }
 .recipe-expanded-modal {
-    height: 100px;
-    background-color: white;
+    height: 200px;
+    width: 500px;
+    font-size: 11px;
+    background-color: #F9F9F9;
+    border-radius: 3px;
+    padding: 5px;
+    z-index: 1000;
 }
 
 /* Login */
