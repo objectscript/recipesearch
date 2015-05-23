@@ -66,7 +66,7 @@ th, b {
     border-radius: 5px;
 }
 .search-results .results-list .result-item.expanded {
-    max-height: initial;
+    max-height: none;
 }
 .search-results .results-list .result-item .recipe-name{
     margin: 0 0 4px 0;
@@ -85,6 +85,9 @@ th, b {
      max-height: 130px;
      box-sizing: content-box;
      padding: 5px 10px 0 0;
+}
+.similar-results-holder ul > li {
+   list-style-type: none; 
 }
 
 /*Similar items*/
@@ -138,7 +141,7 @@ th, b {
     display: block;
 }
 .search-results .results-list .row.results-count {
-    margin: -13px 0 2px 0;
+    margin: 0 0 2px 0;
 }
 .search-results .results-list .row.results-count span{
     float: right;
