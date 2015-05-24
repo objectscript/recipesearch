@@ -3,10 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using RecipesSearch.Data.Framework;
+using RecipesSearch.Data.Models.Base;
 
 namespace RecipesSearch.Data.Models
 {
-    public class SitePage
+    [CachePackage(Constants.DefaultCachePackage)]
+    public class SitePage : Entity
     {
         [Key]
         public int SiteID { get; set; }
@@ -30,15 +33,6 @@ namespace RecipesSearch.Data.Models
 
         [NotMapped]
         public int? SimilarRecipeWeight { get; set; }
-
-        [NotMapped]
-        public int Id { get; set; }
-
-        [NotMapped]
-        public DateTime CreatedDate { get; set; }
-
-        [NotMapped]
-        public DateTime ModifiedDate { get; set; }
 
         [NotMapped]
         public List<SitePage> SimilarResults { get; set; }

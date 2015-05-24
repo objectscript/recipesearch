@@ -9,7 +9,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories.Base
 {
     public class SqlRepositoryBase
     {
-        protected T SaveEntity<T>(T entity) where T : Entity, new() 
+        public T SaveEntity<T>(T entity) where T : Entity, new() 
         {
             try
             {
@@ -47,7 +47,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories.Base
             }      
         }
 
-        protected T GetEntityById<T>(int id) where T : Entity, new()
+        public T GetEntityById<T>(int id) where T : Entity, new()
         {
             try
             {
@@ -63,7 +63,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories.Base
             }
         }
 
-        protected List<T> GetEntities<T>() where T : Entity, new()
+        public List<T> GetEntities<T>() where T : Entity, new()
         {
             try
             {
@@ -82,7 +82,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories.Base
             }
         }
 
-        protected bool DeleteEntity<T>(int id) where T : Entity
+        public bool DeleteEntity<T>(int id) where T : Entity
         {
             try
             {

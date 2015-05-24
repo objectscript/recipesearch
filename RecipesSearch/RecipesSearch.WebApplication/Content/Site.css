@@ -9,6 +9,21 @@ th, b {
     font-family: "Times New Roman", Times, serif;
 }
 
+.glyphicon.spinning {
+    animation: spin 1s infinite linear;
+    -webkit-animation: spin2 1s infinite linear;
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
 /* Search*/
 .navbar {
     border-radius: 0;
@@ -78,14 +93,16 @@ th, b {
 .search-results .results-list .result-item .recipe-name .pin-icon{
     font-size: 13px;
     cursor: pointer;
+    color: #7C8076;
 }
 .search-results .results-list .similar .result-item-similar .recipe-name .pin-icon {
     font-size: 10px;
     cursor: pointer;
+    color: #7C8076;
 }
 .search-results .results-list .similar .result-item-similar .recipe-name .pin-icon:hover,
 .search-results .results-list .result-item .recipe-name .pin-icon:hover {
-    color: #bbb;
+    color: #000;
 }
 .search-results .results-list .expander {
     float: right;
@@ -292,6 +309,33 @@ th, b {
 #graph .vis-button.showAllEdges:before {
   content: "\2a";
 }
+
+/*Recipe item view*/
+.results-tab .tabs-separator {
+    width: 100%;
+    margin-bottom: 5px;
+}
+.results-tab .recipe-item-tab {   
+    margin-bottom: 1px;
+}
+.results-tab .recipe-item-tab.active a{
+    border-bottom: 1px solid #dfd7ca !important;
+}
+.results-tab .recipe-item-tab > a{
+    padding-right: 20px;
+    border-radius: 4px;
+}
+.results-tab .recipe-item-tab > a > .icon-remove-recipe{
+    position: absolute;
+    top: 12px;
+    right: 5px;
+    color: #7C8076;
+    cursor: pointer;
+}
+.results-tab .recipe-item-tab > a > .icon-remove-recipe:hover {
+    color: #000;
+}
+
 
 /* Login */
 .login {

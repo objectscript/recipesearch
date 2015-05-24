@@ -9,7 +9,7 @@
 var resultsView;
 
 function initResultsView() {
-    resultsView = new window.ResultsView($('#graph'), $('#list'));
+    resultsView = new window.ResultsView($('#graph'), $('#list'), $('div[role=tabpanel]'));
     resultsView.initialize();
 }
 

@@ -6,6 +6,8 @@
     window.ListView.prototype = {
         _container: null,
 
+        pinRecipeCallback: null,
+
         initialize: function() {
             this._initPagination(
                 window.paginationData.resultsOnPage, 
@@ -15,6 +17,7 @@
 
             this._initExpanders();
             this._initBackToTop();
+            this._initPinButtons();
         },
 
         _initPagination:  function (itemsOnPage, items, currentPage, currentQuery) {
@@ -76,6 +79,20 @@
         _backToTop: function () {
             $("html, body").animate({ scrollTop: 0 }, "fast");
             return false;
+        },
+
+        _initPinButtons: function () {
+            var self = this;
+            var pinButtons = this._container.find('.recipe-name .pin-icon');
+
+            pinButtons.on('click', function() {
+                var pinButton = $(this);
+                var recipeId = pinButton.data('id');
+
+                if (self.pinRecipeCallback) {
+                    self.pinRecipeCallback(Number(recipeId));
+                }
+            });
         }
     }
 

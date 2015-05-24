@@ -6,6 +6,8 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using RecipesSearch.BusinessServices.SqlRepositories;
+using RecipesSearch.BusinessServices.SqlRepositories.Base;
+using RecipesSearch.Data.Models;
 using RecipesSearch.SearchEngine.Search;
 using RecipesSearch.SearchEngine.Suggestion;
 using RecipesSearch.WebApplication.Controllers.Filters;
@@ -89,6 +91,15 @@ namespace RecipesSearch.WebApplication.Controllers
             }
 
             return Json(results, JsonRequestBehavior.AllowGet);
+        }
+
+        [Compress]
+        public ActionResult GetRecipe(int recipeId)
+        {
+            var repository = new SqlRepositoryBase();
+            var recipe = repository.GetEntityById<SitePage>(recipeId);
+
+            return Json(recipe, JsonRequestBehavior.AllowGet);
         }
     }
 }
