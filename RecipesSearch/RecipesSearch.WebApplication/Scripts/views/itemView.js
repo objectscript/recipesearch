@@ -18,7 +18,7 @@
             var self = this;
 
             this._fetchData(function() {
-                self._tab.find('a').html(self.recipe.RecipeName + '<i class="glyphicon glyphicon-remove icon-remove-recipe"></i>');
+                self._tab.find('a').html(self.recipe.RecipeName + '<i class="glyphicon glyphicon-remove icon-remove-recipe" title="Remove from pinned" ></i>');
                 self._addListeners();
                 self._buildItemView();
                 self.initShowOnGraphButton();
@@ -52,11 +52,11 @@
         },
 
         _buildItemView: function () {
-            var elementHtml = '<div class="recipe-item-view">';
+            var elementHtml = '<div class="recipe-item-view clearfix">';
 
             elementHtml +=
                 '<h4 class="recipe-name">' +
-                    '<i class="glyphicon glyphicon-screenshot show-on-graph" style="display: none;"></i>' + 
+                    '<i class="glyphicon glyphicon-screenshot show-on-graph" title="Show on graph" style="display: none;"></i>' + 
                     this.recipe.RecipeName +
                 '</h4>';
 

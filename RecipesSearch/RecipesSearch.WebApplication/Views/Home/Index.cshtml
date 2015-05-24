@@ -105,8 +105,8 @@
                                 <div class="col-md-12">
                                     <div class="result-item" id="recipe_@i" data-id="@searchResult.Id">
                                         <h4 class="recipe-name">          
-                                            <i class="glyphicon glyphicon-pushpin pin-icon" data-id="@searchResult.Id"></i>
-                                            <i class="glyphicon glyphicon-screenshot show-on-graph" style="display: none" data-id="@searchResult.Id"></i>
+                                            <i class="glyphicon glyphicon-pushpin pin-icon" title="Pin recipe" data-id="@searchResult.Id"></i>
+                                            <i class="glyphicon glyphicon-screenshot show-on-graph" title="Show on graph" style="display: none" data-id="@searchResult.Id"></i>
                                             @searchResult.Name
                                         </h4>
                                         @Html.Partial("_ResultItem", searchResult)
@@ -124,7 +124,7 @@
                                                     <li>
                                                         <div class="result-item-similar" id="recipe_@(i + "_" + j)">
                                                             <h4 class="recipe-name">
-                                                                <i class="glyphicon glyphicon-pushpin pin-icon" data-id="@searchResult.SimilarResults[j].Id"></i>
+                                                                <i class="glyphicon glyphicon-pushpin pin-icon" title="Pin recipe" data-id="@searchResult.SimilarResults[j].Id"></i>
                                                                 <span data-expander="recipe_@(i + "_" + j)">@searchResult.SimilarResults[j].Name</span>
                                                             </h4>
                                                             @Html.Partial("_ResultItem", searchResult.SimilarResults[j])

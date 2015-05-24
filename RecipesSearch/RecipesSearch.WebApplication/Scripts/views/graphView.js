@@ -350,6 +350,15 @@
 
             var elementHtml = '<div class="recipe-expanded-modal" data-id="' + nodeId + '">';
 
+            elementHtml +=
+                '<div class="header">' +
+                    recipe.Name +
+                    '<i class="glyphicon glyphicon-remove close-icon" title="Pin recipe"></i>' +
+                    '<i class="glyphicon glyphicon-pushpin pin-icon" title="Close modal"></i>' +
+                '</div>';
+
+            elementHtml += '<div class="content">';
+
             if (!!recipe.ImageUrl) {
                 elementHtml += '<img class="image" src="' + recipe.ImageUrl + '"></img>';
             }
@@ -370,14 +379,14 @@
 
             elementHtml += '<a class="recipe-url" target="_blank" href="' + recipe.URL + '">' + recipe.URL  + '</a>';
 
-            elementHtml += '</div>';
+            elementHtml += '</div></div>';
 
             var element = $(elementHtml);
 
             element.css({
                 position: 'absolute',
-                top: domPostionTopLeft.y + $('#graphContainer').offset().top - 200 - 1,
-                left: domPostionTopLeft.x + $('#graphContainer').offset().left - 1,
+                top: domPostionTopLeft.y + $('#graphContainer').offset().top - 200 - 3,
+                left: domPostionTopLeft.x + $('#graphContainer').offset().left,
             });
 
             $('body').append(element);
@@ -386,6 +395,16 @@
             element.on('mousemove', function() {
                 self._removeNodeTooltip();
                 self._network.redraw();
+            });
+
+            element.find('.close-icon').on('click', function() {
+                self._removeExpandedModal();
+            });
+
+            element.find('.pin-icon').on('click', function () {
+                self._resultsView.pinRecipe(nodeId);
+                self._removeExpandedModal(nodeId);
+                self._expandNode(nodeId);
             });
 
             window.setTimeout(function () {
