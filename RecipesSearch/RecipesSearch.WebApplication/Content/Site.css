@@ -75,6 +75,18 @@ th, b {
 .search-results .results-list .result-item .recipe-name{
     margin: 0 0 4px 0;
 }
+.search-results .results-list .result-item .recipe-name .pin-icon{
+    font-size: 13px;
+    cursor: pointer;
+}
+.search-results .results-list .similar .result-item-similar .recipe-name .pin-icon {
+    font-size: 10px;
+    cursor: pointer;
+}
+.search-results .results-list .similar .result-item-similar .recipe-name .pin-icon:hover,
+.search-results .results-list .result-item .recipe-name .pin-icon:hover {
+    color: #bbb;
+}
 .search-results .results-list .expander {
     float: right;
     margin-top: 2px;
@@ -90,6 +102,13 @@ th, b {
      box-sizing: content-box;
      padding: 5px 10px 0 0;
 }
+.search-results .results-list .result-item .recipe-url,
+.search-results .results-list .similar .result-item-similar .recipe-url {
+    display: block;
+    font-size: 11px;
+    margin-top: 7px;
+}
+
 .similar-results-holder ul > li {
    list-style-type: none; 
 }
@@ -105,7 +124,7 @@ th, b {
     padding-left: 10px;
 }
 .search-results .results-list .similar .result-item-similar {
-    height: 20px;
+    height: 18px;
     overflow: hidden;
     padding-bottom: 15px;
 }
@@ -122,7 +141,17 @@ th, b {
 }
 .search-results .results-list .similar .result-item-similar .recipe-name{
     font-size: 14px;
-    margin: 0;
+    margin: 0;  
+}
+.search-results .results-list .similar .result-item-similar .recipe-name > span {
+    text-decoration: underline;
+    cursor: pointer;
+}
+.search-results .results-list .similar .result-item-similar.expanded .recipe-name > span{
+    color: #bbb;
+}
+.search-results .results-list .similar .result-item-similar .recipe-name > span:hover{
+    color: #bbb;
 }
 
 .spellcheck-holder .title {
@@ -215,6 +244,53 @@ th, b {
     font-size: 9px;
     margin-top: 5px;
     display: block;
+}
+#graph .vis-button {
+    background-image: none;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 15px;
+    padding: 7px 6px;
+    border-radius: 15px;
+    border: 2px solid #7C8076;
+    color: #7C8076;
+    width: 31px;
+    height: 31px;
+}
+#graph .vis-button:hover {
+  box-shadow: 0 0 3px 3px rgba(147, 197, 75, 0.30);
+}
+#graph .vis-button.vis-zoomExtends:before {
+  content: "\e140";
+}
+#graph .vis-button.vis-zoomOut:before {
+  content: "\2212";
+}
+#graph .vis-button.vis-zoomIn:before {
+  content: "\2b";
+}
+#graph .vis-button.vis-left:before {
+  content: "\e091";
+}
+#graph .vis-button.vis-right:before {
+  content: "\e092";
+}
+#graph .vis-button.vis-up:before {
+  content: "\e093";
+}
+#graph .vis-button.vis-down:before {
+  content: "\e094";
+}
+#graph .vis-button.showAllEdges {
+  bottom: 50px;
+  right: 55px;
+}
+#graph .vis-button.showAllEdges:before {
+  content: "\2a";
 }
 
 /* Login */

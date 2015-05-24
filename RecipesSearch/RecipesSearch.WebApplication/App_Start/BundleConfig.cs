@@ -19,7 +19,10 @@ namespace RecipesSearch.WebApplication
 
             bundles.Add(new ScriptBundle("~/bundles/site").Include(
                       "~/Scripts/site.js",
-                      "~/Scripts/graphView.js"));
+                      "~/Scripts/views/graphView.js",
+                      "~/Scripts/views/listView.js",
+                      "~/Scripts/views/itemView.js",
+                      "~/Scripts/views/resultsView.js"));
 
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",

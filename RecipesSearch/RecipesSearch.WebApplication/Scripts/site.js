@@ -2,20 +2,15 @@
     $(document).ready(function () {
         removeBanners();
         initSearchTypeahed();
-        initExpanders();   
-
-        $('.back-to-top').on('click', backToTop);
+        initResultsView();
     });
 })();
 
-var graphView;
+var resultsView;
 
-function initGraphView(query, exactMatch) {
-    if (graphView) {
-        graphView.dispose();
-    }
-    graphView = new GraphView(query, exactMatch);
-    graphView.showGraph();
+function initResultsView() {
+    resultsView = new window.ResultsView($('#graph'), $('#list'));
+    resultsView.initialize();
 }
 
 function initSearchTypeahed() {
@@ -47,54 +42,6 @@ function initSearchTypeahed() {
     function postSearchRequest() {
         $('#searchForm').submit();
     }
-}
-
-function initPagination(itemsOnPage, items, currentPage, currentQuery) {
-    $('.pagination-holder').pagination({
-        items: items,
-        itemsOnPage: itemsOnPage,
-        currentPage: currentPage,
-        cssStyle: 'compact-theme',
-        selectOnClick: false,
-        onPageClick: function (pageNumber) {
-            window.location.href = '/Home/Index?query=' + currentQuery + '&pageNumber=' + pageNumber;
-            return false;
-        }
-    });
-}
-
-function initExpanders() {
-    var expandButtons = $('a[data-expander]');
-    expandButtons.each(function(idx, item) {
-        initExpander($(item));
-    });
-}
-
-function initExpander($item) {
-    var id = $item.data('expander');
-    $item.on('click', function() {
-        toggleRecipe(id, $(this));
-        return false;
-    });
-}
-
-function toggleRecipe(id, $item) {
-    var $recipeHolder = $('#' + id);
-    var showText = $item.data('showText');
-    var hideText = $item.data('hideText');
-
-    if ($recipeHolder.hasClass('expanded')) {
-        $recipeHolder.removeClass('expanded');
-        $item.text(showText);
-    } else {
-        $recipeHolder.addClass('expanded');
-        $item.text(hideText);
-    }
-}
-
-function backToTop() {
-    $("html, body").animate({ scrollTop: 0 }, "fast");
-    return false;
 }
 
 // For SOMEE hosting

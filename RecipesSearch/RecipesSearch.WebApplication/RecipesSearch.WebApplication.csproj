@@ -233,9 +233,12 @@
     <Content Include="Scripts\jquery.unobtrusive-ajax.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
-    <Content Include="Scripts\graphView.js" />
+    <Content Include="Scripts\views\graphView.js" />
     <Content Include="Scripts\site.js" />
     <Content Include="Scripts\typeahead.bundle.js" />
+    <Content Include="Scripts\views\itemView.js" />
+    <Content Include="Scripts\views\resultsView.js" />
+    <Content Include="Scripts\views\listView.js" />
     <Content Include="Scripts\vis.js" />
     <Content Include="Scripts\_references.js" />
     <None Include="Service References\ImporterService\ImporterService.disco" />
