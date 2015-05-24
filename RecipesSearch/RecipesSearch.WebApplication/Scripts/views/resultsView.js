@@ -20,17 +20,24 @@
         },
 
         initListView: function() {
-            this._listView = new window.ListView(this._listViewContainer);
+            this._listView = new window.ListView(this, this._listViewContainer);
             this._listView.pinRecipeCallback = this.pinRecipe.bind(this);
             this._listView.initialize();
+            this._addEventListeners();
         },
 
         initGraphView: function () {
             var query = this._getQueryParameterByName('query');
             var exactMatch = this._getQueryParameterByName('exactMatch');
 
-            this._graphView = new window.GraphView(this._graphViewContainer);
+            this._graphView = new window.GraphView(this, this._graphViewContainer);
             this._graphView.showGraph(query, exactMatch);
+        },
+
+        _addEventListeners: function() {
+            this._tabsHolder.find('[href="#graph"][role="tab"]').on('shown.bs.tab', function() {
+                window.scrollTo(0, document.body.scrollHeight);
+            });
         },
 
         pinRecipe: function(recipeId) {
@@ -46,7 +53,34 @@
             for (var i = 0; i < this._itemViews.length; ++i) {
                 if (this._itemViews[i].recipeId === recipeId) {
                     this._itemViews.splice(i, 1);
+
+                    if (!this._tabsHolder.find('[role="presentation"].active').length) {
+                        this._showTab('list');
+                    }
                 }
+            }
+        },
+
+        isShownOnGraph: function (recipeId) {
+            if (!this._graphView) {
+                return false;
+            }
+            return this._graphView.hasRecipe(recipeId);
+        },
+
+        showOnGraph: function (recipeId) {
+            if (!this.isShownOnGraph(recipeId)) {
+                return;
+            }
+            this._showTab('graph');
+            this._graphView.focusOnRecipe(recipeId);
+        },
+
+        onGraphViewInitialized: function() {
+            this._listView.initLocateOnGraphButtons();
+
+            for (var i = 0; i < this._itemViews.length; ++i) {
+                this._itemViews[i].initShowOnGraphButton();
             }
         },
 
@@ -59,9 +93,8 @@
                 '</li>');
             var newTabContent = $('<div role="tabpanel" class="tab-pane" id="recipeTab_' + recipeId + '">');
 
-            var itemView = new window.ItemView(newTabContent, newTab, recipeId);
+            var itemView = new window.ItemView(this, newTabContent, newTab, recipeId);
             this._itemViews.push(itemView);
-            itemView.removeTabCallback = this.unpinRecipe.bind(this);
             itemView.initialize();
 
             this._tabsHolder.find('[role=tablist]').prepend(newTab);
@@ -73,6 +106,10 @@
             var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
                 results = regex.exec(location.search);
             return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        },
+
+        _showTab: function(tabId) {
+            this._tabsHolder.find('[href="#' + tabId  + '"][role="tab"]').tab('show');
         }
     };
 

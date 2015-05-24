@@ -1,7 +1,8 @@
 ﻿(function () {
 
-    window.GraphView = function (container) {
+    window.GraphView = function (resultsView, container) {
         this._container = container;
+        this._resultsView = resultsView;
     }
 
     var graphOptions = {
@@ -57,6 +58,7 @@
 
     GraphView.prototype = {
         _container: null,
+        _resultsView: null,
 
         _recipes: null,
         _network: null,
@@ -89,6 +91,14 @@
                 self._setProgressText('Preparing graph...');
                 self._initNetwork();
             });
+        },
+
+        hasRecipe: function(recipeId) {
+            return !!this._idToRecipeMap[+recipeId];
+        },
+
+        focusOnRecipe: function (recipeId) {
+            return this._focusOnNode(recipeId, 250, false);
         },
 
         _fetchData: function (query, exactMatch, callback) {
@@ -205,6 +215,7 @@
 
                 self._toggleProgress(false);
                 self._createShowAllEdgesButton();
+                self._resultsView.onGraphViewInitialized();
 
                 console.log('stabilization time:', performance.now() - self.__newtorkStartTime);
             });

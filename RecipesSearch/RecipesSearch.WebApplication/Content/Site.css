@@ -104,6 +104,15 @@ th, b {
 .search-results .results-list .result-item .recipe-name .pin-icon:hover {
     color: #000;
 }
+.recipe-name .show-on-graph {
+    font-size: 13px;
+    cursor: pointer;
+    color: #7C8076;
+}
+.recipe-name .show-on-graph:hover {
+    color: #000;
+}
+
 .search-results .results-list .expander {
     float: right;
     margin-top: 2px;
@@ -335,7 +344,19 @@ th, b {
 .results-tab .recipe-item-tab > a > .icon-remove-recipe:hover {
     color: #000;
 }
-
+.recipe-item-view .image{
+    max-width: 30%;
+    float: left;
+    padding-right: 10px;
+    padding-top: 5px;
+}
+.recipe-item-view .recipe-url{
+    font-size: 13px;
+    margin-top: 10px;
+}
+.recipe-item-view .show-on-graph {
+    padding-right: 3px;
+}
 
 /* Login */
 .login {

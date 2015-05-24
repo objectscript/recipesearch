@@ -1,12 +1,12 @@
 ﻿(function() {
-    window.ListView = function(container) {
+    window.ListView = function(resultsView, container) {
         this._container = container;
+        this._resultsView = resultsView;
     }
 
     window.ListView.prototype = {
         _container: null,
-
-        pinRecipeCallback: null,
+        _resultsView: null,
 
         initialize: function() {
             this._initPagination(
@@ -89,8 +89,22 @@
                 var pinButton = $(this);
                 var recipeId = pinButton.data('id');
 
-                if (self.pinRecipeCallback) {
-                    self.pinRecipeCallback(Number(recipeId));
+                self._resultsView.pinRecipe(Number(recipeId));
+            });
+        },
+
+        initLocateOnGraphButtons: function () {
+            var self = this;
+            var showOnGraphButtons = this._container.find('.recipe-name .show-on-graph');
+
+            showOnGraphButtons.each(function (idx, item) {
+                var $item = $(item);
+                var recipeId = $item.data('id');
+                if (self._resultsView.isShownOnGraph(+recipeId)) {
+                    $item.show();
+                    $item.on('click', function() {
+                        self._resultsView.showOnGraph(+recipeId);
+                    });
                 }
             });
         }

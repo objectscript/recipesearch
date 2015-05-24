@@ -1,18 +1,18 @@
 ﻿(function () {
-    window.ItemView = function (container, tab, recipeId) {
+    window.ItemView = function (resultsView, container, tab, recipeId) {
         this._container = container;
         this._tab = tab;
         this.recipeId = recipeId;
+        this._resultsView = resultsView;
     }
 
     window.ItemView.prototype = {
         _tab: null,
         _container: null,
+        _resultsView: null,
 
         recipeId: null,
         recipe: null,
-
-        removeTabCallback: null,
 
         initialize: function () {
             var self = this;
@@ -20,6 +20,8 @@
             this._fetchData(function() {
                 self._tab.find('a').html(self.recipe.RecipeName + '<i class="glyphicon glyphicon-remove icon-remove-recipe"></i>');
                 self._addListeners();
+                self._buildItemView();
+                self.initShowOnGraphButton();
             });
         },
 
@@ -43,11 +45,55 @@
                 self._tab.remove();
                 self._container.remove();
 
-                if (!!self.removeTabCallback) {
-                    self.removeTabCallback(self.recipeId);                    
-                }
+                self._resultsView.unpinRecipe(self.recipeId);
 
                 return false;
+            });
+        },
+
+        _buildItemView: function () {
+            var elementHtml = '<div class="recipe-item-view">';
+
+            elementHtml +=
+                '<h4 class="recipe-name">' +
+                    '<i class="glyphicon glyphicon-screenshot show-on-graph" style="display: none;"></i>' + 
+                    this.recipe.RecipeName +
+                '</h4>';
+
+            if (!!this.recipe.ImageUrl) {
+                elementHtml += '<img class="image" src="' + this.recipe.ImageUrl + '"></img>';
+            }
+            if (!!this.recipe.Description) {
+                elementHtml += '<div class="recipe-item">' + this.recipe.Description + '</div>';
+            }
+
+            elementHtml += '<b>Ингредиенты:</b><br />';
+            elementHtml += '<div class="recipe-item">' + this.recipe.Ingredients + '</div>';
+
+            elementHtml += '<b>Инструкция по приготовлению:</b><br />';
+            elementHtml += '<div class="recipe-item">' + this.recipe.RecipeInstructions + '</div>';
+
+            if (!!this.recipe.AdditionalData) {
+                elementHtml += '<b>Дополнительная информация:</b><br />';
+                elementHtml += '<div class="recipe-item">' + this.recipe.AdditionalData + '</div>';
+            }
+
+            elementHtml += '<a class="recipe-url" target="_blank" href="' + this.recipe.URL + '">' + this.recipe.URL + '</a>';
+
+            elementHtml += '</div>';
+
+            this._container.html(elementHtml);
+        },
+
+        initShowOnGraphButton: function () {
+            var self = this;
+
+            if (!this._resultsView.isShownOnGraph(this.recipeId)) {
+                return;
+            }
+
+            this._container.find('.show-on-graph').show().off('click').on('click', function () {
+                self._resultsView.showOnGraph(self.recipeId);
             });
         },
 

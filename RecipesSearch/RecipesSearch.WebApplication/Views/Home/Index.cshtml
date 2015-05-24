@@ -104,8 +104,9 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="result-item" id="recipe_@i" data-id="@searchResult.Id">
-                                        <h4 class="recipe-name">
+                                        <h4 class="recipe-name">          
                                             <i class="glyphicon glyphicon-pushpin pin-icon" data-id="@searchResult.Id"></i>
+                                            <i class="glyphicon glyphicon-screenshot show-on-graph" style="display: none" data-id="@searchResult.Id"></i>
                                             @searchResult.Name
                                         </h4>
                                         @Html.Partial("_ResultItem", searchResult)
@@ -154,9 +155,9 @@
                         <div class="loading-holder">
                             <div class="loading-info">
                                 <i class="loader"></i>
-                                <div class="note">                                   
+                                <div class="note">
                                 </div>
-                            </div>                                                     
+                            </div>
                         </div>
                     </div>
                 </div>
