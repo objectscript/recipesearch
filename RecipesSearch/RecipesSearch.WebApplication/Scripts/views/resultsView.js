@@ -24,6 +24,7 @@
             this._listView.pinRecipeCallback = this.pinRecipe.bind(this);
             this._listView.initialize();
             this._addEventListeners();
+            this._restorePinnedRecipes();
         },
 
         initGraphView: function () {
@@ -46,7 +47,8 @@
                    return;
                }
            }
-            this._addItemView(recipeId);
+           this._addItemView(recipeId);
+           this._savedPinnedRecipes();
         },
 
         unpinRecipe: function (recipeId) {
@@ -59,6 +61,7 @@
                     }
                 }
             }
+            this._savedPinnedRecipes();
         },
 
         isShownOnGraph: function (recipeId) {
@@ -81,6 +84,35 @@
 
             for (var i = 0; i < this._itemViews.length; ++i) {
                 this._itemViews[i].initShowOnGraphButton();
+            }
+        },
+
+        _savedPinnedRecipes: function() {
+            if (!window.localStorage) {
+                return;
+            }
+
+            var selectedIds = [];
+            for (var i = 0; i < this._itemViews.length; ++i) {
+                selectedIds.push(this._itemViews[i].recipeId);
+            }
+            window.localStorage.setItem('pinnedRecipes', JSON.stringify(selectedIds));
+        },
+
+        _restorePinnedRecipes: function() {
+            if (!window.localStorage) {
+                return;
+            }
+
+            var savedData = window.localStorage.getItem('pinnedRecipes');
+            if (!savedData) {
+                return;
+            }
+
+            var recipes = JSON.parse(savedData);
+
+            for (var i = 0; i < recipes.length; ++i) {
+                this.pinRecipe(recipes[i]);
             }
         },
 
