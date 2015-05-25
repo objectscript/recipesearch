@@ -8,21 +8,12 @@ namespace RecipesSearch.WebApplication
         // For more information on bundling, visit http://go.microsoft.com/fwlink/?LinkId=301862
         public static void RegisterBundles(BundleCollection bundles)
         {
-            bundles.Add(new ScriptBundle("~/bundles/libs").Include(
-                        "~/Scripts/jquery-{version}.js",
-                        "~/Scripts/jquery.unobtrusive*",
-                        "~/Scripts/jquery.validate*",
-                        "~/Scripts/typeahead.bundle.js",
-                        "~/Scripts/bootstrap.js",
-                        "~/Scripts/jquery.simplePagination.js",
-                        "~/Scripts/vis.js"));
+            bundles.Add(new ScriptBundle("~/bundles/libs")
+                .IncludeDirectory("~/Scripts/libs", "*.js"));
 
-            bundles.Add(new ScriptBundle("~/bundles/site").Include(
-                      "~/Scripts/site.js",
-                      "~/Scripts/views/graphView.js",
-                      "~/Scripts/views/listView.js",
-                      "~/Scripts/views/itemView.js",
-                      "~/Scripts/views/resultsView.js"));
+            bundles.Add(new ScriptBundle("~/bundles/site")
+                .IncludeDirectory("~/Scripts/views", "*.js")
+                .Include("~/Scripts/site.js"));
 
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
