@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.1-SNAPSHOT
- * @date    2015-05-23
+ * @date    2015-05-25
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -84,11 +84,11 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(3);
-  exports.DOMutil = __webpack_require__(57);
+  exports.util = __webpack_require__(57);
+  exports.DOMutil = __webpack_require__(2);
 
   // data
-  exports.DataSet = __webpack_require__(2);
+  exports.DataSet = __webpack_require__(3);
   exports.DataView = __webpack_require__(4);
   exports.Queue = __webpack_require__(5);
 
@@ -172,738 +172,583 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(77);
+  if (typeof window !== 'undefined') {
+    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+  }
 
-  var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
+  var util = __webpack_require__(57);
 
-  var util = __webpack_require__(3);
-
-  var ClusterEngine = (function () {
-    function ClusterEngine(body) {
-      var _this = this;
-
-      _classCallCheck(this, ClusterEngine);
+  var CanvasRenderer = (function () {
+    function CanvasRenderer(body, canvas) {
+      _classCallCheck(this, CanvasRenderer);
 
       this.body = body;
-      this.clusteredNodes = {};
+      this.canvas = canvas;
 
+      this.redrawRequested = false;
+      this.renderTimer = undefined;
+      this.requiresTimeout = true;
+      this.renderingActive = false;
+      this.renderRequests = 0;
+      this.pixelRatio = undefined;
+      this.allowRedrawRequests = true;
+
+      this.dragging = false;
       this.options = {};
-      this.defaultOptions = {};
+      this.defaultOptions = {
+        hideEdgesOnDrag: false,
+        hideNodesOnDrag: false
+      };
       util.extend(this.options, this.defaultOptions);
 
-      this.body.emitter.on('_resetData', function () {
-        _this.clusteredNodes = {};
-      });
+      this._determineBrowserMethod();
+      this.bindEventListeners();
     }
 
-    _createClass(ClusterEngine, [{
+    _createClass(CanvasRenderer, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        this.body.emitter.on('dragStart', function () {
+          _this.dragging = true;
+        });
+        this.body.emitter.on('dragEnd', function () {
+          return _this.dragging = false;
+        });
+        this.body.emitter.on('_resizeNodes', function () {
+          return _this._resizeNodes();
+        });
+        this.body.emitter.on('_redraw', function () {
+          if (_this.renderingActive === false) {
+            _this._redraw();
+          }
+        });
+        this.body.emitter.on('_blockRedrawRequests', function () {
+          _this.allowRedrawRequests = false;
+        });
+        this.body.emitter.on('_allowRedrawRequests', function () {
+          _this.allowRedrawRequests = true;
+        });
+        this.body.emitter.on('_requestRedraw', this._requestRedraw.bind(this));
+        this.body.emitter.on('_startRendering', function () {
+          _this.renderRequests += 1;
+          _this.renderingActive = true;
+          _this._startRendering();
+        });
+        this.body.emitter.on('_stopRendering', function () {
+          _this.renderRequests -= 1;
+          _this.renderingActive = _this.renderRequests > 0;
+          _this.renderTimer = undefined;
+        });
+        this.body.emitter.on('destroy', function () {
+          _this.renderRequests = 0;
+          _this.renderingActive = false;
+          if (_this.requiresTimeout === true) {
+            clearTimeout(_this.renderTimer);
+          } else {
+            cancelAnimationFrame(_this.renderTimer);
+          }
+          _this.body.emitter.off();
+        });
+      }
+    }, {
       key: 'setOptions',
       value: function setOptions(options) {
-        if (options !== undefined) {}
-      }
-    }, {
-      key: 'clusterByHubsize',
-
-      /**
-      *
-      * @param hubsize
-      * @param options
-      */
-      value: function clusterByHubsize(hubsize, options) {
-        if (hubsize === undefined) {
-          hubsize = this._getHubSize();
-        } else if (tyepof(hubsize) === 'object') {
-          options = this._checkOptions(hubsize);
-          hubsize = this._getHubSize();
-        }
-
-        var nodesToCluster = [];
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var node = this.body.nodes[this.body.nodeIndices[i]];
-          if (node.edges.length >= hubsize) {
-            nodesToCluster.push(node.id);
-          }
-        }
-
-        for (var i = 0; i < nodesToCluster.length; i++) {
-          this.clusterByConnection(nodesToCluster[i], options, false);
-        }
-        this.body.emitter.emit('_dataChanged');
-      }
-    }, {
-      key: 'cluster',
-
-      /**
-      * loop over all nodes, check if they adhere to the condition and cluster if needed.
-      * @param options
-      * @param refreshData
-      */
-      value: function cluster() {
-        var options = arguments[0] === undefined ? {} : arguments[0];
-        var refreshData = arguments[1] === undefined ? true : arguments[1];
-
-        if (options.joinCondition === undefined) {
-          throw new Error('Cannot call clusterByNodeData without a joinCondition function in the options.');
-        }
-
-        // check if the options object is fine, append if needed
-        options = this._checkOptions(options);
-
-        var childNodesObj = {};
-        var childEdgesObj = {};
-
-        // collect the nodes that will be in the cluster
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var nodeId = this.body.nodeIndices[i];
-          var node = this.body.nodes[nodeId];
-          var clonedOptions = this._cloneOptions(node);
-          if (options.joinCondition(clonedOptions) === true) {
-            childNodesObj[nodeId] = this.body.nodes[nodeId];
-
-            // collect the nodes that will be in the cluster
-            for (var _i = 0; _i < node.edges.length; _i++) {
-              var edge = node.edges[_i];
-              childEdgesObj[edge.id] = edge;
-            }
-          }
-        }
-
-        this._cluster(childNodesObj, childEdgesObj, options, refreshData);
-      }
-    }, {
-      key: 'clusterOutliers',
-
-      /**
-      * Cluster all nodes in the network that have only 1 edge
-      * @param options
-      * @param refreshData
-      */
-      value: function clusterOutliers(options) {
-        var refreshData = arguments[1] === undefined ? true : arguments[1];
-
-        options = this._checkOptions(options);
-        var clusters = [];
-
-        // collect the nodes that will be in the cluster
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var childNodesObj = {};
-          var childEdgesObj = {};
-          var nodeId = this.body.nodeIndices[i];
-          var visibleEdges = 0;
-          var edge = undefined;
-          for (var j = 0; j < this.body.nodes[nodeId].edges.length; j++) {
-            if (this.body.nodes[nodeId].edges[j].options.hidden === false) {
-              visibleEdges++;
-              edge = this.body.nodes[nodeId].edges[j];
-            }
-          }
-
-          if (visibleEdges === 1) {
-            // this is an outlier
-            var childNodeId = this._getConnectedId(edge, nodeId);
-            if (childNodeId !== nodeId) {
-              if (options.joinCondition === undefined) {
-                if (this._checkIfUsed(clusters, nodeId, edge.id) === false && this._checkIfUsed(clusters, childNodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[nodeId] = this.body.nodes[nodeId];
-                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-                }
-              } else {
-                var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
-                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[nodeId] = this.body.nodes[nodeId];
-                }
-                clonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-                }
-              }
-
-              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0) {
-                clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
-              }
-            }
-          }
-        }
-
-        for (var i = 0; i < clusters.length; i++) {
-          this._cluster(clusters[i].nodes, clusters[i].edges, options, false);
-        }
-
-        if (refreshData === true) {
-          this.body.emitter.emit('_dataChanged');
+        if (options !== undefined) {
+          var fields = ['hideEdgesOnDrag', 'hideNodesOnDrag'];
+          util.selectiveDeepExtend(fields, this.options, options);
         }
       }
     }, {
-      key: '_checkIfUsed',
-      value: function _checkIfUsed(clusters, nodeId, edgeId) {
-        for (var i = 0; i < clusters.length; i++) {
-          var cluster = clusters[i];
-          if (cluster.nodes[nodeId] !== undefined || cluster.edges[edgeId] !== undefined) {
-            return true;
-          }
-        }
-        return false;
-      }
-    }, {
-      key: 'clusterByConnection',
-
-      /**
-      * suck all connected nodes of a node into the node.
-      * @param nodeId
-      * @param options
-      * @param refreshData
-      */
-      value: function clusterByConnection(nodeId, options) {
-        var refreshData = arguments[2] === undefined ? true : arguments[2];
-
-        // kill conditions
-        if (nodeId === undefined) {
-          throw new Error('No nodeId supplied to clusterByConnection!');
-        }
-        if (this.body.nodes[nodeId] === undefined) {
-          throw new Error('The nodeId given to clusterByConnection does not exist!');
-        }
-
-        var node = this.body.nodes[nodeId];
-        options = this._checkOptions(options, node);
-        if (options.clusterNodeProperties.x === undefined) {
-          options.clusterNodeProperties.x = node.x;
-        }
-        if (options.clusterNodeProperties.y === undefined) {
-          options.clusterNodeProperties.y = node.y;
-        }
-        if (options.clusterNodeProperties.fixed === undefined) {
-          options.clusterNodeProperties.fixed = {};
-          options.clusterNodeProperties.fixed.x = node.options.fixed.x;
-          options.clusterNodeProperties.fixed.y = node.options.fixed.y;
-        }
-
-        var childNodesObj = {};
-        var childEdgesObj = {};
-        var parentNodeId = node.id;
-        var parentClonedOptions = this._cloneOptions(node);
-        childNodesObj[parentNodeId] = node;
-
-        // collect the nodes that will be in the cluster
-        for (var i = 0; i < node.edges.length; i++) {
-          var edge = node.edges[i];
-          var childNodeId = this._getConnectedId(edge, parentNodeId);
-
-          if (childNodeId !== parentNodeId) {
-            if (options.joinCondition === undefined) {
-              childEdgesObj[edge.id] = edge;
-              childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+      key: '_startRendering',
+      value: function _startRendering() {
+        if (this.renderingActive === true) {
+          if (this.renderTimer === undefined) {
+            if (this.requiresTimeout === true) {
+              this.renderTimer = window.setTimeout(this._renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
             } else {
-              // clone the options and insert some additional parameters that could be interesting.
-              var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-              if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
-                childEdgesObj[edge.id] = edge;
-                childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-              }
+              this.renderTimer = window.requestAnimationFrame(this._renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
             }
+          }
+        }
+      }
+    }, {
+      key: '_renderStep',
+      value: function _renderStep() {
+        if (this.renderingActive === true) {
+          // reset the renderTimer so a new scheduled animation step can be set
+          this.renderTimer = undefined;
+
+          if (this.requiresTimeout === true) {
+            // this schedules a new simulation step
+            this._startRendering();
+          }
+
+          this._redraw();
+
+          if (this.requiresTimeout === false) {
+            // this schedules a new simulation step
+            this._startRendering();
+          }
+        }
+      }
+    }, {
+      key: 'redraw',
+
+      /**
+       * Redraw the network with the current data
+       * chart will be resized too.
+       */
+      value: function redraw() {
+        this.body.emitter.emit('setSize');
+        this._redraw();
+      }
+    }, {
+      key: '_requestRedraw',
+
+      /**
+       * Redraw the network with the current data
+       * @param hidden | used to get the first estimate of the node sizes. only the nodes are drawn after which they are quickly drawn over.
+       * @private
+       */
+      value: function _requestRedraw() {
+        if (this.redrawRequested !== true && this.renderingActive === false && this.allowRedrawRequests === true) {
+          this.redrawRequested = true;
+          if (this.requiresTimeout === true) {
+            window.setTimeout(this._redraw.bind(this, false), 0);
           } else {
-            childEdgesObj[edge.id] = edge;
-          }
-        }
-
-        this._cluster(childNodesObj, childEdgesObj, options, refreshData);
-      }
-    }, {
-      key: '_cloneOptions',
-
-      /**
-      * This returns a clone of the options or options of the edge or node to be used for construction of new edges or check functions for new nodes.
-      * @param objId
-      * @param type
-      * @returns {{}}
-      * @private
-      */
-      value: function _cloneOptions(item, type) {
-        var clonedOptions = {};
-        if (type === undefined || type === 'node') {
-          util.deepExtend(clonedOptions, item.options, true);
-          clonedOptions.x = item.x;
-          clonedOptions.y = item.y;
-          clonedOptions.amountOfConnections = item.edges.length;
-        } else {
-          util.deepExtend(clonedOptions, item.options, true);
-        }
-        return clonedOptions;
-      }
-    }, {
-      key: '_createClusterEdges',
-
-      /**
-      * This function creates the edges that will be attached to the cluster.
-      *
-      * @param childNodesObj
-      * @param childEdgesObj
-      * @param newEdges
-      * @param options
-      * @private
-      */
-      value: function _createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, clusterEdgeProperties) {
-        var edge = undefined,
-            childNodeId = undefined,
-            childNode = undefined,
-            toId = undefined,
-            fromId = undefined,
-            otherNodeId = undefined;
-
-        var childKeys = Object.keys(childNodesObj);
-        for (var i = 0; i < childKeys.length; i++) {
-          childNodeId = childKeys[i];
-          childNode = childNodesObj[childNodeId];
-
-          // construct new edges from the cluster to others
-          for (var j = 0; j < childNode.edges.length; j++) {
-            edge = childNode.edges[j];
-            childEdgesObj[edge.id] = edge;
-
-            // childNodeId position will be replaced by the cluster.
-            if (edge.toId == childNodeId) {
-              // this is a double equals because ints and strings can be interchanged here.
-              toId = clusterNodeProperties.id;
-              fromId = edge.fromId;
-              otherNodeId = fromId;
-            } else {
-              toId = edge.toId;
-              fromId = clusterNodeProperties.id;
-              otherNodeId = toId;
-            }
-
-            // if the node connected to the cluster is also in the cluster we do not need a new edge.
-            if (childNodesObj[otherNodeId] === undefined) {
-              var clonedOptions = this._cloneOptions(edge, 'edge');
-              util.deepExtend(clonedOptions, clusterEdgeProperties);
-              clonedOptions.from = fromId;
-              clonedOptions.to = toId;
-              clonedOptions.id = 'clusterEdge:' + util.randomUUID();
-              newEdges.push(this.body.functions.createEdge(clonedOptions));
-            }
+            window.requestAnimationFrame(this._redraw.bind(this, false));
           }
         }
       }
     }, {
-      key: '_checkOptions',
+      key: '_redraw',
+      value: function _redraw() {
+        var hidden = arguments[0] === undefined ? false : arguments[0];
 
-      /**
-      * This function checks the options that can be supplied to the different cluster functions
-      * for certain fields and inserts defaults if needed
-      * @param options
-      * @returns {*}
-      * @private
-      */
-      value: function _checkOptions() {
-        var options = arguments[0] === undefined ? {} : arguments[0];
+        this.body.emitter.emit('initRedraw');
 
-        if (options.clusterEdgeProperties === undefined) {
-          options.clusterEdgeProperties = {};
-        }
-        if (options.clusterNodeProperties === undefined) {
-          options.clusterNodeProperties = {};
+        this.redrawRequested = false;
+        var ctx = this.canvas.frame.canvas.getContext('2d');
+
+        // when the container div was hidden, this fixes it back up!
+        if (this.canvas.frame.canvas.width === 0 || this.canvas.frame.canvas.height === 0) {
+          this.canvas.setSize();
         }
 
-        return options;
-      }
-    }, {
-      key: '_cluster',
-
-      /**
-      *
-      * @param {Object}    childNodesObj         | object with node objects, id as keys, same as childNodes except it also contains a source node
-      * @param {Object}    childEdgesObj         | object with edge objects, id as keys
-      * @param {Array}     options               | object with {clusterNodeProperties, clusterEdgeProperties, processProperties}
-      * @param {Boolean}   refreshData | when true, do not wrap up
-      * @private
-      */
-      value: function _cluster(childNodesObj, childEdgesObj, options) {
-        var refreshData = arguments[3] === undefined ? true : arguments[3];
-
-        // kill condition: no children so cant cluster
-        if (Object.keys(childNodesObj).length === 0) {
-          return;
+        if (this.pixelRatio === undefined) {
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
         }
 
-        var clusterNodeProperties = util.deepExtend({}, options.clusterNodeProperties);
+        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
 
-        // construct the clusterNodeProperties
-        if (options.processProperties !== undefined) {
-          // get the childNode options
-          var childNodesOptions = [];
-          for (var nodeId in childNodesObj) {
-            var clonedOptions = this._cloneOptions(childNodesObj[nodeId]);
-            childNodesOptions.push(clonedOptions);
-          }
+        // clear the canvas
+        var w = this.canvas.frame.canvas.clientWidth;
+        var h = this.canvas.frame.canvas.clientHeight;
+        ctx.clearRect(0, 0, w, h);
 
-          // get clusterproperties based on childNodes
-          var childEdgesOptions = [];
-          for (var edgeId in childEdgesObj) {
-            var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
-            childEdgesOptions.push(clonedOptions);
-          }
+        // set scaling and translation
+        ctx.save();
+        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
+        ctx.scale(this.body.view.scale, this.body.view.scale);
 
-          clusterNodeProperties = options.processProperties(clusterNodeProperties, childNodesOptions, childEdgesOptions);
-          if (!clusterNodeProperties) {
-            throw new Error('The processProperties function does not return properties!');
+        ctx.beginPath();
+        this.body.emitter.emit('beforeDrawing', ctx);
+        ctx.closePath();
+
+        if (hidden === false) {
+          if (this.dragging === false || this.dragging === true && this.options.hideEdgesOnDrag === false) {
+            this._drawEdges(ctx);
           }
         }
 
-        // check if we have an unique id;
-        if (clusterNodeProperties.id === undefined) {
-          clusterNodeProperties.id = 'cluster:' + util.randomUUID();
-        }
-        var clusterId = clusterNodeProperties.id;
-
-        if (clusterNodeProperties.label === undefined) {
-          clusterNodeProperties.label = 'cluster';
+        if (this.dragging === false || this.dragging === true && this.options.hideNodesOnDrag === false) {
+          this._drawNodes(ctx, hidden);
         }
 
-        // give the clusterNode a postion if it does not have one.
-        var pos = undefined;
-        if (clusterNodeProperties.x === undefined) {
-          pos = this._getClusterPosition(childNodesObj);
-          clusterNodeProperties.x = pos.x;
-        }
-        if (clusterNodeProperties.y === undefined) {
-          if (pos === undefined) {
-            pos = this._getClusterPosition(childNodesObj);
-          }
-          clusterNodeProperties.y = pos.y;
+        if (this.controlNodesActive === true) {
+          this._drawControlNodes(ctx);
         }
 
-        // force the ID to remain the same
-        clusterNodeProperties.id = clusterId;
+        ctx.beginPath();
+        //this.physics.nodesSolver._debug(ctx,"#F00F0F");
+        this.body.emitter.emit('afterDrawing', ctx);
+        ctx.closePath();
+        // restore original scaling and translation
+        ctx.restore();
 
-        // create the clusterNode
-        var clusterNode = this.body.functions.createNode(clusterNodeProperties, _componentsNodesCluster2['default']);
-        clusterNode.isCluster = true;
-        clusterNode.containedNodes = childNodesObj;
-        clusterNode.containedEdges = childEdgesObj;
-        // cache a copy from the cluster edge properties if we have to reconnect others later on
-        clusterNode.clusterEdgeProperties = options.clusterEdgeProperties;
-
-        // finally put the cluster node into global
-        this.body.nodes[clusterNodeProperties.id] = clusterNode;
-
-        // create the new edges that will connect to the cluster
-        var newEdges = [];
-        this._createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, options.clusterEdgeProperties);
-
-        // disable the childEdges
-        for (var edgeId in childEdgesObj) {
-          if (childEdgesObj.hasOwnProperty(edgeId)) {
-            if (this.body.edges[edgeId] !== undefined) {
-              var edge = this.body.edges[edgeId];
-              edge.togglePhysics(false);
-              edge.options.hidden = true;
-            }
-          }
-        }
-
-        // disable the childNodes
-        for (var nodeId in childNodesObj) {
-          if (childNodesObj.hasOwnProperty(nodeId)) {
-            this.clusteredNodes[nodeId] = { clusterId: clusterNodeProperties.id, node: this.body.nodes[nodeId] };
-            this.body.nodes[nodeId].togglePhysics(false);
-            this.body.nodes[nodeId].options.hidden = true;
-          }
-        }
-
-        // push new edges to global
-        for (var i = 0; i < newEdges.length; i++) {
-          this.body.edges[newEdges[i].id] = newEdges[i];
-          this.body.edges[newEdges[i].id].connect();
-        }
-
-        // set ID to undefined so no duplicates arise
-        clusterNodeProperties.id = undefined;
-
-        // wrap up
-        if (refreshData === true) {
-          this.body.emitter.emit('_dataChanged');
+        if (hidden === true) {
+          ctx.clearRect(0, 0, w, h);
         }
       }
     }, {
-      key: 'isCluster',
+      key: '_resizeNodes',
 
       /**
-      * Check if a node is a cluster.
-      * @param nodeId
-      * @returns {*}
-      */
-      value: function isCluster(nodeId) {
-        if (this.body.nodes[nodeId] !== undefined) {
-          return this.body.nodes[nodeId].isCluster === true;
-        } else {
-          console.log('Node does not exist.');
-          return false;
+       * Redraw all nodes
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Boolean} [alwaysShow]
+       * @private
+       */
+      value: function _resizeNodes() {
+        var ctx = this.canvas.frame.canvas.getContext('2d');
+        if (this.pixelRatio === undefined) {
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
         }
-      }
-    }, {
-      key: '_getClusterPosition',
+        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        ctx.save();
+        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
+        ctx.scale(this.body.view.scale, this.body.view.scale);
 
-      /**
-      * get the position of the cluster node based on what's inside
-      * @param {object} childNodesObj    | object with node objects, id as keys
-      * @returns {{x: number, y: number}}
-      * @private
-      */
-      value: function _getClusterPosition(childNodesObj) {
-        var childKeys = Object.keys(childNodesObj);
-        var minX = childNodesObj[childKeys[0]].x;
-        var maxX = childNodesObj[childKeys[0]].x;
-        var minY = childNodesObj[childKeys[0]].y;
-        var maxY = childNodesObj[childKeys[0]].y;
+        var nodes = this.body.nodes;
         var node = undefined;
-        for (var i = 1; i < childKeys.length; i++) {
-          node = childNodesObj[childKeys[i]];
-          minX = node.x < minX ? node.x : minX;
-          maxX = node.x > maxX ? node.x : maxX;
-          minY = node.y < minY ? node.y : minY;
-          maxY = node.y > maxY ? node.y : maxY;
-        }
 
-        return { x: 0.5 * (minX + maxX), y: 0.5 * (minY + maxY) };
-      }
-    }, {
-      key: 'openCluster',
-
-      /**
-      * Open a cluster by calling this function.
-      * @param {String}  clusterNodeId | the ID of the cluster node
-      * @param {Boolean} refreshData | wrap up afterwards if not true
-      */
-      value: function openCluster(clusterNodeId) {
-        var refreshData = arguments[1] === undefined ? true : arguments[1];
-
-        // kill conditions
-        if (clusterNodeId === undefined) {
-          throw new Error('No clusterNodeId supplied to openCluster.');
-        }
-        if (this.body.nodes[clusterNodeId] === undefined) {
-          throw new Error('The clusterNodeId supplied to openCluster does not exist.');
-        }
-        if (this.body.nodes[clusterNodeId].containedNodes === undefined) {
-          console.log('The node:' + clusterNodeId + ' is not a cluster.');
-          return;
-        }
-        var clusterNode = this.body.nodes[clusterNodeId];
-        var containedNodes = clusterNode.containedNodes;
-        var containedEdges = clusterNode.containedEdges;
-
-        // release nodes
-        for (var nodeId in containedNodes) {
-          if (containedNodes.hasOwnProperty(nodeId)) {
-            var containedNode = this.body.nodes[nodeId];
-            containedNode = containedNodes[nodeId];
-            // inherit position
-            containedNode.x = clusterNode.x;
-            containedNode.y = clusterNode.y;
-
-            // inherit speed
-            containedNode.vx = clusterNode.vx;
-            containedNode.vy = clusterNode.vy;
-
-            containedNode.options.hidden = false;
-            containedNode.togglePhysics(true);
-
-            delete this.clusteredNodes[nodeId];
+        // resize all nodes
+        for (var nodeId in nodes) {
+          if (nodes.hasOwnProperty(nodeId)) {
+            node = nodes[nodeId];
+            node.resize(ctx);
+            node.updateBoundingBox(ctx);
           }
         }
 
-        // release edges
-        for (var edgeId in containedEdges) {
-          if (containedEdges.hasOwnProperty(edgeId)) {
-            var edge = containedEdges[edgeId];
-            // if this edge was a temporary edge and it's connected nodes do not exist anymore, we remove it from the data
-            if (this.body.nodes[edge.fromId] === undefined || this.body.nodes[edge.toId] === undefined) {
-              edge.edgeType.cleanup();
-              // this removes the edge from node.edges, which is why edgeIds is formed
-              edge.disconnect();
-              delete this.body.edges[edgeId];
+        // restore original scaling and translation
+        ctx.restore();
+      }
+    }, {
+      key: '_drawNodes',
+
+      /**
+       * Redraw all nodes
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Boolean} [alwaysShow]
+       * @private
+       */
+      value: function _drawNodes(ctx) {
+        var alwaysShow = arguments[1] === undefined ? false : arguments[1];
+
+        var nodes = this.body.nodes;
+        var nodeIndices = this.body.nodeIndices;
+        var node = undefined;
+        var selected = [];
+        var margin = 20;
+        var topLeft = this.canvas.DOMtoCanvas({ x: -margin, y: -margin });
+        var bottomRight = this.canvas.DOMtoCanvas({
+          x: this.canvas.frame.canvas.clientWidth + margin,
+          y: this.canvas.frame.canvas.clientHeight + margin
+        });
+        var viewableArea = { top: topLeft.y, left: topLeft.x, bottom: bottomRight.y, right: bottomRight.x };
+
+        // draw unselected nodes;
+        for (var i = 0; i < nodeIndices.length; i++) {
+          node = nodes[nodeIndices[i]];
+          // set selected nodes aside
+          if (node.isSelected()) {
+            selected.push(nodeIndices[i]);
+          } else {
+            if (alwaysShow === true) {
+              node.draw(ctx);
+            } else if (node.isBoundingBoxOverlappingWith(viewableArea) === true) {
+              node.draw(ctx);
             } else {
-
-              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster so it will be released when that cluster is opened.
-              if (this.clusteredNodes[edge.fromId] !== undefined || this.clusteredNodes[edge.toId] !== undefined) {
-                var fromId = undefined,
-                    toId = undefined;
-                var clusteredNode = this.clusteredNodes[edge.fromId] || this.clusteredNodes[edge.toId];
-                var clusterId = clusteredNode.clusterId;
-                var _clusterNode = this.body.nodes[clusterId];
-                _clusterNode.containedEdges[edgeId] = edge;
-
-                // if both from and to nodes are visible, we create a new temporary edge
-                if (edge.from.options.hidden !== true && edge.to.options.hidden !== true) {
-                  if (this.clusteredNodes[edge.fromId] !== undefined) {
-                    fromId = clusterId;
-                    toId = edge.toId;
-                  } else {
-                    fromId = edge.fromId;
-                    toId = clusterId;
-                  }
-
-                  var clonedOptions = this._cloneOptions(edge, 'edge');
-                  var id = 'clusterEdge:' + util.randomUUID();
-                  util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
-                  util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
-                  var newEdge = this.body.functions.createEdge(clonedOptions);
-
-                  this.body.edges[id] = newEdge;
-                  this.body.edges[id].connect();
-                }
-              } else {
-                edge.options.hidden = false;
-                edge.togglePhysics(true);
-              }
+              node.updateBoundingBox(ctx);
             }
           }
         }
 
-        // remove all temporary edges
-        for (var i = 0; i < clusterNode.edges.length; i++) {
-          var edgeId = clusterNode.edges[i].id;
-          this.body.edges[edgeId].edgeType.cleanup();
-          // this removes the edge from node.edges, which is why edgeIds is formed
-          this.body.edges[edgeId].disconnect();
-          delete this.body.edges[edgeId];
-        }
-
-        // remove clusterNode
-        delete this.body.nodes[clusterNodeId];
-
-        if (refreshData === true) {
-          this.body.emitter.emit('_dataChanged');
+        // draw the selected nodes on top
+        for (var i = 0; i < selected.length; i++) {
+          node = nodes[selected[i]];
+          node.draw(ctx);
         }
       }
     }, {
-      key: '_connectEdge',
+      key: '_drawEdges',
 
       /**
-      * Connect an edge that was previously contained from cluster A to cluster B if the node that it was originally connected to
-      * is currently residing in cluster B
-      * @param edge
-      * @param nodeId
-      * @param from
-      * @private
-      */
-      value: function _connectEdge(edge, nodeId, from) {
-        var clusterStack = this.findNode(nodeId);
-        if (from === true) {
-          edge.from = clusterStack[clusterStack.length - 1];
-          edge.fromId = clusterStack[clusterStack.length - 1].id;
-          clusterStack.pop();
-          edge.fromArray = clusterStack;
-        } else {
-          edge.to = clusterStack[clusterStack.length - 1];
-          edge.toId = clusterStack[clusterStack.length - 1].id;
-          clusterStack.pop();
-          edge.toArray = clusterStack;
-        }
-        edge.connect();
-      }
-    }, {
-      key: 'findNode',
+       * Redraw all edges
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @private
+       */
+      value: function _drawEdges(ctx) {
+        var edges = this.body.edges;
+        var edgeIndices = this.body.edgeIndices;
+        var edge = undefined;
 
-      /**
-      * Get the stack clusterId's that a certain node resides in. cluster A -> cluster B -> cluster C -> node
-      * @param nodeId
-      * @returns {Array}
-      * @private
-      */
-      value: function findNode(nodeId) {
-        var stack = [];
-        var max = 100;
-        var counter = 0;
-
-        while (this.clusteredNodes[nodeId] !== undefined && counter < max) {
-          stack.push(this.clusteredNodes[nodeId].node);
-          nodeId = this.clusteredNodes[nodeId].clusterId;
-          counter++;
-        }
-        stack.push(this.body.nodes[nodeId]);
-        return stack;
-      }
-    }, {
-      key: '_getConnectedId',
-
-      /**
-      * Get the Id the node is connected to
-      * @param edge
-      * @param nodeId
-      * @returns {*}
-      * @private
-      */
-      value: function _getConnectedId(edge, nodeId) {
-        if (edge.toId != nodeId) {
-          return edge.toId;
-        } else if (edge.fromId != nodeId) {
-          return edge.fromId;
-        } else {
-          return edge.fromId;
-        }
-      }
-    }, {
-      key: '_getHubSize',
-
-      /**
-      * We determine how many connections denote an important hub.
-      * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
-      *
-      * @private
-      */
-      value: function _getHubSize() {
-        var average = 0;
-        var averageSquared = 0;
-        var hubCounter = 0;
-        var largestHub = 0;
-
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var node = this.body.nodes[this.body.nodeIndices[i]];
-          if (node.edges.length > largestHub) {
-            largestHub = node.edges.length;
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          if (edge.connected === true) {
+            edge.draw(ctx);
           }
-          average += node.edges.length;
-          averageSquared += Math.pow(node.edges.length, 2);
-          hubCounter += 1;
         }
-        average = average / hubCounter;
-        averageSquared = averageSquared / hubCounter;
+      }
+    }, {
+      key: '_drawControlNodes',
 
-        var letiance = averageSquared - Math.pow(average, 2);
-        var standardDeviation = Math.sqrt(letiance);
+      /**
+       * Redraw all edges
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @private
+       */
+      value: function _drawControlNodes(ctx) {
+        var edges = this.body.edges;
+        var edgeIndices = this.body.edgeIndices;
+        var edge = undefined;
 
-        var hubThreshold = Math.floor(average + 2 * standardDeviation);
-
-        // always have at least one to cluster
-        if (hubThreshold > largestHub) {
-          hubThreshold = largestHub;
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          edge._drawControlNodes(ctx);
         }
+      }
+    }, {
+      key: '_determineBrowserMethod',
 
-        return hubThreshold;
+      /**
+       * Determine if the browser requires a setTimeout or a requestAnimationFrame. This was required because
+       * some implementations (safari and IE9) did not support requestAnimationFrame
+       * @private
+       */
+      value: function _determineBrowserMethod() {
+        if (typeof window !== 'undefined') {
+          var browserType = navigator.userAgent.toLowerCase();
+          this.requiresTimeout = false;
+          if (browserType.indexOf('msie 9.0') != -1) {
+            // IE 9
+            this.requiresTimeout = true;
+          } else if (browserType.indexOf('safari') != -1) {
+            // safari
+            if (browserType.indexOf('chrome') <= -1) {
+              this.requiresTimeout = true;
+            }
+          }
+        } else {
+          this.requiresTimeout = true;
+        }
       }
     }]);
 
-    return ClusterEngine;
+    return CanvasRenderer;
   })();
 
-  exports['default'] = ClusterEngine;
+  exports['default'] = CanvasRenderer;
   module.exports = exports['default'];
 
 /***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
+  // DOM utility methods
+
+  /**
+   * this prepares the JSON container for allocating SVG elements
+   * @param JSONcontainer
+   * @private
+   */
   'use strict';
 
-  var util = __webpack_require__(3);
+  exports.prepareElements = function (JSONcontainer) {
+    // cleanup the redundant svgElements;
+    for (var elementType in JSONcontainer) {
+      if (JSONcontainer.hasOwnProperty(elementType)) {
+        JSONcontainer[elementType].redundant = JSONcontainer[elementType].used;
+        JSONcontainer[elementType].used = [];
+      }
+    }
+  };
+
+  /**
+   * this cleans up all the unused SVG elements. By asking for the parentNode, we only need to supply the JSON container from
+   * which to remove the redundant elements.
+   *
+   * @param JSONcontainer
+   * @private
+   */
+  exports.cleanupElements = function (JSONcontainer) {
+    // cleanup the redundant svgElements;
+    for (var elementType in JSONcontainer) {
+      if (JSONcontainer.hasOwnProperty(elementType)) {
+        if (JSONcontainer[elementType].redundant) {
+          for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
+            JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+          }
+          JSONcontainer[elementType].redundant = [];
+        }
+      }
+    }
+  };
+
+  /**
+   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+   *
+   * @param elementType
+   * @param JSONcontainer
+   * @param svgContainer
+   * @returns {*}
+   * @private
+   */
+  exports.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
+    var element;
+    // allocate SVG element, if it doesnt yet exist, create one.
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      // this element has been created before
+      // check if there is an redundant element
+      if (JSONcontainer[elementType].redundant.length > 0) {
+        element = JSONcontainer[elementType].redundant[0];
+        JSONcontainer[elementType].redundant.shift();
+      } else {
+        // create a new element and add it to the SVG
+        element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+        svgContainer.appendChild(element);
+      }
+    } else {
+      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+      element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+      JSONcontainer[elementType] = { used: [], redundant: [] };
+      svgContainer.appendChild(element);
+    }
+    JSONcontainer[elementType].used.push(element);
+    return element;
+  };
+
+  /**
+   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+   *
+   * @param elementType
+   * @param JSONcontainer
+   * @param DOMContainer
+   * @returns {*}
+   * @private
+   */
+  exports.getDOMElement = function (elementType, JSONcontainer, DOMContainer, insertBefore) {
+    var element;
+    // allocate DOM element, if it doesnt yet exist, create one.
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      // this element has been created before
+      // check if there is an redundant element
+      if (JSONcontainer[elementType].redundant.length > 0) {
+        element = JSONcontainer[elementType].redundant[0];
+        JSONcontainer[elementType].redundant.shift();
+      } else {
+        // create a new element and add it to the SVG
+        element = document.createElement(elementType);
+        if (insertBefore !== undefined) {
+          DOMContainer.insertBefore(element, insertBefore);
+        } else {
+          DOMContainer.appendChild(element);
+        }
+      }
+    } else {
+      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+      element = document.createElement(elementType);
+      JSONcontainer[elementType] = { used: [], redundant: [] };
+      if (insertBefore !== undefined) {
+        DOMContainer.insertBefore(element, insertBefore);
+      } else {
+        DOMContainer.appendChild(element);
+      }
+    }
+    JSONcontainer[elementType].used.push(element);
+    return element;
+  };
+
+  /**
+   * draw a point object. this is a seperate function because it can also be called by the legend.
+   * The reason the JSONcontainer and the target SVG svgContainer have to be supplied is so the legend can use these functions
+   * as well.
+   *
+   * @param x
+   * @param y
+   * @param group
+   * @param JSONcontainer
+   * @param svgContainer
+   * @param labelObj
+   * @returns {*}
+   */
+  exports.drawPoint = function (x, y, group, JSONcontainer, svgContainer, labelObj) {
+    var point;
+    if (group.options.drawPoints.style == 'circle') {
+      point = exports.getSVGElement('circle', JSONcontainer, svgContainer);
+      point.setAttributeNS(null, 'cx', x);
+      point.setAttributeNS(null, 'cy', y);
+      point.setAttributeNS(null, 'r', 0.5 * group.options.drawPoints.size);
+    } else {
+      point = exports.getSVGElement('rect', JSONcontainer, svgContainer);
+      point.setAttributeNS(null, 'x', x - 0.5 * group.options.drawPoints.size);
+      point.setAttributeNS(null, 'y', y - 0.5 * group.options.drawPoints.size);
+      point.setAttributeNS(null, 'width', group.options.drawPoints.size);
+      point.setAttributeNS(null, 'height', group.options.drawPoints.size);
+    }
+
+    if (group.options.drawPoints.styles !== undefined) {
+      point.setAttributeNS(null, 'style', group.group.options.drawPoints.styles);
+    }
+    point.setAttributeNS(null, 'class', group.className + ' vis-point');
+    //handle label
+
+    if (labelObj) {
+      var label = exports.getSVGElement('text', JSONcontainer, svgContainer);
+      if (labelObj.xOffset) {
+        x = x + labelObj.xOffset;
+      }
+
+      if (labelObj.yOffset) {
+        y = y + labelObj.yOffset;
+      }
+      if (labelObj.content) {
+        label.textContent = labelObj.content;
+      }
+
+      if (labelObj.className) {
+        label.setAttributeNS(null, 'class', labelObj.className + ' vis-label');
+      }
+      label.setAttributeNS(null, 'x', x);
+      label.setAttributeNS(null, 'y', y);
+    }
+
+    return point;
+  };
+
+  /**
+   * draw a bar SVG element centered on the X coordinate
+   *
+   * @param x
+   * @param y
+   * @param className
+   */
+  exports.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer, style) {
+    if (height != 0) {
+      if (height < 0) {
+        height *= -1;
+        y -= height;
+      }
+      var rect = exports.getSVGElement('rect', JSONcontainer, svgContainer);
+      rect.setAttributeNS(null, 'x', x - 0.5 * width);
+      rect.setAttributeNS(null, 'y', y);
+      rect.setAttributeNS(null, 'width', width);
+      rect.setAttributeNS(null, 'height', height);
+      rect.setAttributeNS(null, 'class', className);
+      if (style) {
+        rect.setAttributeNS(null, 'style', style);
+      }
+    }
+  };
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var util = __webpack_require__(57);
   var Queue = __webpack_require__(5);
 
   /**
@@ -1793,1353 +1638,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // utility functions
-
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-
-  'use strict';
-
-  var moment = __webpack_require__(40);
-  var uuid = __webpack_require__(42);
-
-  /**
-   * Test whether given object is a number
-   * @param {*} object
-   * @return {Boolean} isNumber
-   */
-  exports.isNumber = function (object) {
-    return object instanceof Number || typeof object == 'number';
-  };
-
-  exports.recursiveDOMDelete = function (DOMobject) {
-    while (DOMobject.hasChildNodes() == true) {
-      exports.recursiveDOMDelete(DOMobject.firstChild);
-      DOMobject.removeChild(DOMobject.firstChild);
-    }
-  };
-
-  /**
-   * this function gives you a range between 0 and 1 based on the min and max values in the set, the total sum of all values and the current value.
-   *
-   * @param min
-   * @param max
-   * @param total
-   * @param value
-   * @returns {number}
-   */
-  exports.giveRange = function (min, max, total, value) {
-    if (max == min) {
-      return 0.5;
-    } else {
-      var scale = 1 / (max - min);
-      return Math.max(0, (value - min) * scale);
-    }
-  };
-
-  /**
-   * Test whether given object is a string
-   * @param {*} object
-   * @return {Boolean} isString
-   */
-  exports.isString = function (object) {
-    return object instanceof String || typeof object == 'string';
-  };
-
-  /**
-   * Test whether given object is a Date, or a String containing a Date
-   * @param {Date | String} object
-   * @return {Boolean} isDate
-   */
-  exports.isDate = function (object) {
-    if (object instanceof Date) {
-      return true;
-    } else if (exports.isString(object)) {
-      // test whether this string contains a date
-      var match = ASPDateRegex.exec(object);
-      if (match) {
-        return true;
-      } else if (!isNaN(Date.parse(object))) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  /**
-   * Create a semi UUID
-   * source: http://stackoverflow.com/a/105074/1262753
-   * @return {String} uuid
-   */
-  exports.randomUUID = function () {
-    return uuid.v4();
-  };
-
-  /**
-   * assign all keys of an object that are not nested objects to a certain value (used for color objects).
-   * @param obj
-   * @param value
-   */
-  exports.assignAllKeys = function (obj, value) {
-    for (var prop in obj) {
-      if (obj.hasOwnProperty(prop)) {
-        if (typeof obj[prop] !== 'object') {
-          obj[prop] = value;
-        }
-      }
-    }
-  };
-
-  /**
-   * Fill an object with a possibly partially defined other object. Only copies values if the a object has an object requiring values.
-   * That means an object is not created on a property if only the b object has it.
-   * @param obj
-   * @param value
-   */
-  exports.fillIfDefined = function (a, b) {
-    var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-    for (var prop in a) {
-      if (b[prop] !== undefined) {
-        if (typeof b[prop] !== 'object') {
-          if ((b[prop] === undefined || b[prop] === null) && a[prop] !== undefined && allowDeletion === true) {
-            delete a[prop];
-          } else {
-            a[prop] = b[prop];
-          }
-        } else {
-          if (typeof a[prop] === 'object') {
-            exports.fillIfDefined(a[prop], b[prop], allowDeletion);
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * Extend object a with the properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Object} a
-   * @param {... Object} b
-   * @return {Object} a
-   */
-  exports.protoExtend = function (a, b) {
-    for (var i = 1; i < arguments.length; i++) {
-      var other = arguments[i];
-      for (var prop in other) {
-        a[prop] = other[prop];
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with the properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Object} a
-   * @param {... Object} b
-   * @return {Object} a
-   */
-  exports.extend = function (a, b) {
-    for (var i = 1; i < arguments.length; i++) {
-      var other = arguments[i];
-      for (var prop in other) {
-        if (other.hasOwnProperty(prop)) {
-          a[prop] = other[prop];
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with selected properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Array.<String>} props
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  exports.selectiveExtend = function (props, a, b) {
-    if (!Array.isArray(props)) {
-      throw new Error('Array with property names expected as first argument');
-    }
-
-    for (var i = 2; i < arguments.length; i++) {
-      var other = arguments[i];
-
-      for (var p = 0; p < props.length; p++) {
-        var prop = props[p];
-        if (other.hasOwnProperty(prop)) {
-          a[prop] = other[prop];
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with selected properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Array.<String>} props
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  exports.selectiveDeepExtend = function (props, a, b) {
-    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
-
-    // TODO: add support for Arrays to deepExtend
-    if (Array.isArray(b)) {
-      throw new TypeError('Arrays are not supported by deepExtend');
-    }
-    for (var i = 2; i < arguments.length; i++) {
-      var other = arguments[i];
-      for (var p = 0; p < props.length; p++) {
-        var prop = props[p];
-        if (other.hasOwnProperty(prop)) {
-          if (b[prop] && b[prop].constructor === Object) {
-            if (a[prop] === undefined) {
-              a[prop] = {};
-            }
-            if (a[prop].constructor === Object) {
-              exports.deepExtend(a[prop], b[prop], false, allowDeletion);
-            } else {
-              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
-                delete a[prop];
-              } else {
-                a[prop] = b[prop];
-              }
-            }
-          } else if (Array.isArray(b[prop])) {
-            throw new TypeError('Arrays are not supported by deepExtend');
-          } else {
-            a[prop] = b[prop];
-          }
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with selected properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Array.<String>} props
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  exports.selectiveNotDeepExtend = function (props, a, b) {
-    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
-
-    // TODO: add support for Arrays to deepExtend
-    if (Array.isArray(b)) {
-      throw new TypeError('Arrays are not supported by deepExtend');
-    }
-    for (var prop in b) {
-      if (b.hasOwnProperty(prop)) {
-        if (props.indexOf(prop) == -1) {
-          if (b[prop] && b[prop].constructor === Object) {
-            if (a[prop] === undefined) {
-              a[prop] = {};
-            }
-            if (a[prop].constructor === Object) {
-              exports.deepExtend(a[prop], b[prop]);
-            } else {
-              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
-                delete a[prop];
-              } else {
-                a[prop] = b[prop];
-              }
-            }
-          } else if (Array.isArray(b[prop])) {
-            throw new TypeError('Arrays are not supported by deepExtend');
-          } else {
-            a[prop] = b[prop];
-          }
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Deep extend an object a with the properties of object b
-   * @param {Object} a
-   * @param {Object} b
-   * @param [Boolean] protoExtend --> optional parameter. If true, the prototype values will also be extended.
-   *                                  (ie. the options objects that inherit from others will also get the inherited options)
-   * @param [Boolean] global      --> optional parameter. If true, the values of fields that are null will not deleted
-   * @returns {Object}
-   */
-  exports.deepExtend = function (a, b, protoExtend, allowDeletion) {
-    for (var prop in b) {
-      if (b.hasOwnProperty(prop) || protoExtend === true) {
-        if (b[prop] && b[prop].constructor === Object) {
-          if (a[prop] === undefined) {
-            a[prop] = {};
-          }
-          if (a[prop].constructor === Object) {
-            exports.deepExtend(a[prop], b[prop], protoExtend);
-          } else {
-            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
-              delete a[prop];
-            } else {
-              a[prop] = b[prop];
-            }
-          }
-        } else if (Array.isArray(b[prop])) {
-          a[prop] = [];
-          for (var i = 0; i < b[prop].length; i++) {
-            a[prop].push(b[prop][i]);
-          }
-        } else {
-          a[prop] = b[prop];
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Test whether all elements in two arrays are equal.
-   * @param {Array} a
-   * @param {Array} b
-   * @return {boolean} Returns true if both arrays have the same length and same
-   *                   elements.
-   */
-  exports.equalArray = function (a, b) {
-    if (a.length != b.length) return false;
-
-    for (var i = 0, len = a.length; i < len; i++) {
-      if (a[i] != b[i]) return false;
-    }
-
-    return true;
-  };
-
-  /**
-   * Convert an object to another type
-   * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
-   * @param {String | undefined} type   Name of the type. Available types:
-   *                                    'Boolean', 'Number', 'String',
-   *                                    'Date', 'Moment', ISODate', 'ASPDate'.
-   * @return {*} object
-   * @throws Error
-   */
-  exports.convert = function (object, type) {
-    var match;
-
-    if (object === undefined) {
-      return undefined;
-    }
-    if (object === null) {
-      return null;
-    }
-
-    if (!type) {
-      return object;
-    }
-    if (!(typeof type === 'string') && !(type instanceof String)) {
-      throw new Error('Type must be a string');
-    }
-
-    //noinspection FallthroughInSwitchStatementJS
-    switch (type) {
-      case 'boolean':
-      case 'Boolean':
-        return Boolean(object);
-
-      case 'number':
-      case 'Number':
-        return Number(object.valueOf());
-
-      case 'string':
-      case 'String':
-        return String(object);
-
-      case 'Date':
-        if (exports.isNumber(object)) {
-          return new Date(object);
-        }
-        if (object instanceof Date) {
-          return new Date(object.valueOf());
-        } else if (moment.isMoment(object)) {
-          return new Date(object.valueOf());
-        }
-        if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          if (match) {
-            // object is an ASP date
-            return new Date(Number(match[1])); // parse number
-          } else {
-            return moment(object).toDate(); // parse string
-          }
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
-        }
-
-      case 'Moment':
-        if (exports.isNumber(object)) {
-          return moment(object);
-        }
-        if (object instanceof Date) {
-          return moment(object.valueOf());
-        } else if (moment.isMoment(object)) {
-          return moment(object);
-        }
-        if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          if (match) {
-            // object is an ASP date
-            return moment(Number(match[1])); // parse number
-          } else {
-            return moment(object); // parse string
-          }
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
-        }
-
-      case 'ISODate':
-        if (exports.isNumber(object)) {
-          return new Date(object);
-        } else if (object instanceof Date) {
-          return object.toISOString();
-        } else if (moment.isMoment(object)) {
-          return object.toDate().toISOString();
-        } else if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          if (match) {
-            // object is an ASP date
-            return new Date(Number(match[1])).toISOString(); // parse number
-          } else {
-            return new Date(object).toISOString(); // parse string
-          }
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ISODate');
-        }
-
-      case 'ASPDate':
-        if (exports.isNumber(object)) {
-          return '/Date(' + object + ')/';
-        } else if (object instanceof Date) {
-          return '/Date(' + object.valueOf() + ')/';
-        } else if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          var value;
-          if (match) {
-            // object is an ASP date
-            value = new Date(Number(match[1])).valueOf(); // parse number
-          } else {
-            value = new Date(object).valueOf(); // parse string
-          }
-          return '/Date(' + value + ')/';
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ASPDate');
-        }
-
-      default:
-        throw new Error('Unknown type "' + type + '"');
-    }
-  };
-
-  // parse ASP.Net Date pattern,
-  // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-  // code from http://momentjs.com/
-  var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
-
-  /**
-   * Get the type of an object, for example exports.getType([]) returns 'Array'
-   * @param {*} object
-   * @return {String} type
-   */
-  exports.getType = function (object) {
-    var type = typeof object;
-
-    if (type == 'object') {
-      if (object === null) {
-        return 'null';
-      }
-      if (object instanceof Boolean) {
-        return 'Boolean';
-      }
-      if (object instanceof Number) {
-        return 'Number';
-      }
-      if (object instanceof String) {
-        return 'String';
-      }
-      if (Array.isArray(object)) {
-        return 'Array';
-      }
-      if (object instanceof Date) {
-        return 'Date';
-      }
-      return 'Object';
-    } else if (type == 'number') {
-      return 'Number';
-    } else if (type == 'boolean') {
-      return 'Boolean';
-    } else if (type == 'string') {
-      return 'String';
-    } else if (type === undefined) {
-      return 'undefined';
-    }
-
-    return type;
-  };
-
-  /**
-   * Used to extend an array and copy it. This is used to propagate paths recursively.
-   *
-   * @param arr
-   * @param newValue
-   * @returns {Array}
-   */
-  exports.copyAndExtendArray = function (arr, newValue) {
-    var newArr = [];
-    for (var i = 0; i < arr.length; i++) {
-      newArr.push(arr[i]);
-    }
-    newArr.push(newValue);
-    return newArr;
-  };
-
-  /**
-   * Used to extend an array and copy it. This is used to propagate paths recursively.
-   *
-   * @param arr
-   * @param newValue
-   * @returns {Array}
-   */
-  exports.copyArray = function (arr) {
-    var newArr = [];
-    for (var i = 0; i < arr.length; i++) {
-      newArr.push(arr[i]);
-    }
-    return newArr;
-  };
-
-  /**
-   * Retrieve the absolute left value of a DOM element
-   * @param {Element} elem        A dom element, for example a div
-   * @return {number} left        The absolute left position of this element
-   *                              in the browser page.
-   */
-  exports.getAbsoluteLeft = function (elem) {
-    return elem.getBoundingClientRect().left;
-  };
-
-  /**
-   * Retrieve the absolute top value of a DOM element
-   * @param {Element} elem        A dom element, for example a div
-   * @return {number} top        The absolute top position of this element
-   *                              in the browser page.
-   */
-  exports.getAbsoluteTop = function (elem) {
-    return elem.getBoundingClientRect().top;
-  };
-
-  /**
-   * add a className to the given elements style
-   * @param {Element} elem
-   * @param {String} className
-   */
-  exports.addClassName = function (elem, className) {
-    var classes = elem.className.split(' ');
-    if (classes.indexOf(className) == -1) {
-      classes.push(className); // add the class to the array
-      elem.className = classes.join(' ');
-    }
-  };
-
-  /**
-   * add a className to the given elements style
-   * @param {Element} elem
-   * @param {String} className
-   */
-  exports.removeClassName = function (elem, className) {
-    var classes = elem.className.split(' ');
-    var index = classes.indexOf(className);
-    if (index != -1) {
-      classes.splice(index, 1); // remove the class from the array
-      elem.className = classes.join(' ');
-    }
-  };
-
-  /**
-   * For each method for both arrays and objects.
-   * In case of an array, the built-in Array.forEach() is applied.
-   * In case of an Object, the method loops over all properties of the object.
-   * @param {Object | Array} object   An Object or Array
-   * @param {function} callback       Callback method, called for each item in
-   *                                  the object or array with three parameters:
-   *                                  callback(value, index, object)
-   */
-  exports.forEach = function (object, callback) {
-    var i, len;
-    if (Array.isArray(object)) {
-      // array
-      for (i = 0, len = object.length; i < len; i++) {
-        callback(object[i], i, object);
-      }
-    } else {
-      // object
-      for (i in object) {
-        if (object.hasOwnProperty(i)) {
-          callback(object[i], i, object);
-        }
-      }
-    }
-  };
-
-  /**
-   * Convert an object into an array: all objects properties are put into the
-   * array. The resulting array is unordered.
-   * @param {Object} object
-   * @param {Array} array
-   */
-  exports.toArray = function (object) {
-    var array = [];
-
-    for (var prop in object) {
-      if (object.hasOwnProperty(prop)) array.push(object[prop]);
-    }
-
-    return array;
-  };
-
-  /**
-   * Update a property in an object
-   * @param {Object} object
-   * @param {String} key
-   * @param {*} value
-   * @return {Boolean} changed
-   */
-  exports.updateProperty = function (object, key, value) {
-    if (object[key] !== value) {
-      object[key] = value;
-      return true;
-    } else {
-      return false;
-    }
-  };
-
-  /**
-   * Add and event listener. Works for all browsers
-   * @param {Element}     element    An html element
-   * @param {string}      action     The action, for example "click",
-   *                                 without the prefix "on"
-   * @param {function}    listener   The callback function to be executed
-   * @param {boolean}     [useCapture]
-   */
-  exports.addEventListener = function (element, action, listener, useCapture) {
-    if (element.addEventListener) {
-      if (useCapture === undefined) useCapture = false;
-
-      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
-        action = 'DOMMouseScroll'; // For Firefox
-      }
-
-      element.addEventListener(action, listener, useCapture);
-    } else {
-      element.attachEvent('on' + action, listener); // IE browsers
-    }
-  };
-
-  /**
-   * Remove an event listener from an element
-   * @param {Element}     element         An html dom element
-   * @param {string}      action          The name of the event, for example "mousedown"
-   * @param {function}    listener        The listener function
-   * @param {boolean}     [useCapture]
-   */
-  exports.removeEventListener = function (element, action, listener, useCapture) {
-    if (element.removeEventListener) {
-      // non-IE browsers
-      if (useCapture === undefined) useCapture = false;
-
-      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
-        action = 'DOMMouseScroll'; // For Firefox
-      }
-
-      element.removeEventListener(action, listener, useCapture);
-    } else {
-      // IE browsers
-      element.detachEvent('on' + action, listener);
-    }
-  };
-
-  /**
-   * Cancels the event if it is cancelable, without stopping further propagation of the event.
-   */
-  exports.preventDefault = function (event) {
-    if (!event) event = window.event;
-
-    if (event.preventDefault) {
-      event.preventDefault(); // non-IE browsers
-    } else {
-      event.returnValue = false; // IE browsers
-    }
-  };
-
-  /**
-   * Get HTML element which is the target of the event
-   * @param {Event} event
-   * @return {Element} target element
-   */
-  exports.getTarget = function (event) {
-    // code from http://www.quirksmode.org/js/events_properties.html
-    if (!event) {
-      event = window.event;
-    }
-
-    var target;
-
-    if (event.target) {
-      target = event.target;
-    } else if (event.srcElement) {
-      target = event.srcElement;
-    }
-
-    if (target.nodeType != undefined && target.nodeType == 3) {
-      // defeat Safari bug
-      target = target.parentNode;
-    }
-
-    return target;
-  };
-
-  /**
-   * Check if given element contains given parent somewhere in the DOM tree
-   * @param {Element} element
-   * @param {Element} parent
-   */
-  exports.hasParent = function (element, parent) {
-    var e = element;
-
-    while (e) {
-      if (e === parent) {
-        return true;
-      }
-      e = e.parentNode;
-    }
-
-    return false;
-  };
-
-  exports.option = {};
-
-  /**
-   * Convert a value into a boolean
-   * @param {Boolean | function | undefined} value
-   * @param {Boolean} [defaultValue]
-   * @returns {Boolean} bool
-   */
-  exports.option.asBoolean = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (value != null) {
-      return value != false;
-    }
-
-    return defaultValue || null;
-  };
-
-  /**
-   * Convert a value into a number
-   * @param {Boolean | function | undefined} value
-   * @param {Number} [defaultValue]
-   * @returns {Number} number
-   */
-  exports.option.asNumber = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (value != null) {
-      return Number(value) || defaultValue || null;
-    }
-
-    return defaultValue || null;
-  };
-
-  /**
-   * Convert a value into a string
-   * @param {String | function | undefined} value
-   * @param {String} [defaultValue]
-   * @returns {String} str
-   */
-  exports.option.asString = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (value != null) {
-      return String(value);
-    }
-
-    return defaultValue || null;
-  };
-
-  /**
-   * Convert a size or location into a string with pixels or a percentage
-   * @param {String | Number | function | undefined} value
-   * @param {String} [defaultValue]
-   * @returns {String} size
-   */
-  exports.option.asSize = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (exports.isString(value)) {
-      return value;
-    } else if (exports.isNumber(value)) {
-      return value + 'px';
-    } else {
-      return defaultValue || null;
-    }
-  };
-
-  /**
-   * Convert a value into a DOM element
-   * @param {HTMLElement | function | undefined} value
-   * @param {HTMLElement} [defaultValue]
-   * @returns {HTMLElement | null} dom
-   */
-  exports.option.asElement = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    return value || defaultValue || null;
-  };
-
-  /**
-   * http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-   *
-   * @param {String} hex
-   * @returns {{r: *, g: *, b: *}} | 255 range
-   */
-  exports.hexToRGB = function (hex) {
-    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-      return r + r + g + g + b + b;
-    });
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  };
-
-  /**
-   * This function takes color in hex format or rgb() or rgba() format and overrides the opacity. Returns rgba() string.
-   * @param color
-   * @param opacity
-   * @returns {*}
-   */
-  exports.overrideOpacity = function (color, opacity) {
-    if (color.indexOf('rgba') != -1) {
-      return color;
-    } else if (color.indexOf('rgb') != -1) {
-      var rgb = color.substr(color.indexOf('(') + 1).replace(')', '').split(',');
-      return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + opacity + ')';
-    } else {
-      var rgb = exports.hexToRGB(color);
-      if (rgb == null) {
-        return color;
-      } else {
-        return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + opacity + ')';
-      }
-    }
-  };
-
-  /**
-   *
-   * @param red     0 -- 255
-   * @param green   0 -- 255
-   * @param blue    0 -- 255
-   * @returns {string}
-   * @constructor
-   */
-  exports.RGBToHex = function (red, green, blue) {
-    return '#' + ((1 << 24) + (red << 16) + (green << 8) + blue).toString(16).slice(1);
-  };
-
-  /**
-   * Parse a color property into an object with border, background, and
-   * highlight colors
-   * @param {Object | String} color
-   * @return {Object} colorObject
-   */
-  exports.parseColor = function (color) {
-    var c;
-    if (exports.isString(color) === true) {
-      if (exports.isValidRGB(color) === true) {
-        var rgb = color.substr(4).substr(0, color.length - 5).split(',').map(function (value) {
-          return parseInt(value);
-        });
-        color = exports.RGBToHex(rgb[0], rgb[1], rgb[2]);
-      }
-      if (exports.isValidHex(color) === true) {
-        var hsv = exports.hexToHSV(color);
-        var lighterColorHSV = { h: hsv.h, s: hsv.s * 0.8, v: Math.min(1, hsv.v * 1.02) };
-        var darkerColorHSV = { h: hsv.h, s: Math.min(1, hsv.s * 1.25), v: hsv.v * 0.8 };
-        var darkerColorHex = exports.HSVToHex(darkerColorHSV.h, darkerColorHSV.s, darkerColorHSV.v);
-        var lighterColorHex = exports.HSVToHex(lighterColorHSV.h, lighterColorHSV.s, lighterColorHSV.v);
-        c = {
-          background: color,
-          border: darkerColorHex,
-          highlight: {
-            background: lighterColorHex,
-            border: darkerColorHex
-          },
-          hover: {
-            background: lighterColorHex,
-            border: darkerColorHex
-          }
-        };
-      } else {
-        c = {
-          background: color,
-          border: color,
-          highlight: {
-            background: color,
-            border: color
-          },
-          hover: {
-            background: color,
-            border: color
-          }
-        };
-      }
-    } else {
-      c = {};
-      c.background = color.background || undefined;
-      c.border = color.border || undefined;
-
-      if (exports.isString(color.highlight)) {
-        c.highlight = {
-          border: color.highlight,
-          background: color.highlight
-        };
-      } else {
-        c.highlight = {};
-        c.highlight.background = color.highlight && color.highlight.background || undefined;
-        c.highlight.border = color.highlight && color.highlight.border || undefined;
-      }
-
-      if (exports.isString(color.hover)) {
-        c.hover = {
-          border: color.hover,
-          background: color.hover
-        };
-      } else {
-        c.hover = {};
-        c.hover.background = color.hover && color.hover.background || undefined;
-        c.hover.border = color.hover && color.hover.border || undefined;
-      }
-    }
-
-    return c;
-  };
-
-  /**
-   * http://www.javascripter.net/faq/rgb2hsv.htm
-   *
-   * @param red
-   * @param green
-   * @param blue
-   * @returns {*}
-   * @constructor
-   */
-  exports.RGBToHSV = function (red, green, blue) {
-    red = red / 255;green = green / 255;blue = blue / 255;
-    var minRGB = Math.min(red, Math.min(green, blue));
-    var maxRGB = Math.max(red, Math.max(green, blue));
-
-    // Black-gray-white
-    if (minRGB == maxRGB) {
-      return { h: 0, s: 0, v: minRGB };
-    }
-
-    // Colors other than black-gray-white:
-    var d = red == minRGB ? green - blue : blue == minRGB ? red - green : blue - red;
-    var h = red == minRGB ? 3 : blue == minRGB ? 1 : 5;
-    var hue = 60 * (h - d / (maxRGB - minRGB)) / 360;
-    var saturation = (maxRGB - minRGB) / maxRGB;
-    var value = maxRGB;
-    return { h: hue, s: saturation, v: value };
-  };
-
-  var cssUtil = {
-    // split a string with css styles into an object with key/values
-    split: function split(cssText) {
-      var styles = {};
-
-      cssText.split(';').forEach(function (style) {
-        if (style.trim() != '') {
-          var parts = style.split(':');
-          var key = parts[0].trim();
-          var value = parts[1].trim();
-          styles[key] = value;
-        }
-      });
-
-      return styles;
-    },
-
-    // build a css text string from an object with key/values
-    join: function join(styles) {
-      return Object.keys(styles).map(function (key) {
-        return key + ': ' + styles[key];
-      }).join('; ');
-    }
-  };
-
-  /**
-   * Append a string with css styles to an element
-   * @param {Element} element
-   * @param {String} cssText
-   */
-  exports.addCssText = function (element, cssText) {
-    var currentStyles = cssUtil.split(element.style.cssText);
-    var newStyles = cssUtil.split(cssText);
-    var styles = exports.extend(currentStyles, newStyles);
-
-    element.style.cssText = cssUtil.join(styles);
-  };
-
-  /**
-   * Remove a string with css styles from an element
-   * @param {Element} element
-   * @param {String} cssText
-   */
-  exports.removeCssText = function (element, cssText) {
-    var styles = cssUtil.split(element.style.cssText);
-    var removeStyles = cssUtil.split(cssText);
-
-    for (var key in removeStyles) {
-      if (removeStyles.hasOwnProperty(key)) {
-        delete styles[key];
-      }
-    }
-
-    element.style.cssText = cssUtil.join(styles);
-  };
-
-  /**
-   * https://gist.github.com/mjijackson/5311256
-   * @param h
-   * @param s
-   * @param v
-   * @returns {{r: number, g: number, b: number}}
-   * @constructor
-   */
-  exports.HSVToRGB = function (h, s, v) {
-    var r, g, b;
-
-    var i = Math.floor(h * 6);
-    var f = h * 6 - i;
-    var p = v * (1 - s);
-    var q = v * (1 - f * s);
-    var t = v * (1 - (1 - f) * s);
-
-    switch (i % 6) {
-      case 0:
-        r = v, g = t, b = p;break;
-      case 1:
-        r = q, g = v, b = p;break;
-      case 2:
-        r = p, g = v, b = t;break;
-      case 3:
-        r = p, g = q, b = v;break;
-      case 4:
-        r = t, g = p, b = v;break;
-      case 5:
-        r = v, g = p, b = q;break;
-    }
-
-    return { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
-  };
-
-  exports.HSVToHex = function (h, s, v) {
-    var rgb = exports.HSVToRGB(h, s, v);
-    return exports.RGBToHex(rgb.r, rgb.g, rgb.b);
-  };
-
-  exports.hexToHSV = function (hex) {
-    var rgb = exports.hexToRGB(hex);
-    return exports.RGBToHSV(rgb.r, rgb.g, rgb.b);
-  };
-
-  exports.isValidHex = function (hex) {
-    var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
-    return isOk;
-  };
-
-  exports.isValidRGB = function (rgb) {
-    rgb = rgb.replace(' ', '');
-    var isOk = /rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)/i.test(rgb);
-    return isOk;
-  };
-  exports.isValidRGBA = function (rgba) {
-    rgba = rgba.replace(' ', '');
-    var isOk = /rgba\((\d{1,3}),(\d{1,3}),(\d{1,3}),(.{1,3})\)/i.test(rgba);
-    return isOk;
-  };
-
-  /**
-   * This recursively redirects the prototype of JSON objects to the referenceObject
-   * This is used for default options.
-   *
-   * @param referenceObject
-   * @returns {*}
-   */
-  exports.selectiveBridgeObject = function (fields, referenceObject) {
-    if (typeof referenceObject == 'object') {
-      var objectTo = Object.create(referenceObject);
-      for (var i = 0; i < fields.length; i++) {
-        if (referenceObject.hasOwnProperty(fields[i])) {
-          if (typeof referenceObject[fields[i]] == 'object') {
-            objectTo[fields[i]] = exports.bridgeObject(referenceObject[fields[i]]);
-          }
-        }
-      }
-      return objectTo;
-    } else {
-      return null;
-    }
-  };
-
-  /**
-   * This recursively redirects the prototype of JSON objects to the referenceObject
-   * This is used for default options.
-   *
-   * @param referenceObject
-   * @returns {*}
-   */
-  exports.bridgeObject = function (referenceObject) {
-    if (typeof referenceObject == 'object') {
-      var objectTo = Object.create(referenceObject);
-      for (var i in referenceObject) {
-        if (referenceObject.hasOwnProperty(i)) {
-          if (typeof referenceObject[i] == 'object') {
-            objectTo[i] = exports.bridgeObject(referenceObject[i]);
-          }
-        }
-      }
-      return objectTo;
-    } else {
-      return null;
-    }
-  };
-
-  /**
-   * this is used to set the options of subobjects in the options object. A requirement of these subobjects
-   * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
-   *
-   * @param [object] mergeTarget | this is either this.options or the options used for the groups.
-   * @param [object] options     | options
-   * @param [String] option      | this is the option key in the options argument
-   * @private
-   */
-  exports.mergeOptions = function (mergeTarget, options, option) {
-    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
-
-    if (options[option] === null) {
-      mergeTarget[option] = undefined;
-      delete mergeTarget[option];
-    } else {
-      if (options[option] !== undefined) {
-        if (typeof options[option] === 'boolean') {
-          mergeTarget[option].enabled = options[option];
-        } else {
-          if (options[option].enabled === undefined) {
-            mergeTarget[option].enabled = true;
-          }
-          for (var prop in options[option]) {
-            if (options[option].hasOwnProperty(prop)) {
-              mergeTarget[option][prop] = options[option][prop];
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * This function does a binary search for a visible item in a sorted list. If we find a visible item, the code that uses
-   * this function will then iterate in both directions over this sorted list to find all visible items.
-   *
-   * @param {Item[]} orderedItems       | Items ordered by start
-   * @param {function} searchFunction   | -1 is lower, 0 is found, 1 is higher
-   * @param {String} field
-   * @param {String} field2
-   * @returns {number}
-   * @private
-   */
-  exports.binarySearchCustom = function (orderedItems, searchFunction, field, field2) {
-    var maxIterations = 10000;
-    var iteration = 0;
-    var low = 0;
-    var high = orderedItems.length - 1;
-
-    while (low <= high && iteration < maxIterations) {
-      var middle = Math.floor((low + high) / 2);
-
-      var item = orderedItems[middle];
-      var value = field2 === undefined ? item[field] : item[field][field2];
-
-      var searchResult = searchFunction(value);
-      if (searchResult == 0) {
-        // jihaa, found a visible item!
-        return middle;
-      } else if (searchResult == -1) {
-        // it is too small --> increase low
-        low = middle + 1;
-      } else {
-        // it is too big --> decrease high
-        high = middle - 1;
-      }
-
-      iteration++;
-    }
-
-    return -1;
-  };
-
-  /**
-   * This function does a binary search for a specific value in a sorted array. If it does not exist but is in between of
-   * two values, we return either the one before or the one after, depending on user input
-   * If it is found, we return the index, else -1.
-   *
-   * @param {Array} orderedItems
-   * @param {{start: number, end: number}} target
-   * @param {String} field
-   * @param {String} sidePreference   'before' or 'after'
-   * @returns {number}
-   * @private
-   */
-  exports.binarySearchValue = function (orderedItems, target, field, sidePreference) {
-    var maxIterations = 10000;
-    var iteration = 0;
-    var low = 0;
-    var high = orderedItems.length - 1;
-    var prevValue, value, nextValue, middle;
-
-    while (low <= high && iteration < maxIterations) {
-      // get a new guess
-      middle = Math.floor(0.5 * (high + low));
-      prevValue = orderedItems[Math.max(0, middle - 1)][field];
-      value = orderedItems[middle][field];
-      nextValue = orderedItems[Math.min(orderedItems.length - 1, middle + 1)][field];
-
-      if (value == target) {
-        // we found the target
-        return middle;
-      } else if (prevValue < target && value > target) {
-        // target is in between of the previous and the current
-        return sidePreference == 'before' ? Math.max(0, middle - 1) : middle;
-      } else if (value < target && nextValue > target) {
-        // target is in between of the current and the next
-        return sidePreference == 'before' ? middle : Math.min(orderedItems.length - 1, middle + 1);
-      } else {
-        // didnt find the target, we need to change our boundaries.
-        if (value < target) {
-          // it is too small --> increase low
-          low = middle + 1;
-        } else {
-          // it is too big --> decrease high
-          high = middle - 1;
-        }
-      }
-      iteration++;
-    }
-
-    // didnt find anything. Return -1.
-    return -1;
-  };
-
-  /*
-   * Easing Functions - inspired from http://gizma.com/easing/
-   * only considering the t value for the range [0, 1] => [0, 1]
-   * https://gist.github.com/gre/1650294
-   */
-  exports.easingFunctions = {
-    // no easing, no acceleration
-    linear: function linear(t) {
-      return t;
-    },
-    // accelerating from zero velocity
-    easeInQuad: function easeInQuad(t) {
-      return t * t;
-    },
-    // decelerating to zero velocity
-    easeOutQuad: function easeOutQuad(t) {
-      return t * (2 - t);
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutQuad: function easeInOutQuad(t) {
-      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-    },
-    // accelerating from zero velocity
-    easeInCubic: function easeInCubic(t) {
-      return t * t * t;
-    },
-    // decelerating to zero velocity
-    easeOutCubic: function easeOutCubic(t) {
-      return --t * t * t + 1;
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutCubic: function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-    },
-    // accelerating from zero velocity
-    easeInQuart: function easeInQuart(t) {
-      return t * t * t * t;
-    },
-    // decelerating to zero velocity
-    easeOutQuart: function easeOutQuart(t) {
-      return 1 - --t * t * t * t;
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutQuart: function easeInOutQuart(t) {
-      return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t;
-    },
-    // accelerating from zero velocity
-    easeInQuint: function easeInQuint(t) {
-      return t * t * t * t * t;
-    },
-    // decelerating to zero velocity
-    easeOutQuint: function easeOutQuint(t) {
-      return 1 + --t * t * t * t * t;
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutQuint: function easeInOutQuint(t) {
-      return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t;
-    }
-  };
-
-/***/ },
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(2);
+  var util = __webpack_require__(57);
+  var DataSet = __webpack_require__(3);
 
   /**
    * DataView
@@ -3692,9 +2197,9 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Emitter = __webpack_require__(69);
-  var DataSet = __webpack_require__(2);
+  var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
   var Point3d = __webpack_require__(10);
   var Point2d = __webpack_require__(9);
   var Camera = __webpack_require__(7);
@@ -6362,7 +4867,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * @constructor Slider
@@ -6856,21 +5361,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(2);
+  var util = __webpack_require__(57);
+  var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(42);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var ItemSet = __webpack_require__(32);
 
-  var Configurator = __webpack_require__(44);
-  var Validator = __webpack_require__(45)['default'];
-  var printStyle = __webpack_require__(45).printStyle;
-  var allOptions = __webpack_require__(47).allOptions;
-  var configureOptions = __webpack_require__(47).configureOptions;
+  var Configurator = __webpack_require__(43);
+  var Validator = __webpack_require__(44)['default'];
+  var printStyle = __webpack_require__(44).printStyle;
+  var allOptions = __webpack_require__(45).allOptions;
+  var configureOptions = __webpack_require__(45).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -7297,19 +5802,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(2);
+  var util = __webpack_require__(57);
+  var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(42);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var LineGraph = __webpack_require__(34);
 
-  var Configurator = __webpack_require__(44);
-  var Validator = __webpack_require__(45)['default'];
-  var printStyle = __webpack_require__(45).printStyle;
+  var Configurator = __webpack_require__(43);
+  var Validator = __webpack_require__(44)['default'];
+  var printStyle = __webpack_require__(44).printStyle;
   var allOptions = __webpack_require__(46).allOptions;
   var configureOptions = __webpack_require__(46).configureOptions;
 
@@ -8312,8 +6817,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var hammerUtil = __webpack_require__(48);
+  var util = __webpack_require__(57);
+  var hammerUtil = __webpack_require__(47);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -9114,7 +7619,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var moment = __webpack_require__(40);
   var DateUtil = __webpack_require__(15);
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * @constructor  TimeStep
@@ -9803,7 +8308,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Item = __webpack_require__(21);
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * @constructor BoxItem
@@ -10025,7 +8530,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * @constructor Item
@@ -11058,10 +9563,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(48);
 
   /**
    * A current time bar
@@ -11235,10 +9740,10 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(48);
 
   /**
    * A custom time bar
@@ -11473,8 +9978,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var DOMutil = __webpack_require__(57);
+  var util = __webpack_require__(57);
+  var DOMutil = __webpack_require__(2);
   var Component = __webpack_require__(25);
   var DataStep = __webpack_require__(16);
 
@@ -12077,11 +10582,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var DOMutil = __webpack_require__(57);
-  var Line = __webpack_require__(50);
-  var Bar = __webpack_require__(51);
-  var Points = __webpack_require__(52);
+  var util = __webpack_require__(57);
+  var DOMutil = __webpack_require__(2);
+  var Line = __webpack_require__(49);
+  var Bar = __webpack_require__(50);
+  var Points = __webpack_require__(51);
 
   /**
    * /**
@@ -12271,7 +10776,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
   var stack = __webpack_require__(18);
   var RangeItem = __webpack_require__(24);
 
@@ -12857,7 +11362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
   var Group = __webpack_require__(30);
 
   /**
@@ -12922,8 +11427,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(2);
+  var util = __webpack_require__(57);
+  var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var TimeStep = __webpack_require__(19);
   var Component = __webpack_require__(25);
@@ -13622,7 +12127,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // unsubscribe from current dataset
     if (this.groupsData) {
       util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.unsubscribe(event, callback);
+        me.groupsData.off(event, callback);
       });
 
       // remove all drawn groups
@@ -14530,8 +13035,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var DOMutil = __webpack_require__(57);
+  var util = __webpack_require__(57);
+  var DOMutil = __webpack_require__(2);
   var Component = __webpack_require__(25);
 
   /**
@@ -14744,16 +13249,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var DOMutil = __webpack_require__(57);
-  var DataSet = __webpack_require__(2);
+  var util = __webpack_require__(57);
+  var DOMutil = __webpack_require__(2);
+  var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Component = __webpack_require__(25);
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarFunctions = __webpack_require__(51);
-  var LineFunctions = __webpack_require__(50);
+  var BarFunctions = __webpack_require__(50);
+  var LineFunctions = __webpack_require__(49);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -15065,7 +13570,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // unsubscribe from current dataset
     if (this.groupsData) {
       util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.unsubscribe(event, callback);
+        me.groupsData.off(event, callback);
       });
 
       // remove all drawn groups
@@ -15720,7 +14225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
   var Component = __webpack_require__(25);
   var TimeStep = __webpack_require__(19);
   var DateUtil = __webpack_require__(15);
@@ -16163,76 +14668,76 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(53);
+  var _modulesGroups = __webpack_require__(52);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(54);
+  var _modulesNodesHandler = __webpack_require__(53);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(55);
+  var _modulesEdgesHandler = __webpack_require__(54);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(56);
+  var _modulesPhysicsEngine = __webpack_require__(55);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(1);
+  var _modulesClustering = __webpack_require__(56);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(58);
+  var _modulesCanvasRenderer = __webpack_require__(1);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(59);
+  var _modulesCanvas = __webpack_require__(58);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(60);
+  var _modulesView = __webpack_require__(59);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(61);
+  var _modulesInteractionHandler = __webpack_require__(60);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(62);
+  var _modulesSelectionHandler = __webpack_require__(61);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(63);
+  var _modulesLayoutEngine = __webpack_require__(62);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(64);
+  var _modulesManipulationSystem = __webpack_require__(63);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(44);
+  var _sharedConfigurator = __webpack_require__(43);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(45);
+  var _sharedValidator = __webpack_require__(44);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(65);
+  var _optionsJs = __webpack_require__(64);
 
-  __webpack_require__(66);
+  __webpack_require__(65);
 
   var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(2);
+  var util = __webpack_require__(57);
+  var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(67);
-  var locales = __webpack_require__(68);
+  var Activator = __webpack_require__(66);
+  var locales = __webpack_require__(67);
 
   /**
    * @constructor Network
@@ -16662,8 +15167,11 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.addNodeMode = function () {
     return this.manipulation.addNodeMode.apply(this.manipulation, arguments);
   };
+  Network.prototype.editNode = function () {
+    return this.manipulation.editNode.apply(this.manipulation, arguments);
+  };
   Network.prototype.editNodeMode = function () {
-    return this.manipulation.editNodeMode.apply(this.manipulation, arguments);
+    console.log('please use editNode instead of editNodeMode');return this.manipulation.editNode.apply(this.manipulation, arguments);
   };
   Network.prototype.addEdgeMode = function () {
     return this.manipulation.addEdgeMode.apply(this.manipulation, arguments);
@@ -17812,8 +16320,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(72);
-    var Hammer = window['Hammer'] || __webpack_require__(71);
+    var propagating = __webpack_require__(71);
+    var Hammer = window['Hammer'] || __webpack_require__(72);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -17827,234 +16335,18 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /* WEBPACK VAR INJECTION */(function(global) {'use strict';
-
-  var _rng;
-
-  var globalVar = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : null;
-
-  if (globalVar && globalVar.crypto && crypto.getRandomValues) {
-    // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
-    // Moderately fast, high quality
-    var _rnds8 = new Uint8Array(16);
-    _rng = function whatwgRNG() {
-      crypto.getRandomValues(_rnds8);
-      return _rnds8;
-    };
-  }
-
-  if (!_rng) {
-    // Math.random()-based (RNG)
-    //
-    // If all else fails, use Math.random().  It's fast, but is of unspecified
-    // quality.
-    var _rnds = new Array(16);
-    _rng = function () {
-      for (var i = 0, r; i < 16; i++) {
-        if ((i & 3) === 0) r = Math.random() * 4294967296;
-        _rnds[i] = r >>> ((i & 3) << 3) & 255;
-      }
-
-      return _rnds;
-    };
-  }
-
-  //     uuid.js
-  //
-  //     Copyright (c) 2010-2012 Robert Kieffer
-  //     MIT License - http://opensource.org/licenses/mit-license.php
-
-  // Unique ID creation requires a high quality random # generator.  We feature
-  // detect to determine the best RNG source, normalizing to a function that
-  // returns 128-bits of randomness, since that's what's usually required
-
-  //var _rng = require('./rng');
-
-  // Maps for number <-> hex string conversion
-  var _byteToHex = [];
-  var _hexToByte = {};
-  for (var i = 0; i < 256; i++) {
-    _byteToHex[i] = (i + 256).toString(16).substr(1);
-    _hexToByte[_byteToHex[i]] = i;
-  }
-
-  // **`parse()` - Parse a UUID into it's component bytes**
-  function parse(s, buf, offset) {
-    var i = buf && offset || 0,
-        ii = 0;
-
-    buf = buf || [];
-    s.toLowerCase().replace(/[0-9a-f]{2}/g, function (oct) {
-      if (ii < 16) {
-        // Don't overflow!
-        buf[i + ii++] = _hexToByte[oct];
-      }
-    });
-
-    // Zero out remaining bytes if string was short
-    while (ii < 16) {
-      buf[i + ii++] = 0;
-    }
-
-    return buf;
-  }
-
-  // **`unparse()` - Convert UUID byte array (ala parse()) into a string**
-  function unparse(buf, offset) {
-    var i = offset || 0,
-        bth = _byteToHex;
-    return bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]];
-  }
-
-  // **`v1()` - Generate time-based UUID**
-  //
-  // Inspired by https://github.com/LiosK/UUID.js
-  // and http://docs.python.org/library/uuid.html
-
-  // random #'s we need to init node and clockseq
-  var _seedBytes = _rng();
-
-  // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-  var _nodeId = [_seedBytes[0] | 1, _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]];
-
-  // Per 4.2.2, randomize (14 bit) clockseq
-  var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 16383;
-
-  // Previous uuid creation time
-  var _lastMSecs = 0,
-      _lastNSecs = 0;
-
-  // See https://github.com/broofa/node-uuid for API details
-  function v1(options, buf, offset) {
-    var i = buf && offset || 0;
-    var b = buf || [];
-
-    options = options || {};
-
-    var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
-
-    // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-    // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-    // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-    // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-    var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
-
-    // Per 4.2.1.2, use count of uuid's generated during the current clock
-    // cycle to simulate higher resolution clock
-    var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
-
-    // Time since last uuid creation (in msecs)
-    var dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000;
-
-    // Per 4.2.1.2, Bump clockseq on clock regression
-    if (dt < 0 && options.clockseq === undefined) {
-      clockseq = clockseq + 1 & 16383;
-    }
-
-    // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-    // time interval
-    if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-      nsecs = 0;
-    }
-
-    // Per 4.2.1.2 Throw error if too many uuids are requested
-    if (nsecs >= 10000) {
-      throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
-    }
-
-    _lastMSecs = msecs;
-    _lastNSecs = nsecs;
-    _clockseq = clockseq;
-
-    // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-    msecs += 12219292800000;
-
-    // `time_low`
-    var tl = ((msecs & 268435455) * 10000 + nsecs) % 4294967296;
-    b[i++] = tl >>> 24 & 255;
-    b[i++] = tl >>> 16 & 255;
-    b[i++] = tl >>> 8 & 255;
-    b[i++] = tl & 255;
-
-    // `time_mid`
-    var tmh = msecs / 4294967296 * 10000 & 268435455;
-    b[i++] = tmh >>> 8 & 255;
-    b[i++] = tmh & 255;
-
-    // `time_high_and_version`
-    b[i++] = tmh >>> 24 & 15 | 16; // include version
-    b[i++] = tmh >>> 16 & 255;
-
-    // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-    b[i++] = clockseq >>> 8 | 128;
-
-    // `clock_seq_low`
-    b[i++] = clockseq & 255;
-
-    // `node`
-    var node = options.node || _nodeId;
-    for (var n = 0; n < 6; n++) {
-      b[i + n] = node[n];
-    }
-
-    return buf ? buf : unparse(b);
-  }
-
-  // **`v4()` - Generate random UUID**
-
-  // See https://github.com/broofa/node-uuid for API details
-  function v4(options, buf, offset) {
-    // Deprecated - 'format' argument, as supported in v1.2
-    var i = buf && offset || 0;
-
-    if (typeof options == 'string') {
-      buf = options == 'binary' ? new Array(16) : null;
-      options = null;
-    }
-    options = options || {};
-
-    var rnds = options.random || (options.rng || _rng)();
-
-    // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-    rnds[6] = rnds[6] & 15 | 64;
-    rnds[8] = rnds[8] & 63 | 128;
-
-    // Copy bytes to buffer, if provided
-    if (buf) {
-      for (var ii = 0; ii < 16; ii++) {
-        buf[i + ii] = rnds[ii];
-      }
-    }
-
-    return buf || unparse(rnds);
-  }
-
-  // Export public API
-  var uuid = v4;
-  uuid.v1 = v1;
-  uuid.v4 = v4;
-  uuid.parse = parse;
-  uuid.unparse = unparse;
-
-  module.exports = uuid;
-  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
-
-/***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
   var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(2);
+  var hammerUtil = __webpack_require__(47);
+  var util = __webpack_require__(57);
+  var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
   var TimeAxis = __webpack_require__(35);
-  var Activator = __webpack_require__(67);
+  var Activator = __webpack_require__(66);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -19006,7 +17298,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 44 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19025,7 +17317,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -19681,7 +17973,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 45 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19694,7 +17986,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -20000,6 +18292,223 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
+/* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * This object contains all possible options. It will check if the types are correct, if required if the option is one
+   * of the allowed values.
+   *
+   * __any__ means that the name of the property does not matter.
+   * __type__ is a required field for all objects and contains the allowed types of all objects
+   */
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+  var string = 'string';
+  var boolean = 'boolean';
+  var number = 'number';
+  var array = 'array';
+  var date = 'date';
+  var object = 'object'; // should only be in a __type__ property
+  var dom = 'dom';
+  var moment = 'moment';
+  var fn = 'function';
+  var nada = 'null';
+  var undef = 'undefined';
+  var any = 'any';
+
+  var allOptions = {
+    configure: {
+      enabled: { boolean: boolean },
+      filter: { boolean: boolean, fn: fn },
+      container: { dom: dom },
+      __type__: { object: object, boolean: boolean, fn: fn }
+    },
+
+    //globals :
+    align: { string: string },
+    autoResize: { boolean: boolean },
+    clickToUse: { boolean: boolean },
+    dataAttributes: { string: string, array: array },
+    editable: {
+      add: { boolean: boolean, undef: undef },
+      remove: { boolean: boolean, undef: undef },
+      updateGroup: { boolean: boolean, undef: undef },
+      updateTime: { boolean: boolean, undef: undef },
+      __type__: { boolean: boolean, object: object }
+    },
+    end: { number: number, date: date, string: string, moment: moment },
+    format: {
+      minorLabels: {
+        millisecond: { string: string, undef: undef },
+        second: { string: string, undef: undef },
+        minute: { string: string, undef: undef },
+        hour: { string: string, undef: undef },
+        weekday: { string: string, undef: undef },
+        day: { string: string, undef: undef },
+        month: { string: string, undef: undef },
+        year: { string: string, undef: undef },
+        __type__: { object: object }
+      },
+      majorLabels: {
+        millisecond: { string: string, undef: undef },
+        second: { string: string, undef: undef },
+        minute: { string: string, undef: undef },
+        hour: { string: string, undef: undef },
+        weekday: { string: string, undef: undef },
+        day: { string: string, undef: undef },
+        month: { string: string, undef: undef },
+        year: { string: string, undef: undef },
+        __type__: { object: object }
+      },
+      __type__: { object: object }
+    },
+    groupOrder: { string: string, fn: fn },
+    height: { string: string, number: number },
+    hiddenDates: { object: object, array: array },
+    locale: { string: string },
+    locales: {
+      __any__: { object: object },
+      __type__: { object: object }
+    },
+    margin: {
+      axis: { number: number },
+      item: {
+        horizontal: { number: number, undef: undef },
+        vertical: { number: number, undef: undef },
+        __type__: { object: object, number: number }
+      },
+      __type__: { object: object, number: number }
+    },
+    max: { date: date, number: number, string: string, moment: moment },
+    maxHeight: { number: number, string: string },
+    min: { date: date, number: number, string: string, moment: moment },
+    minHeight: { number: number, string: string },
+    moveable: { boolean: boolean },
+    multiselect: { boolean: boolean },
+    onAdd: { fn: fn },
+    onUpdate: { fn: fn },
+    onMove: { fn: fn },
+    onMoving: { fn: fn },
+    onRemove: { fn: fn },
+    order: { fn: fn },
+    orientation: {
+      axis: { string: string, undef: undef },
+      item: { string: string, undef: undef },
+      __type__: { string: string, object: object }
+    },
+    selectable: { boolean: boolean },
+    showCurrentTime: { boolean: boolean },
+    showMajorLabels: { boolean: boolean },
+    showMinorLabels: { boolean: boolean },
+    stack: { boolean: boolean },
+    snap: { fn: fn, nada: nada },
+    start: { date: date, number: number, string: string, moment: moment },
+    template: { fn: fn },
+    timeAxis: {
+      scale: { string: string, undef: undef },
+      step: { number: number, undef: undef },
+      __type__: { object: object }
+    },
+    type: { string: string },
+    width: { string: string, number: number },
+    zoomable: { boolean: boolean },
+    zoomMax: { number: number },
+    zoomMin: { number: number },
+
+    __type__: { object: object }
+  };
+
+  var configureOptions = {
+    global: {
+      align: ['center', 'left', 'right'],
+      autoResize: true,
+      clickToUse: false,
+      // dataAttributes: ['all'], // FIXME: can be 'all' or string[]
+      editable: {
+        add: false,
+        remove: false,
+        updateGroup: false,
+        updateTime: false
+      },
+      end: '',
+      format: {
+        minorLabels: {
+          millisecond: 'SSS',
+          second: 's',
+          minute: 'HH:mm',
+          hour: 'HH:mm',
+          weekday: 'ddd D',
+          day: 'D',
+          month: 'MMM',
+          year: 'YYYY'
+        },
+        majorLabels: {
+          millisecond: 'HH:mm:ss',
+          second: 'D MMMM HH:mm',
+          minute: 'ddd D MMMM',
+          hour: 'ddd D MMMM',
+          weekday: 'MMMM YYYY',
+          day: 'MMMM YYYY',
+          month: 'YYYY',
+          year: ''
+        }
+      },
+
+      //groupOrder: {string, fn},
+      height: '',
+      //hiddenDates: {object, array},
+      locale: '',
+      margin: {
+        axis: [20, 0, 100, 1],
+        item: {
+          horizontal: [10, 0, 100, 1],
+          vertical: [10, 0, 100, 1]
+        }
+      },
+      max: '',
+      maxHeight: '',
+      min: '',
+      minHeight: '',
+      moveable: false,
+      multiselect: false,
+      //onAdd: {fn},
+      //onUpdate: {fn},
+      //onMove: {fn},
+      //onMoving: {fn},
+      //onRename: {fn},
+      //order: {fn},
+      orientation: {
+        axis: ['both', 'bottom', 'top'],
+        item: ['bottom', 'top']
+      },
+      selectable: true,
+      showCurrentTime: false,
+      showMajorLabels: true,
+      showMinorLabels: true,
+      stack: true,
+      //snap: {fn, nada},
+      start: '',
+      //template: {fn},
+      //timeAxis: {
+      //  scale: ['millisecond', 'second', 'minute', 'hour', 'weekday', 'day', 'month', 'year'],
+      //  step: [1, 1, 10, 1]
+      //},
+      type: ['box', 'point', 'range', 'background'],
+      width: '100%',
+      zoomable: true,
+      zoomMax: [315360000000000, 10, 315360000000000, 1],
+      zoomMin: [10, 10, 315360000000000, 1]
+    }
+  };
+
+  exports.allOptions = allOptions;
+  exports.configureOptions = configureOptions;
+
+/***/ },
 /* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -20274,223 +18783,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /**
-   * This object contains all possible options. It will check if the types are correct, if required if the option is one
-   * of the allowed values.
-   *
-   * __any__ means that the name of the property does not matter.
-   * __type__ is a required field for all objects and contains the allowed types of all objects
-   */
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-  var string = 'string';
-  var boolean = 'boolean';
-  var number = 'number';
-  var array = 'array';
-  var date = 'date';
-  var object = 'object'; // should only be in a __type__ property
-  var dom = 'dom';
-  var moment = 'moment';
-  var fn = 'function';
-  var nada = 'null';
-  var undef = 'undefined';
-  var any = 'any';
-
-  var allOptions = {
-    configure: {
-      enabled: { boolean: boolean },
-      filter: { boolean: boolean, fn: fn },
-      container: { dom: dom },
-      __type__: { object: object, boolean: boolean, fn: fn }
-    },
-
-    //globals :
-    align: { string: string },
-    autoResize: { boolean: boolean },
-    clickToUse: { boolean: boolean },
-    dataAttributes: { string: string, array: array },
-    editable: {
-      add: { boolean: boolean, undef: undef },
-      remove: { boolean: boolean, undef: undef },
-      updateGroup: { boolean: boolean, undef: undef },
-      updateTime: { boolean: boolean, undef: undef },
-      __type__: { boolean: boolean, object: object }
-    },
-    end: { number: number, date: date, string: string, moment: moment },
-    format: {
-      minorLabels: {
-        millisecond: { string: string, undef: undef },
-        second: { string: string, undef: undef },
-        minute: { string: string, undef: undef },
-        hour: { string: string, undef: undef },
-        weekday: { string: string, undef: undef },
-        day: { string: string, undef: undef },
-        month: { string: string, undef: undef },
-        year: { string: string, undef: undef },
-        __type__: { object: object }
-      },
-      majorLabels: {
-        millisecond: { string: string, undef: undef },
-        second: { string: string, undef: undef },
-        minute: { string: string, undef: undef },
-        hour: { string: string, undef: undef },
-        weekday: { string: string, undef: undef },
-        day: { string: string, undef: undef },
-        month: { string: string, undef: undef },
-        year: { string: string, undef: undef },
-        __type__: { object: object }
-      },
-      __type__: { object: object }
-    },
-    groupOrder: { string: string, fn: fn },
-    height: { string: string, number: number },
-    hiddenDates: { object: object, array: array },
-    locale: { string: string },
-    locales: {
-      __any__: { object: object },
-      __type__: { object: object }
-    },
-    margin: {
-      axis: { number: number },
-      item: {
-        horizontal: { number: number, undef: undef },
-        vertical: { number: number, undef: undef },
-        __type__: { object: object, number: number }
-      },
-      __type__: { object: object, number: number }
-    },
-    max: { date: date, number: number, string: string, moment: moment },
-    maxHeight: { number: number, string: string },
-    min: { date: date, number: number, string: string, moment: moment },
-    minHeight: { number: number, string: string },
-    moveable: { boolean: boolean },
-    multiselect: { boolean: boolean },
-    onAdd: { fn: fn },
-    onUpdate: { fn: fn },
-    onMove: { fn: fn },
-    onMoving: { fn: fn },
-    onRemove: { fn: fn },
-    order: { fn: fn },
-    orientation: {
-      axis: { string: string, undef: undef },
-      item: { string: string, undef: undef },
-      __type__: { string: string, object: object }
-    },
-    selectable: { boolean: boolean },
-    showCurrentTime: { boolean: boolean },
-    showMajorLabels: { boolean: boolean },
-    showMinorLabels: { boolean: boolean },
-    stack: { boolean: boolean },
-    snap: { fn: fn, nada: nada },
-    start: { date: date, number: number, string: string, moment: moment },
-    template: { fn: fn },
-    timeAxis: {
-      scale: { string: string, undef: undef },
-      step: { number: number, undef: undef },
-      __type__: { object: object }
-    },
-    type: { string: string },
-    width: { string: string, number: number },
-    zoomable: { boolean: boolean },
-    zoomMax: { number: number },
-    zoomMin: { number: number },
-
-    __type__: { object: object }
-  };
-
-  var configureOptions = {
-    global: {
-      align: ['center', 'left', 'right'],
-      autoResize: true,
-      clickToUse: false,
-      // dataAttributes: ['all'], // FIXME: can be 'all' or string[]
-      editable: {
-        add: false,
-        remove: false,
-        updateGroup: false,
-        updateTime: false
-      },
-      end: '',
-      format: {
-        minorLabels: {
-          millisecond: 'SSS',
-          second: 's',
-          minute: 'HH:mm',
-          hour: 'HH:mm',
-          weekday: 'ddd D',
-          day: 'D',
-          month: 'MMM',
-          year: 'YYYY'
-        },
-        majorLabels: {
-          millisecond: 'HH:mm:ss',
-          second: 'D MMMM HH:mm',
-          minute: 'ddd D MMMM',
-          hour: 'ddd D MMMM',
-          weekday: 'MMMM YYYY',
-          day: 'MMMM YYYY',
-          month: 'YYYY',
-          year: ''
-        }
-      },
-
-      //groupOrder: {string, fn},
-      height: '',
-      //hiddenDates: {object, array},
-      locale: '',
-      margin: {
-        axis: [20, 0, 100, 1],
-        item: {
-          horizontal: [10, 0, 100, 1],
-          vertical: [10, 0, 100, 1]
-        }
-      },
-      max: '',
-      maxHeight: '',
-      min: '',
-      minHeight: '',
-      moveable: false,
-      multiselect: false,
-      //onAdd: {fn},
-      //onUpdate: {fn},
-      //onMove: {fn},
-      //onMoving: {fn},
-      //onRename: {fn},
-      //order: {fn},
-      orientation: {
-        axis: ['both', 'bottom', 'top'],
-        item: ['bottom', 'top']
-      },
-      selectable: true,
-      showCurrentTime: false,
-      showMajorLabels: true,
-      showMinorLabels: true,
-      stack: true,
-      //snap: {fn, nada},
-      start: '',
-      //template: {fn},
-      //timeAxis: {
-      //  scale: ['millisecond', 'second', 'minute', 'hour', 'weekday', 'day', 'month', 'year'],
-      //  step: [1, 1, 10, 1]
-      //},
-      type: ['box', 'point', 'range', 'background'],
-      width: '100%',
-      zoomable: true,
-      zoomMax: [315360000000000, 10, 315360000000000, 1],
-      zoomMin: [10, 10, 315360000000000, 1]
-    }
-  };
-
-  exports.allOptions = allOptions;
-  exports.configureOptions = configureOptions;
-
-/***/ },
-/* 48 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
   var Hammer = __webpack_require__(41);
@@ -20560,7 +18852,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 49 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -20582,13 +18874,13 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 50 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(57);
-  var Points = __webpack_require__(52);
+  var DOMutil = __webpack_require__(2);
+  var Points = __webpack_require__(51);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -20877,13 +19169,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 51 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(57);
-  var Points = __webpack_require__(52);
+  var DOMutil = __webpack_require__(2);
+  var Points = __webpack_require__(51);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -21125,12 +19417,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 52 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(57);
+  var DOMutil = __webpack_require__(2);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -21172,7 +19464,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 53 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -21185,7 +19477,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * @class Groups
@@ -21314,7 +19606,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 54 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21337,8 +19629,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(2);
+  var util = __webpack_require__(57);
+  var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
 
   var NodesHandler = (function () {
@@ -21789,7 +20081,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 55 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21812,8 +20104,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(2);
+  var util = __webpack_require__(57);
+  var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
 
   var EdgesHandler = (function () {
@@ -22223,7 +20515,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 56 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22270,7 +20562,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   var PhysicsEngine = (function () {
     function PhysicsEngine(body) {
@@ -22846,204 +21138,2085 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _componentsNodesCluster = __webpack_require__(77);
+
+  var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
+
+  var util = __webpack_require__(57);
+
+  var ClusterEngine = (function () {
+    function ClusterEngine(body) {
+      var _this = this;
+
+      _classCallCheck(this, ClusterEngine);
+
+      this.body = body;
+      this.clusteredNodes = {};
+
+      this.options = {};
+      this.defaultOptions = {};
+      util.extend(this.options, this.defaultOptions);
+
+      this.body.emitter.on('_resetData', function () {
+        _this.clusteredNodes = {};
+      });
+    }
+
+    _createClass(ClusterEngine, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {}
+      }
+    }, {
+      key: 'clusterByHubsize',
+
+      /**
+      *
+      * @param hubsize
+      * @param options
+      */
+      value: function clusterByHubsize(hubsize, options) {
+        if (hubsize === undefined) {
+          hubsize = this._getHubSize();
+        } else if (tyepof(hubsize) === 'object') {
+          options = this._checkOptions(hubsize);
+          hubsize = this._getHubSize();
+        }
+
+        var nodesToCluster = [];
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var node = this.body.nodes[this.body.nodeIndices[i]];
+          if (node.edges.length >= hubsize) {
+            nodesToCluster.push(node.id);
+          }
+        }
+
+        for (var i = 0; i < nodesToCluster.length; i++) {
+          this.clusterByConnection(nodesToCluster[i], options, false);
+        }
+        this.body.emitter.emit('_dataChanged');
+      }
+    }, {
+      key: 'cluster',
+
+      /**
+      * loop over all nodes, check if they adhere to the condition and cluster if needed.
+      * @param options
+      * @param refreshData
+      */
+      value: function cluster() {
+        var options = arguments[0] === undefined ? {} : arguments[0];
+        var refreshData = arguments[1] === undefined ? true : arguments[1];
+
+        if (options.joinCondition === undefined) {
+          throw new Error('Cannot call clusterByNodeData without a joinCondition function in the options.');
+        }
+
+        // check if the options object is fine, append if needed
+        options = this._checkOptions(options);
+
+        var childNodesObj = {};
+        var childEdgesObj = {};
+
+        // collect the nodes that will be in the cluster
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var nodeId = this.body.nodeIndices[i];
+          var node = this.body.nodes[nodeId];
+          var clonedOptions = this._cloneOptions(node);
+          if (options.joinCondition(clonedOptions) === true) {
+            childNodesObj[nodeId] = this.body.nodes[nodeId];
+
+            // collect the nodes that will be in the cluster
+            for (var _i = 0; _i < node.edges.length; _i++) {
+              var edge = node.edges[_i];
+              childEdgesObj[edge.id] = edge;
+            }
+          }
+        }
+
+        this._cluster(childNodesObj, childEdgesObj, options, refreshData);
+      }
+    }, {
+      key: 'clusterOutliers',
+
+      /**
+      * Cluster all nodes in the network that have only 1 edge
+      * @param options
+      * @param refreshData
+      */
+      value: function clusterOutliers(options) {
+        var refreshData = arguments[1] === undefined ? true : arguments[1];
+
+        options = this._checkOptions(options);
+        var clusters = [];
+
+        // collect the nodes that will be in the cluster
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var childNodesObj = {};
+          var childEdgesObj = {};
+          var nodeId = this.body.nodeIndices[i];
+          var visibleEdges = 0;
+          var edge = undefined;
+          for (var j = 0; j < this.body.nodes[nodeId].edges.length; j++) {
+            if (this.body.nodes[nodeId].edges[j].options.hidden === false) {
+              visibleEdges++;
+              edge = this.body.nodes[nodeId].edges[j];
+            }
+          }
+
+          if (visibleEdges === 1) {
+            // this is an outlier
+            var childNodeId = this._getConnectedId(edge, nodeId);
+            if (childNodeId !== nodeId) {
+              if (options.joinCondition === undefined) {
+                if (this._checkIfUsed(clusters, nodeId, edge.id) === false && this._checkIfUsed(clusters, childNodeId, edge.id) === false) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[nodeId] = this.body.nodes[nodeId];
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                }
+              } else {
+                var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
+                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[nodeId] = this.body.nodes[nodeId];
+                }
+                clonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
+                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                }
+              }
+
+              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0) {
+                clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
+              }
+            }
+          }
+        }
+
+        for (var i = 0; i < clusters.length; i++) {
+          this._cluster(clusters[i].nodes, clusters[i].edges, options, false);
+        }
+
+        if (refreshData === true) {
+          this.body.emitter.emit('_dataChanged');
+        }
+      }
+    }, {
+      key: '_checkIfUsed',
+      value: function _checkIfUsed(clusters, nodeId, edgeId) {
+        for (var i = 0; i < clusters.length; i++) {
+          var cluster = clusters[i];
+          if (cluster.nodes[nodeId] !== undefined || cluster.edges[edgeId] !== undefined) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }, {
+      key: 'clusterByConnection',
+
+      /**
+      * suck all connected nodes of a node into the node.
+      * @param nodeId
+      * @param options
+      * @param refreshData
+      */
+      value: function clusterByConnection(nodeId, options) {
+        var refreshData = arguments[2] === undefined ? true : arguments[2];
+
+        // kill conditions
+        if (nodeId === undefined) {
+          throw new Error('No nodeId supplied to clusterByConnection!');
+        }
+        if (this.body.nodes[nodeId] === undefined) {
+          throw new Error('The nodeId given to clusterByConnection does not exist!');
+        }
+
+        var node = this.body.nodes[nodeId];
+        options = this._checkOptions(options, node);
+        if (options.clusterNodeProperties.x === undefined) {
+          options.clusterNodeProperties.x = node.x;
+        }
+        if (options.clusterNodeProperties.y === undefined) {
+          options.clusterNodeProperties.y = node.y;
+        }
+        if (options.clusterNodeProperties.fixed === undefined) {
+          options.clusterNodeProperties.fixed = {};
+          options.clusterNodeProperties.fixed.x = node.options.fixed.x;
+          options.clusterNodeProperties.fixed.y = node.options.fixed.y;
+        }
+
+        var childNodesObj = {};
+        var childEdgesObj = {};
+        var parentNodeId = node.id;
+        var parentClonedOptions = this._cloneOptions(node);
+        childNodesObj[parentNodeId] = node;
+
+        // collect the nodes that will be in the cluster
+        for (var i = 0; i < node.edges.length; i++) {
+          var edge = node.edges[i];
+          var childNodeId = this._getConnectedId(edge, parentNodeId);
+
+          if (childNodeId !== parentNodeId) {
+            if (options.joinCondition === undefined) {
+              childEdgesObj[edge.id] = edge;
+              childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+            } else {
+              // clone the options and insert some additional parameters that could be interesting.
+              var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
+              if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
+                childEdgesObj[edge.id] = edge;
+                childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+              }
+            }
+          } else {
+            childEdgesObj[edge.id] = edge;
+          }
+        }
+
+        this._cluster(childNodesObj, childEdgesObj, options, refreshData);
+      }
+    }, {
+      key: '_cloneOptions',
+
+      /**
+      * This returns a clone of the options or options of the edge or node to be used for construction of new edges or check functions for new nodes.
+      * @param objId
+      * @param type
+      * @returns {{}}
+      * @private
+      */
+      value: function _cloneOptions(item, type) {
+        var clonedOptions = {};
+        if (type === undefined || type === 'node') {
+          util.deepExtend(clonedOptions, item.options, true);
+          clonedOptions.x = item.x;
+          clonedOptions.y = item.y;
+          clonedOptions.amountOfConnections = item.edges.length;
+        } else {
+          util.deepExtend(clonedOptions, item.options, true);
+        }
+        return clonedOptions;
+      }
+    }, {
+      key: '_createClusterEdges',
+
+      /**
+      * This function creates the edges that will be attached to the cluster.
+      *
+      * @param childNodesObj
+      * @param childEdgesObj
+      * @param newEdges
+      * @param options
+      * @private
+      */
+      value: function _createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, clusterEdgeProperties) {
+        var edge = undefined,
+            childNodeId = undefined,
+            childNode = undefined,
+            toId = undefined,
+            fromId = undefined,
+            otherNodeId = undefined;
+
+        var childKeys = Object.keys(childNodesObj);
+        for (var i = 0; i < childKeys.length; i++) {
+          childNodeId = childKeys[i];
+          childNode = childNodesObj[childNodeId];
+
+          // construct new edges from the cluster to others
+          for (var j = 0; j < childNode.edges.length; j++) {
+            edge = childNode.edges[j];
+            childEdgesObj[edge.id] = edge;
+
+            // childNodeId position will be replaced by the cluster.
+            if (edge.toId == childNodeId) {
+              // this is a double equals because ints and strings can be interchanged here.
+              toId = clusterNodeProperties.id;
+              fromId = edge.fromId;
+              otherNodeId = fromId;
+            } else {
+              toId = edge.toId;
+              fromId = clusterNodeProperties.id;
+              otherNodeId = toId;
+            }
+
+            // if the node connected to the cluster is also in the cluster we do not need a new edge.
+            if (childNodesObj[otherNodeId] === undefined) {
+              var clonedOptions = this._cloneOptions(edge, 'edge');
+              util.deepExtend(clonedOptions, clusterEdgeProperties);
+              clonedOptions.from = fromId;
+              clonedOptions.to = toId;
+              clonedOptions.id = 'clusterEdge:' + util.randomUUID();
+              newEdges.push(this.body.functions.createEdge(clonedOptions));
+            }
+          }
+        }
+      }
+    }, {
+      key: '_checkOptions',
+
+      /**
+      * This function checks the options that can be supplied to the different cluster functions
+      * for certain fields and inserts defaults if needed
+      * @param options
+      * @returns {*}
+      * @private
+      */
+      value: function _checkOptions() {
+        var options = arguments[0] === undefined ? {} : arguments[0];
+
+        if (options.clusterEdgeProperties === undefined) {
+          options.clusterEdgeProperties = {};
+        }
+        if (options.clusterNodeProperties === undefined) {
+          options.clusterNodeProperties = {};
+        }
+
+        return options;
+      }
+    }, {
+      key: '_cluster',
+
+      /**
+      *
+      * @param {Object}    childNodesObj         | object with node objects, id as keys, same as childNodes except it also contains a source node
+      * @param {Object}    childEdgesObj         | object with edge objects, id as keys
+      * @param {Array}     options               | object with {clusterNodeProperties, clusterEdgeProperties, processProperties}
+      * @param {Boolean}   refreshData | when true, do not wrap up
+      * @private
+      */
+      value: function _cluster(childNodesObj, childEdgesObj, options) {
+        var refreshData = arguments[3] === undefined ? true : arguments[3];
+
+        // kill condition: no children so cant cluster
+        if (Object.keys(childNodesObj).length === 0) {
+          return;
+        }
+
+        var clusterNodeProperties = util.deepExtend({}, options.clusterNodeProperties);
+
+        // construct the clusterNodeProperties
+        if (options.processProperties !== undefined) {
+          // get the childNode options
+          var childNodesOptions = [];
+          for (var nodeId in childNodesObj) {
+            var clonedOptions = this._cloneOptions(childNodesObj[nodeId]);
+            childNodesOptions.push(clonedOptions);
+          }
+
+          // get clusterproperties based on childNodes
+          var childEdgesOptions = [];
+          for (var edgeId in childEdgesObj) {
+            var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
+            childEdgesOptions.push(clonedOptions);
+          }
+
+          clusterNodeProperties = options.processProperties(clusterNodeProperties, childNodesOptions, childEdgesOptions);
+          if (!clusterNodeProperties) {
+            throw new Error('The processProperties function does not return properties!');
+          }
+        }
+
+        // check if we have an unique id;
+        if (clusterNodeProperties.id === undefined) {
+          clusterNodeProperties.id = 'cluster:' + util.randomUUID();
+        }
+        var clusterId = clusterNodeProperties.id;
+
+        if (clusterNodeProperties.label === undefined) {
+          clusterNodeProperties.label = 'cluster';
+        }
+
+        // give the clusterNode a postion if it does not have one.
+        var pos = undefined;
+        if (clusterNodeProperties.x === undefined) {
+          pos = this._getClusterPosition(childNodesObj);
+          clusterNodeProperties.x = pos.x;
+        }
+        if (clusterNodeProperties.y === undefined) {
+          if (pos === undefined) {
+            pos = this._getClusterPosition(childNodesObj);
+          }
+          clusterNodeProperties.y = pos.y;
+        }
+
+        // force the ID to remain the same
+        clusterNodeProperties.id = clusterId;
+
+        // create the clusterNode
+        var clusterNode = this.body.functions.createNode(clusterNodeProperties, _componentsNodesCluster2['default']);
+        clusterNode.isCluster = true;
+        clusterNode.containedNodes = childNodesObj;
+        clusterNode.containedEdges = childEdgesObj;
+        // cache a copy from the cluster edge properties if we have to reconnect others later on
+        clusterNode.clusterEdgeProperties = options.clusterEdgeProperties;
+
+        // finally put the cluster node into global
+        this.body.nodes[clusterNodeProperties.id] = clusterNode;
+
+        // create the new edges that will connect to the cluster
+        var newEdges = [];
+        this._createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, options.clusterEdgeProperties);
+
+        // disable the childEdges
+        for (var edgeId in childEdgesObj) {
+          if (childEdgesObj.hasOwnProperty(edgeId)) {
+            if (this.body.edges[edgeId] !== undefined) {
+              var edge = this.body.edges[edgeId];
+              edge.togglePhysics(false);
+              edge.options.hidden = true;
+            }
+          }
+        }
+
+        // disable the childNodes
+        for (var nodeId in childNodesObj) {
+          if (childNodesObj.hasOwnProperty(nodeId)) {
+            this.clusteredNodes[nodeId] = { clusterId: clusterNodeProperties.id, node: this.body.nodes[nodeId] };
+            this.body.nodes[nodeId].togglePhysics(false);
+            this.body.nodes[nodeId].options.hidden = true;
+          }
+        }
+
+        // push new edges to global
+        for (var i = 0; i < newEdges.length; i++) {
+          this.body.edges[newEdges[i].id] = newEdges[i];
+          this.body.edges[newEdges[i].id].connect();
+        }
+
+        // set ID to undefined so no duplicates arise
+        clusterNodeProperties.id = undefined;
+
+        // wrap up
+        if (refreshData === true) {
+          this.body.emitter.emit('_dataChanged');
+        }
+      }
+    }, {
+      key: 'isCluster',
+
+      /**
+      * Check if a node is a cluster.
+      * @param nodeId
+      * @returns {*}
+      */
+      value: function isCluster(nodeId) {
+        if (this.body.nodes[nodeId] !== undefined) {
+          return this.body.nodes[nodeId].isCluster === true;
+        } else {
+          console.log('Node does not exist.');
+          return false;
+        }
+      }
+    }, {
+      key: '_getClusterPosition',
+
+      /**
+      * get the position of the cluster node based on what's inside
+      * @param {object} childNodesObj    | object with node objects, id as keys
+      * @returns {{x: number, y: number}}
+      * @private
+      */
+      value: function _getClusterPosition(childNodesObj) {
+        var childKeys = Object.keys(childNodesObj);
+        var minX = childNodesObj[childKeys[0]].x;
+        var maxX = childNodesObj[childKeys[0]].x;
+        var minY = childNodesObj[childKeys[0]].y;
+        var maxY = childNodesObj[childKeys[0]].y;
+        var node = undefined;
+        for (var i = 1; i < childKeys.length; i++) {
+          node = childNodesObj[childKeys[i]];
+          minX = node.x < minX ? node.x : minX;
+          maxX = node.x > maxX ? node.x : maxX;
+          minY = node.y < minY ? node.y : minY;
+          maxY = node.y > maxY ? node.y : maxY;
+        }
+
+        return { x: 0.5 * (minX + maxX), y: 0.5 * (minY + maxY) };
+      }
+    }, {
+      key: 'openCluster',
+
+      /**
+      * Open a cluster by calling this function.
+      * @param {String}  clusterNodeId | the ID of the cluster node
+      * @param {Boolean} refreshData | wrap up afterwards if not true
+      */
+      value: function openCluster(clusterNodeId) {
+        var refreshData = arguments[1] === undefined ? true : arguments[1];
+
+        // kill conditions
+        if (clusterNodeId === undefined) {
+          throw new Error('No clusterNodeId supplied to openCluster.');
+        }
+        if (this.body.nodes[clusterNodeId] === undefined) {
+          throw new Error('The clusterNodeId supplied to openCluster does not exist.');
+        }
+        if (this.body.nodes[clusterNodeId].containedNodes === undefined) {
+          console.log('The node:' + clusterNodeId + ' is not a cluster.');
+          return;
+        }
+        var clusterNode = this.body.nodes[clusterNodeId];
+        var containedNodes = clusterNode.containedNodes;
+        var containedEdges = clusterNode.containedEdges;
+
+        // release nodes
+        for (var nodeId in containedNodes) {
+          if (containedNodes.hasOwnProperty(nodeId)) {
+            var containedNode = this.body.nodes[nodeId];
+            containedNode = containedNodes[nodeId];
+            // inherit position
+            containedNode.x = clusterNode.x;
+            containedNode.y = clusterNode.y;
+
+            // inherit speed
+            containedNode.vx = clusterNode.vx;
+            containedNode.vy = clusterNode.vy;
+
+            containedNode.options.hidden = false;
+            containedNode.togglePhysics(true);
+
+            delete this.clusteredNodes[nodeId];
+          }
+        }
+
+        // release edges
+        for (var edgeId in containedEdges) {
+          if (containedEdges.hasOwnProperty(edgeId)) {
+            var edge = containedEdges[edgeId];
+            // if this edge was a temporary edge and it's connected nodes do not exist anymore, we remove it from the data
+            if (this.body.nodes[edge.fromId] === undefined || this.body.nodes[edge.toId] === undefined) {
+              edge.edgeType.cleanup();
+              // this removes the edge from node.edges, which is why edgeIds is formed
+              edge.disconnect();
+              delete this.body.edges[edgeId];
+            } else {
+
+              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster so it will be released when that cluster is opened.
+              if (this.clusteredNodes[edge.fromId] !== undefined || this.clusteredNodes[edge.toId] !== undefined) {
+                var fromId = undefined,
+                    toId = undefined;
+                var clusteredNode = this.clusteredNodes[edge.fromId] || this.clusteredNodes[edge.toId];
+                var clusterId = clusteredNode.clusterId;
+                var _clusterNode = this.body.nodes[clusterId];
+                _clusterNode.containedEdges[edgeId] = edge;
+
+                // if both from and to nodes are visible, we create a new temporary edge
+                if (edge.from.options.hidden !== true && edge.to.options.hidden !== true) {
+                  if (this.clusteredNodes[edge.fromId] !== undefined) {
+                    fromId = clusterId;
+                    toId = edge.toId;
+                  } else {
+                    fromId = edge.fromId;
+                    toId = clusterId;
+                  }
+
+                  var clonedOptions = this._cloneOptions(edge, 'edge');
+                  var id = 'clusterEdge:' + util.randomUUID();
+                  util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
+                  util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
+                  var newEdge = this.body.functions.createEdge(clonedOptions);
+
+                  this.body.edges[id] = newEdge;
+                  this.body.edges[id].connect();
+                }
+              } else {
+                edge.options.hidden = false;
+                edge.togglePhysics(true);
+              }
+            }
+          }
+        }
+
+        // remove all temporary edges
+        for (var i = 0; i < clusterNode.edges.length; i++) {
+          var edgeId = clusterNode.edges[i].id;
+          this.body.edges[edgeId].edgeType.cleanup();
+          // this removes the edge from node.edges, which is why edgeIds is formed
+          this.body.edges[edgeId].disconnect();
+          delete this.body.edges[edgeId];
+        }
+
+        // remove clusterNode
+        delete this.body.nodes[clusterNodeId];
+
+        if (refreshData === true) {
+          this.body.emitter.emit('_dataChanged');
+        }
+      }
+    }, {
+      key: '_connectEdge',
+
+      /**
+      * Connect an edge that was previously contained from cluster A to cluster B if the node that it was originally connected to
+      * is currently residing in cluster B
+      * @param edge
+      * @param nodeId
+      * @param from
+      * @private
+      */
+      value: function _connectEdge(edge, nodeId, from) {
+        var clusterStack = this.findNode(nodeId);
+        if (from === true) {
+          edge.from = clusterStack[clusterStack.length - 1];
+          edge.fromId = clusterStack[clusterStack.length - 1].id;
+          clusterStack.pop();
+          edge.fromArray = clusterStack;
+        } else {
+          edge.to = clusterStack[clusterStack.length - 1];
+          edge.toId = clusterStack[clusterStack.length - 1].id;
+          clusterStack.pop();
+          edge.toArray = clusterStack;
+        }
+        edge.connect();
+      }
+    }, {
+      key: 'findNode',
+
+      /**
+      * Get the stack clusterId's that a certain node resides in. cluster A -> cluster B -> cluster C -> node
+      * @param nodeId
+      * @returns {Array}
+      * @private
+      */
+      value: function findNode(nodeId) {
+        var stack = [];
+        var max = 100;
+        var counter = 0;
+
+        while (this.clusteredNodes[nodeId] !== undefined && counter < max) {
+          stack.push(this.clusteredNodes[nodeId].node);
+          nodeId = this.clusteredNodes[nodeId].clusterId;
+          counter++;
+        }
+        stack.push(this.body.nodes[nodeId]);
+        return stack;
+      }
+    }, {
+      key: '_getConnectedId',
+
+      /**
+      * Get the Id the node is connected to
+      * @param edge
+      * @param nodeId
+      * @returns {*}
+      * @private
+      */
+      value: function _getConnectedId(edge, nodeId) {
+        if (edge.toId != nodeId) {
+          return edge.toId;
+        } else if (edge.fromId != nodeId) {
+          return edge.fromId;
+        } else {
+          return edge.fromId;
+        }
+      }
+    }, {
+      key: '_getHubSize',
+
+      /**
+      * We determine how many connections denote an important hub.
+      * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+      *
+      * @private
+      */
+      value: function _getHubSize() {
+        var average = 0;
+        var averageSquared = 0;
+        var hubCounter = 0;
+        var largestHub = 0;
+
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var node = this.body.nodes[this.body.nodeIndices[i]];
+          if (node.edges.length > largestHub) {
+            largestHub = node.edges.length;
+          }
+          average += node.edges.length;
+          averageSquared += Math.pow(node.edges.length, 2);
+          hubCounter += 1;
+        }
+        average = average / hubCounter;
+        averageSquared = averageSquared / hubCounter;
+
+        var letiance = averageSquared - Math.pow(average, 2);
+        var standardDeviation = Math.sqrt(letiance);
+
+        var hubThreshold = Math.floor(average + 2 * standardDeviation);
+
+        // always have at least one to cluster
+        if (hubThreshold > largestHub) {
+          hubThreshold = largestHub;
+        }
+
+        return hubThreshold;
+      }
+    }]);
+
+    return ClusterEngine;
+  })();
+
+  exports['default'] = ClusterEngine;
+  module.exports = exports['default'];
+
+/***/ },
 /* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // DOM utility methods
+  // utility functions
 
-  /**
-   * this prepares the JSON container for allocating SVG elements
-   * @param JSONcontainer
-   * @private
-   */
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+
   'use strict';
 
-  exports.prepareElements = function (JSONcontainer) {
-    // cleanup the redundant svgElements;
-    for (var elementType in JSONcontainer) {
-      if (JSONcontainer.hasOwnProperty(elementType)) {
-        JSONcontainer[elementType].redundant = JSONcontainer[elementType].used;
-        JSONcontainer[elementType].used = [];
+  var moment = __webpack_require__(40);
+  var uuid = __webpack_require__(68);
+
+  /**
+   * Test whether given object is a number
+   * @param {*} object
+   * @return {Boolean} isNumber
+   */
+  exports.isNumber = function (object) {
+    return object instanceof Number || typeof object == 'number';
+  };
+
+  /**
+   * Remove everything in the DOM object
+   * @param DOMobject
+   */
+  exports.recursiveDOMDelete = function (DOMobject) {
+    if (DOMobject) {
+      while (DOMobject.hasChildNodes() === true) {
+        exports.recursiveDOMDelete(DOMobject.firstChild);
+        DOMobject.removeChild(DOMobject.firstChild);
       }
     }
   };
 
   /**
-   * this cleans up all the unused SVG elements. By asking for the parentNode, we only need to supply the JSON container from
-   * which to remove the redundant elements.
+   * this function gives you a range between 0 and 1 based on the min and max values in the set, the total sum of all values and the current value.
    *
-   * @param JSONcontainer
-   * @private
+   * @param min
+   * @param max
+   * @param total
+   * @param value
+   * @returns {number}
    */
-  exports.cleanupElements = function (JSONcontainer) {
-    // cleanup the redundant svgElements;
-    for (var elementType in JSONcontainer) {
-      if (JSONcontainer.hasOwnProperty(elementType)) {
-        if (JSONcontainer[elementType].redundant) {
-          for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
-            JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+  exports.giveRange = function (min, max, total, value) {
+    if (max == min) {
+      return 0.5;
+    } else {
+      var scale = 1 / (max - min);
+      return Math.max(0, (value - min) * scale);
+    }
+  };
+
+  /**
+   * Test whether given object is a string
+   * @param {*} object
+   * @return {Boolean} isString
+   */
+  exports.isString = function (object) {
+    return object instanceof String || typeof object == 'string';
+  };
+
+  /**
+   * Test whether given object is a Date, or a String containing a Date
+   * @param {Date | String} object
+   * @return {Boolean} isDate
+   */
+  exports.isDate = function (object) {
+    if (object instanceof Date) {
+      return true;
+    } else if (exports.isString(object)) {
+      // test whether this string contains a date
+      var match = ASPDateRegex.exec(object);
+      if (match) {
+        return true;
+      } else if (!isNaN(Date.parse(object))) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Create a semi UUID
+   * source: http://stackoverflow.com/a/105074/1262753
+   * @return {String} uuid
+   */
+  exports.randomUUID = function () {
+    return uuid.v4();
+  };
+
+  /**
+   * assign all keys of an object that are not nested objects to a certain value (used for color objects).
+   * @param obj
+   * @param value
+   */
+  exports.assignAllKeys = function (obj, value) {
+    for (var prop in obj) {
+      if (obj.hasOwnProperty(prop)) {
+        if (typeof obj[prop] !== 'object') {
+          obj[prop] = value;
+        }
+      }
+    }
+  };
+
+  /**
+   * Fill an object with a possibly partially defined other object. Only copies values if the a object has an object requiring values.
+   * That means an object is not created on a property if only the b object has it.
+   * @param obj
+   * @param value
+   */
+  exports.fillIfDefined = function (a, b) {
+    var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+    for (var prop in a) {
+      if (b[prop] !== undefined) {
+        if (typeof b[prop] !== 'object') {
+          if ((b[prop] === undefined || b[prop] === null) && a[prop] !== undefined && allowDeletion === true) {
+            delete a[prop];
+          } else {
+            a[prop] = b[prop];
           }
-          JSONcontainer[elementType].redundant = [];
-        }
-      }
-    }
-  };
-
-  /**
-   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
-   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
-   *
-   * @param elementType
-   * @param JSONcontainer
-   * @param svgContainer
-   * @returns {*}
-   * @private
-   */
-  exports.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
-    var element;
-    // allocate SVG element, if it doesnt yet exist, create one.
-    if (JSONcontainer.hasOwnProperty(elementType)) {
-      // this element has been created before
-      // check if there is an redundant element
-      if (JSONcontainer[elementType].redundant.length > 0) {
-        element = JSONcontainer[elementType].redundant[0];
-        JSONcontainer[elementType].redundant.shift();
-      } else {
-        // create a new element and add it to the SVG
-        element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
-        svgContainer.appendChild(element);
-      }
-    } else {
-      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
-      element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
-      JSONcontainer[elementType] = { used: [], redundant: [] };
-      svgContainer.appendChild(element);
-    }
-    JSONcontainer[elementType].used.push(element);
-    return element;
-  };
-
-  /**
-   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
-   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
-   *
-   * @param elementType
-   * @param JSONcontainer
-   * @param DOMContainer
-   * @returns {*}
-   * @private
-   */
-  exports.getDOMElement = function (elementType, JSONcontainer, DOMContainer, insertBefore) {
-    var element;
-    // allocate DOM element, if it doesnt yet exist, create one.
-    if (JSONcontainer.hasOwnProperty(elementType)) {
-      // this element has been created before
-      // check if there is an redundant element
-      if (JSONcontainer[elementType].redundant.length > 0) {
-        element = JSONcontainer[elementType].redundant[0];
-        JSONcontainer[elementType].redundant.shift();
-      } else {
-        // create a new element and add it to the SVG
-        element = document.createElement(elementType);
-        if (insertBefore !== undefined) {
-          DOMContainer.insertBefore(element, insertBefore);
         } else {
-          DOMContainer.appendChild(element);
+          if (typeof a[prop] === 'object') {
+            exports.fillIfDefined(a[prop], b[prop], allowDeletion);
+          }
         }
       }
-    } else {
-      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
-      element = document.createElement(elementType);
-      JSONcontainer[elementType] = { used: [], redundant: [] };
-      if (insertBefore !== undefined) {
-        DOMContainer.insertBefore(element, insertBefore);
-      } else {
-        DOMContainer.appendChild(element);
-      }
     }
-    JSONcontainer[elementType].used.push(element);
-    return element;
   };
 
   /**
-   * draw a point object. this is a seperate function because it can also be called by the legend.
-   * The reason the JSONcontainer and the target SVG svgContainer have to be supplied is so the legend can use these functions
-   * as well.
+   * Extend object a with the properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Object} a
+   * @param {... Object} b
+   * @return {Object} a
+   */
+  exports.protoExtend = function (a, b) {
+    for (var i = 1; i < arguments.length; i++) {
+      var other = arguments[i];
+      for (var prop in other) {
+        a[prop] = other[prop];
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Extend object a with the properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Object} a
+   * @param {... Object} b
+   * @return {Object} a
+   */
+  exports.extend = function (a, b) {
+    for (var i = 1; i < arguments.length; i++) {
+      var other = arguments[i];
+      for (var prop in other) {
+        if (other.hasOwnProperty(prop)) {
+          a[prop] = other[prop];
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Extend object a with selected properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Array.<String>} props
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  exports.selectiveExtend = function (props, a, b) {
+    if (!Array.isArray(props)) {
+      throw new Error('Array with property names expected as first argument');
+    }
+
+    for (var i = 2; i < arguments.length; i++) {
+      var other = arguments[i];
+
+      for (var p = 0; p < props.length; p++) {
+        var prop = props[p];
+        if (other.hasOwnProperty(prop)) {
+          a[prop] = other[prop];
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Extend object a with selected properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Array.<String>} props
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  exports.selectiveDeepExtend = function (props, a, b) {
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+
+    // TODO: add support for Arrays to deepExtend
+    if (Array.isArray(b)) {
+      throw new TypeError('Arrays are not supported by deepExtend');
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var other = arguments[i];
+      for (var p = 0; p < props.length; p++) {
+        var prop = props[p];
+        if (other.hasOwnProperty(prop)) {
+          if (b[prop] && b[prop].constructor === Object) {
+            if (a[prop] === undefined) {
+              a[prop] = {};
+            }
+            if (a[prop].constructor === Object) {
+              exports.deepExtend(a[prop], b[prop], false, allowDeletion);
+            } else {
+              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+                delete a[prop];
+              } else {
+                a[prop] = b[prop];
+              }
+            }
+          } else if (Array.isArray(b[prop])) {
+            throw new TypeError('Arrays are not supported by deepExtend');
+          } else {
+            a[prop] = b[prop];
+          }
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Extend object a with selected properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Array.<String>} props
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  exports.selectiveNotDeepExtend = function (props, a, b) {
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+
+    // TODO: add support for Arrays to deepExtend
+    if (Array.isArray(b)) {
+      throw new TypeError('Arrays are not supported by deepExtend');
+    }
+    for (var prop in b) {
+      if (b.hasOwnProperty(prop)) {
+        if (props.indexOf(prop) == -1) {
+          if (b[prop] && b[prop].constructor === Object) {
+            if (a[prop] === undefined) {
+              a[prop] = {};
+            }
+            if (a[prop].constructor === Object) {
+              exports.deepExtend(a[prop], b[prop]);
+            } else {
+              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+                delete a[prop];
+              } else {
+                a[prop] = b[prop];
+              }
+            }
+          } else if (Array.isArray(b[prop])) {
+            throw new TypeError('Arrays are not supported by deepExtend');
+          } else {
+            a[prop] = b[prop];
+          }
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Deep extend an object a with the properties of object b
+   * @param {Object} a
+   * @param {Object} b
+   * @param [Boolean] protoExtend --> optional parameter. If true, the prototype values will also be extended.
+   *                                  (ie. the options objects that inherit from others will also get the inherited options)
+   * @param [Boolean] global      --> optional parameter. If true, the values of fields that are null will not deleted
+   * @returns {Object}
+   */
+  exports.deepExtend = function (a, b, protoExtend, allowDeletion) {
+    for (var prop in b) {
+      if (b.hasOwnProperty(prop) || protoExtend === true) {
+        if (b[prop] && b[prop].constructor === Object) {
+          if (a[prop] === undefined) {
+            a[prop] = {};
+          }
+          if (a[prop].constructor === Object) {
+            exports.deepExtend(a[prop], b[prop], protoExtend);
+          } else {
+            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+              delete a[prop];
+            } else {
+              a[prop] = b[prop];
+            }
+          }
+        } else if (Array.isArray(b[prop])) {
+          a[prop] = [];
+          for (var i = 0; i < b[prop].length; i++) {
+            a[prop].push(b[prop][i]);
+          }
+        } else {
+          a[prop] = b[prop];
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Test whether all elements in two arrays are equal.
+   * @param {Array} a
+   * @param {Array} b
+   * @return {boolean} Returns true if both arrays have the same length and same
+   *                   elements.
+   */
+  exports.equalArray = function (a, b) {
+    if (a.length != b.length) return false;
+
+    for (var i = 0, len = a.length; i < len; i++) {
+      if (a[i] != b[i]) return false;
+    }
+
+    return true;
+  };
+
+  /**
+   * Convert an object to another type
+   * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
+   * @param {String | undefined} type   Name of the type. Available types:
+   *                                    'Boolean', 'Number', 'String',
+   *                                    'Date', 'Moment', ISODate', 'ASPDate'.
+   * @return {*} object
+   * @throws Error
+   */
+  exports.convert = function (object, type) {
+    var match;
+
+    if (object === undefined) {
+      return undefined;
+    }
+    if (object === null) {
+      return null;
+    }
+
+    if (!type) {
+      return object;
+    }
+    if (!(typeof type === 'string') && !(type instanceof String)) {
+      throw new Error('Type must be a string');
+    }
+
+    //noinspection FallthroughInSwitchStatementJS
+    switch (type) {
+      case 'boolean':
+      case 'Boolean':
+        return Boolean(object);
+
+      case 'number':
+      case 'Number':
+        return Number(object.valueOf());
+
+      case 'string':
+      case 'String':
+        return String(object);
+
+      case 'Date':
+        if (exports.isNumber(object)) {
+          return new Date(object);
+        }
+        if (object instanceof Date) {
+          return new Date(object.valueOf());
+        } else if (moment.isMoment(object)) {
+          return new Date(object.valueOf());
+        }
+        if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          if (match) {
+            // object is an ASP date
+            return new Date(Number(match[1])); // parse number
+          } else {
+            return moment(object).toDate(); // parse string
+          }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+        }
+
+      case 'Moment':
+        if (exports.isNumber(object)) {
+          return moment(object);
+        }
+        if (object instanceof Date) {
+          return moment(object.valueOf());
+        } else if (moment.isMoment(object)) {
+          return moment(object);
+        }
+        if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          if (match) {
+            // object is an ASP date
+            return moment(Number(match[1])); // parse number
+          } else {
+            return moment(object); // parse string
+          }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+        }
+
+      case 'ISODate':
+        if (exports.isNumber(object)) {
+          return new Date(object);
+        } else if (object instanceof Date) {
+          return object.toISOString();
+        } else if (moment.isMoment(object)) {
+          return object.toDate().toISOString();
+        } else if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          if (match) {
+            // object is an ASP date
+            return new Date(Number(match[1])).toISOString(); // parse number
+          } else {
+            return new Date(object).toISOString(); // parse string
+          }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ISODate');
+        }
+
+      case 'ASPDate':
+        if (exports.isNumber(object)) {
+          return '/Date(' + object + ')/';
+        } else if (object instanceof Date) {
+          return '/Date(' + object.valueOf() + ')/';
+        } else if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          var value;
+          if (match) {
+            // object is an ASP date
+            value = new Date(Number(match[1])).valueOf(); // parse number
+          } else {
+            value = new Date(object).valueOf(); // parse string
+          }
+          return '/Date(' + value + ')/';
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ASPDate');
+        }
+
+      default:
+        throw new Error('Unknown type "' + type + '"');
+    }
+  };
+
+  // parse ASP.Net Date pattern,
+  // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
+  // code from http://momentjs.com/
+  var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
+
+  /**
+   * Get the type of an object, for example exports.getType([]) returns 'Array'
+   * @param {*} object
+   * @return {String} type
+   */
+  exports.getType = function (object) {
+    var type = typeof object;
+
+    if (type == 'object') {
+      if (object === null) {
+        return 'null';
+      }
+      if (object instanceof Boolean) {
+        return 'Boolean';
+      }
+      if (object instanceof Number) {
+        return 'Number';
+      }
+      if (object instanceof String) {
+        return 'String';
+      }
+      if (Array.isArray(object)) {
+        return 'Array';
+      }
+      if (object instanceof Date) {
+        return 'Date';
+      }
+      return 'Object';
+    } else if (type == 'number') {
+      return 'Number';
+    } else if (type == 'boolean') {
+      return 'Boolean';
+    } else if (type == 'string') {
+      return 'String';
+    } else if (type === undefined) {
+      return 'undefined';
+    }
+
+    return type;
+  };
+
+  /**
+   * Used to extend an array and copy it. This is used to propagate paths recursively.
    *
-   * @param x
-   * @param y
-   * @param group
-   * @param JSONcontainer
-   * @param svgContainer
-   * @param labelObj
+   * @param arr
+   * @param newValue
+   * @returns {Array}
+   */
+  exports.copyAndExtendArray = function (arr, newValue) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+      newArr.push(arr[i]);
+    }
+    newArr.push(newValue);
+    return newArr;
+  };
+
+  /**
+   * Used to extend an array and copy it. This is used to propagate paths recursively.
+   *
+   * @param arr
+   * @param newValue
+   * @returns {Array}
+   */
+  exports.copyArray = function (arr) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+      newArr.push(arr[i]);
+    }
+    return newArr;
+  };
+
+  /**
+   * Retrieve the absolute left value of a DOM element
+   * @param {Element} elem        A dom element, for example a div
+   * @return {number} left        The absolute left position of this element
+   *                              in the browser page.
+   */
+  exports.getAbsoluteLeft = function (elem) {
+    return elem.getBoundingClientRect().left;
+  };
+
+  /**
+   * Retrieve the absolute top value of a DOM element
+   * @param {Element} elem        A dom element, for example a div
+   * @return {number} top        The absolute top position of this element
+   *                              in the browser page.
+   */
+  exports.getAbsoluteTop = function (elem) {
+    return elem.getBoundingClientRect().top;
+  };
+
+  /**
+   * add a className to the given elements style
+   * @param {Element} elem
+   * @param {String} className
+   */
+  exports.addClassName = function (elem, className) {
+    var classes = elem.className.split(' ');
+    if (classes.indexOf(className) == -1) {
+      classes.push(className); // add the class to the array
+      elem.className = classes.join(' ');
+    }
+  };
+
+  /**
+   * add a className to the given elements style
+   * @param {Element} elem
+   * @param {String} className
+   */
+  exports.removeClassName = function (elem, className) {
+    var classes = elem.className.split(' ');
+    var index = classes.indexOf(className);
+    if (index != -1) {
+      classes.splice(index, 1); // remove the class from the array
+      elem.className = classes.join(' ');
+    }
+  };
+
+  /**
+   * For each method for both arrays and objects.
+   * In case of an array, the built-in Array.forEach() is applied.
+   * In case of an Object, the method loops over all properties of the object.
+   * @param {Object | Array} object   An Object or Array
+   * @param {function} callback       Callback method, called for each item in
+   *                                  the object or array with three parameters:
+   *                                  callback(value, index, object)
+   */
+  exports.forEach = function (object, callback) {
+    var i, len;
+    if (Array.isArray(object)) {
+      // array
+      for (i = 0, len = object.length; i < len; i++) {
+        callback(object[i], i, object);
+      }
+    } else {
+      // object
+      for (i in object) {
+        if (object.hasOwnProperty(i)) {
+          callback(object[i], i, object);
+        }
+      }
+    }
+  };
+
+  /**
+   * Convert an object into an array: all objects properties are put into the
+   * array. The resulting array is unordered.
+   * @param {Object} object
+   * @param {Array} array
+   */
+  exports.toArray = function (object) {
+    var array = [];
+
+    for (var prop in object) {
+      if (object.hasOwnProperty(prop)) array.push(object[prop]);
+    }
+
+    return array;
+  };
+
+  /**
+   * Update a property in an object
+   * @param {Object} object
+   * @param {String} key
+   * @param {*} value
+   * @return {Boolean} changed
+   */
+  exports.updateProperty = function (object, key, value) {
+    if (object[key] !== value) {
+      object[key] = value;
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  /**
+   * Add and event listener. Works for all browsers
+   * @param {Element}     element    An html element
+   * @param {string}      action     The action, for example "click",
+   *                                 without the prefix "on"
+   * @param {function}    listener   The callback function to be executed
+   * @param {boolean}     [useCapture]
+   */
+  exports.addEventListener = function (element, action, listener, useCapture) {
+    if (element.addEventListener) {
+      if (useCapture === undefined) useCapture = false;
+
+      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
+        action = 'DOMMouseScroll'; // For Firefox
+      }
+
+      element.addEventListener(action, listener, useCapture);
+    } else {
+      element.attachEvent('on' + action, listener); // IE browsers
+    }
+  };
+
+  /**
+   * Remove an event listener from an element
+   * @param {Element}     element         An html dom element
+   * @param {string}      action          The name of the event, for example "mousedown"
+   * @param {function}    listener        The listener function
+   * @param {boolean}     [useCapture]
+   */
+  exports.removeEventListener = function (element, action, listener, useCapture) {
+    if (element.removeEventListener) {
+      // non-IE browsers
+      if (useCapture === undefined) useCapture = false;
+
+      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
+        action = 'DOMMouseScroll'; // For Firefox
+      }
+
+      element.removeEventListener(action, listener, useCapture);
+    } else {
+      // IE browsers
+      element.detachEvent('on' + action, listener);
+    }
+  };
+
+  /**
+   * Cancels the event if it is cancelable, without stopping further propagation of the event.
+   */
+  exports.preventDefault = function (event) {
+    if (!event) event = window.event;
+
+    if (event.preventDefault) {
+      event.preventDefault(); // non-IE browsers
+    } else {
+      event.returnValue = false; // IE browsers
+    }
+  };
+
+  /**
+   * Get HTML element which is the target of the event
+   * @param {Event} event
+   * @return {Element} target element
+   */
+  exports.getTarget = function (event) {
+    // code from http://www.quirksmode.org/js/events_properties.html
+    if (!event) {
+      event = window.event;
+    }
+
+    var target;
+
+    if (event.target) {
+      target = event.target;
+    } else if (event.srcElement) {
+      target = event.srcElement;
+    }
+
+    if (target.nodeType != undefined && target.nodeType == 3) {
+      // defeat Safari bug
+      target = target.parentNode;
+    }
+
+    return target;
+  };
+
+  /**
+   * Check if given element contains given parent somewhere in the DOM tree
+   * @param {Element} element
+   * @param {Element} parent
+   */
+  exports.hasParent = function (element, parent) {
+    var e = element;
+
+    while (e) {
+      if (e === parent) {
+        return true;
+      }
+      e = e.parentNode;
+    }
+
+    return false;
+  };
+
+  exports.option = {};
+
+  /**
+   * Convert a value into a boolean
+   * @param {Boolean | function | undefined} value
+   * @param {Boolean} [defaultValue]
+   * @returns {Boolean} bool
+   */
+  exports.option.asBoolean = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (value != null) {
+      return value != false;
+    }
+
+    return defaultValue || null;
+  };
+
+  /**
+   * Convert a value into a number
+   * @param {Boolean | function | undefined} value
+   * @param {Number} [defaultValue]
+   * @returns {Number} number
+   */
+  exports.option.asNumber = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (value != null) {
+      return Number(value) || defaultValue || null;
+    }
+
+    return defaultValue || null;
+  };
+
+  /**
+   * Convert a value into a string
+   * @param {String | function | undefined} value
+   * @param {String} [defaultValue]
+   * @returns {String} str
+   */
+  exports.option.asString = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (value != null) {
+      return String(value);
+    }
+
+    return defaultValue || null;
+  };
+
+  /**
+   * Convert a size or location into a string with pixels or a percentage
+   * @param {String | Number | function | undefined} value
+   * @param {String} [defaultValue]
+   * @returns {String} size
+   */
+  exports.option.asSize = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (exports.isString(value)) {
+      return value;
+    } else if (exports.isNumber(value)) {
+      return value + 'px';
+    } else {
+      return defaultValue || null;
+    }
+  };
+
+  /**
+   * Convert a value into a DOM element
+   * @param {HTMLElement | function | undefined} value
+   * @param {HTMLElement} [defaultValue]
+   * @returns {HTMLElement | null} dom
+   */
+  exports.option.asElement = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    return value || defaultValue || null;
+  };
+
+  /**
+   * http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+   *
+   * @param {String} hex
+   * @returns {{r: *, g: *, b: *}} | 255 range
+   */
+  exports.hexToRGB = function (hex) {
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+      return r + r + g + g + b + b;
+    });
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
+
+  /**
+   * This function takes color in hex format or rgb() or rgba() format and overrides the opacity. Returns rgba() string.
+   * @param color
+   * @param opacity
    * @returns {*}
    */
-  exports.drawPoint = function (x, y, group, JSONcontainer, svgContainer, labelObj) {
-    var point;
-    if (group.options.drawPoints.style == 'circle') {
-      point = exports.getSVGElement('circle', JSONcontainer, svgContainer);
-      point.setAttributeNS(null, 'cx', x);
-      point.setAttributeNS(null, 'cy', y);
-      point.setAttributeNS(null, 'r', 0.5 * group.options.drawPoints.size);
+  exports.overrideOpacity = function (color, opacity) {
+    if (color.indexOf('rgba') != -1) {
+      return color;
+    } else if (color.indexOf('rgb') != -1) {
+      var rgb = color.substr(color.indexOf('(') + 1).replace(')', '').split(',');
+      return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + opacity + ')';
     } else {
-      point = exports.getSVGElement('rect', JSONcontainer, svgContainer);
-      point.setAttributeNS(null, 'x', x - 0.5 * group.options.drawPoints.size);
-      point.setAttributeNS(null, 'y', y - 0.5 * group.options.drawPoints.size);
-      point.setAttributeNS(null, 'width', group.options.drawPoints.size);
-      point.setAttributeNS(null, 'height', group.options.drawPoints.size);
+      var rgb = exports.hexToRGB(color);
+      if (rgb == null) {
+        return color;
+      } else {
+        return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + opacity + ')';
+      }
     }
-
-    if (group.options.drawPoints.styles !== undefined) {
-      point.setAttributeNS(null, 'style', group.group.options.drawPoints.styles);
-    }
-    point.setAttributeNS(null, 'class', group.className + ' vis-point');
-    //handle label
-
-    if (labelObj) {
-      var label = exports.getSVGElement('text', JSONcontainer, svgContainer);
-      if (labelObj.xOffset) {
-        x = x + labelObj.xOffset;
-      }
-
-      if (labelObj.yOffset) {
-        y = y + labelObj.yOffset;
-      }
-      if (labelObj.content) {
-        label.textContent = labelObj.content;
-      }
-
-      if (labelObj.className) {
-        label.setAttributeNS(null, 'class', labelObj.className + ' vis-label');
-      }
-      label.setAttributeNS(null, 'x', x);
-      label.setAttributeNS(null, 'y', y);
-    }
-
-    return point;
   };
 
   /**
-   * draw a bar SVG element centered on the X coordinate
    *
-   * @param x
-   * @param y
-   * @param className
+   * @param red     0 -- 255
+   * @param green   0 -- 255
+   * @param blue    0 -- 255
+   * @returns {string}
+   * @constructor
    */
-  exports.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer, style) {
-    if (height != 0) {
-      if (height < 0) {
-        height *= -1;
-        y -= height;
+  exports.RGBToHex = function (red, green, blue) {
+    return '#' + ((1 << 24) + (red << 16) + (green << 8) + blue).toString(16).slice(1);
+  };
+
+  /**
+   * Parse a color property into an object with border, background, and
+   * highlight colors
+   * @param {Object | String} color
+   * @return {Object} colorObject
+   */
+  exports.parseColor = function (color) {
+    var c;
+    if (exports.isString(color) === true) {
+      if (exports.isValidRGB(color) === true) {
+        var rgb = color.substr(4).substr(0, color.length - 5).split(',').map(function (value) {
+          return parseInt(value);
+        });
+        color = exports.RGBToHex(rgb[0], rgb[1], rgb[2]);
       }
-      var rect = exports.getSVGElement('rect', JSONcontainer, svgContainer);
-      rect.setAttributeNS(null, 'x', x - 0.5 * width);
-      rect.setAttributeNS(null, 'y', y);
-      rect.setAttributeNS(null, 'width', width);
-      rect.setAttributeNS(null, 'height', height);
-      rect.setAttributeNS(null, 'class', className);
-      if (style) {
-        rect.setAttributeNS(null, 'style', style);
+      if (exports.isValidHex(color) === true) {
+        var hsv = exports.hexToHSV(color);
+        var lighterColorHSV = { h: hsv.h, s: hsv.s * 0.8, v: Math.min(1, hsv.v * 1.02) };
+        var darkerColorHSV = { h: hsv.h, s: Math.min(1, hsv.s * 1.25), v: hsv.v * 0.8 };
+        var darkerColorHex = exports.HSVToHex(darkerColorHSV.h, darkerColorHSV.s, darkerColorHSV.v);
+        var lighterColorHex = exports.HSVToHex(lighterColorHSV.h, lighterColorHSV.s, lighterColorHSV.v);
+        c = {
+          background: color,
+          border: darkerColorHex,
+          highlight: {
+            background: lighterColorHex,
+            border: darkerColorHex
+          },
+          hover: {
+            background: lighterColorHex,
+            border: darkerColorHex
+          }
+        };
+      } else {
+        c = {
+          background: color,
+          border: color,
+          highlight: {
+            background: color,
+            border: color
+          },
+          hover: {
+            background: color,
+            border: color
+          }
+        };
       }
+    } else {
+      c = {};
+      c.background = color.background || undefined;
+      c.border = color.border || undefined;
+
+      if (exports.isString(color.highlight)) {
+        c.highlight = {
+          border: color.highlight,
+          background: color.highlight
+        };
+      } else {
+        c.highlight = {};
+        c.highlight.background = color.highlight && color.highlight.background || undefined;
+        c.highlight.border = color.highlight && color.highlight.border || undefined;
+      }
+
+      if (exports.isString(color.hover)) {
+        c.hover = {
+          border: color.hover,
+          background: color.hover
+        };
+      } else {
+        c.hover = {};
+        c.hover.background = color.hover && color.hover.background || undefined;
+        c.hover.border = color.hover && color.hover.border || undefined;
+      }
+    }
+
+    return c;
+  };
+
+  /**
+   * http://www.javascripter.net/faq/rgb2hsv.htm
+   *
+   * @param red
+   * @param green
+   * @param blue
+   * @returns {*}
+   * @constructor
+   */
+  exports.RGBToHSV = function (red, green, blue) {
+    red = red / 255;green = green / 255;blue = blue / 255;
+    var minRGB = Math.min(red, Math.min(green, blue));
+    var maxRGB = Math.max(red, Math.max(green, blue));
+
+    // Black-gray-white
+    if (minRGB == maxRGB) {
+      return { h: 0, s: 0, v: minRGB };
+    }
+
+    // Colors other than black-gray-white:
+    var d = red == minRGB ? green - blue : blue == minRGB ? red - green : blue - red;
+    var h = red == minRGB ? 3 : blue == minRGB ? 1 : 5;
+    var hue = 60 * (h - d / (maxRGB - minRGB)) / 360;
+    var saturation = (maxRGB - minRGB) / maxRGB;
+    var value = maxRGB;
+    return { h: hue, s: saturation, v: value };
+  };
+
+  var cssUtil = {
+    // split a string with css styles into an object with key/values
+    split: function split(cssText) {
+      var styles = {};
+
+      cssText.split(';').forEach(function (style) {
+        if (style.trim() != '') {
+          var parts = style.split(':');
+          var key = parts[0].trim();
+          var value = parts[1].trim();
+          styles[key] = value;
+        }
+      });
+
+      return styles;
+    },
+
+    // build a css text string from an object with key/values
+    join: function join(styles) {
+      return Object.keys(styles).map(function (key) {
+        return key + ': ' + styles[key];
+      }).join('; ');
+    }
+  };
+
+  /**
+   * Append a string with css styles to an element
+   * @param {Element} element
+   * @param {String} cssText
+   */
+  exports.addCssText = function (element, cssText) {
+    var currentStyles = cssUtil.split(element.style.cssText);
+    var newStyles = cssUtil.split(cssText);
+    var styles = exports.extend(currentStyles, newStyles);
+
+    element.style.cssText = cssUtil.join(styles);
+  };
+
+  /**
+   * Remove a string with css styles from an element
+   * @param {Element} element
+   * @param {String} cssText
+   */
+  exports.removeCssText = function (element, cssText) {
+    var styles = cssUtil.split(element.style.cssText);
+    var removeStyles = cssUtil.split(cssText);
+
+    for (var key in removeStyles) {
+      if (removeStyles.hasOwnProperty(key)) {
+        delete styles[key];
+      }
+    }
+
+    element.style.cssText = cssUtil.join(styles);
+  };
+
+  /**
+   * https://gist.github.com/mjijackson/5311256
+   * @param h
+   * @param s
+   * @param v
+   * @returns {{r: number, g: number, b: number}}
+   * @constructor
+   */
+  exports.HSVToRGB = function (h, s, v) {
+    var r, g, b;
+
+    var i = Math.floor(h * 6);
+    var f = h * 6 - i;
+    var p = v * (1 - s);
+    var q = v * (1 - f * s);
+    var t = v * (1 - (1 - f) * s);
+
+    switch (i % 6) {
+      case 0:
+        r = v, g = t, b = p;break;
+      case 1:
+        r = q, g = v, b = p;break;
+      case 2:
+        r = p, g = v, b = t;break;
+      case 3:
+        r = p, g = q, b = v;break;
+      case 4:
+        r = t, g = p, b = v;break;
+      case 5:
+        r = v, g = p, b = q;break;
+    }
+
+    return { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
+  };
+
+  exports.HSVToHex = function (h, s, v) {
+    var rgb = exports.HSVToRGB(h, s, v);
+    return exports.RGBToHex(rgb.r, rgb.g, rgb.b);
+  };
+
+  exports.hexToHSV = function (hex) {
+    var rgb = exports.hexToRGB(hex);
+    return exports.RGBToHSV(rgb.r, rgb.g, rgb.b);
+  };
+
+  exports.isValidHex = function (hex) {
+    var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
+    return isOk;
+  };
+
+  exports.isValidRGB = function (rgb) {
+    rgb = rgb.replace(' ', '');
+    var isOk = /rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)/i.test(rgb);
+    return isOk;
+  };
+  exports.isValidRGBA = function (rgba) {
+    rgba = rgba.replace(' ', '');
+    var isOk = /rgba\((\d{1,3}),(\d{1,3}),(\d{1,3}),(.{1,3})\)/i.test(rgba);
+    return isOk;
+  };
+
+  /**
+   * This recursively redirects the prototype of JSON objects to the referenceObject
+   * This is used for default options.
+   *
+   * @param referenceObject
+   * @returns {*}
+   */
+  exports.selectiveBridgeObject = function (fields, referenceObject) {
+    if (typeof referenceObject == 'object') {
+      var objectTo = Object.create(referenceObject);
+      for (var i = 0; i < fields.length; i++) {
+        if (referenceObject.hasOwnProperty(fields[i])) {
+          if (typeof referenceObject[fields[i]] == 'object') {
+            objectTo[fields[i]] = exports.bridgeObject(referenceObject[fields[i]]);
+          }
+        }
+      }
+      return objectTo;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * This recursively redirects the prototype of JSON objects to the referenceObject
+   * This is used for default options.
+   *
+   * @param referenceObject
+   * @returns {*}
+   */
+  exports.bridgeObject = function (referenceObject) {
+    if (typeof referenceObject == 'object') {
+      var objectTo = Object.create(referenceObject);
+      for (var i in referenceObject) {
+        if (referenceObject.hasOwnProperty(i)) {
+          if (typeof referenceObject[i] == 'object') {
+            objectTo[i] = exports.bridgeObject(referenceObject[i]);
+          }
+        }
+      }
+      return objectTo;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+   * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+   *
+   * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+   * @param [object] options     | options
+   * @param [String] option      | this is the option key in the options argument
+   * @private
+   */
+  exports.mergeOptions = function (mergeTarget, options, option) {
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+
+    if (options[option] === null) {
+      mergeTarget[option] = undefined;
+      delete mergeTarget[option];
+    } else {
+      if (options[option] !== undefined) {
+        if (typeof options[option] === 'boolean') {
+          mergeTarget[option].enabled = options[option];
+        } else {
+          if (options[option].enabled === undefined) {
+            mergeTarget[option].enabled = true;
+          }
+          for (var prop in options[option]) {
+            if (options[option].hasOwnProperty(prop)) {
+              mergeTarget[option][prop] = options[option][prop];
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * This function does a binary search for a visible item in a sorted list. If we find a visible item, the code that uses
+   * this function will then iterate in both directions over this sorted list to find all visible items.
+   *
+   * @param {Item[]} orderedItems       | Items ordered by start
+   * @param {function} searchFunction   | -1 is lower, 0 is found, 1 is higher
+   * @param {String} field
+   * @param {String} field2
+   * @returns {number}
+   * @private
+   */
+  exports.binarySearchCustom = function (orderedItems, searchFunction, field, field2) {
+    var maxIterations = 10000;
+    var iteration = 0;
+    var low = 0;
+    var high = orderedItems.length - 1;
+
+    while (low <= high && iteration < maxIterations) {
+      var middle = Math.floor((low + high) / 2);
+
+      var item = orderedItems[middle];
+      var value = field2 === undefined ? item[field] : item[field][field2];
+
+      var searchResult = searchFunction(value);
+      if (searchResult == 0) {
+        // jihaa, found a visible item!
+        return middle;
+      } else if (searchResult == -1) {
+        // it is too small --> increase low
+        low = middle + 1;
+      } else {
+        // it is too big --> decrease high
+        high = middle - 1;
+      }
+
+      iteration++;
+    }
+
+    return -1;
+  };
+
+  /**
+   * This function does a binary search for a specific value in a sorted array. If it does not exist but is in between of
+   * two values, we return either the one before or the one after, depending on user input
+   * If it is found, we return the index, else -1.
+   *
+   * @param {Array} orderedItems
+   * @param {{start: number, end: number}} target
+   * @param {String} field
+   * @param {String} sidePreference   'before' or 'after'
+   * @returns {number}
+   * @private
+   */
+  exports.binarySearchValue = function (orderedItems, target, field, sidePreference) {
+    var maxIterations = 10000;
+    var iteration = 0;
+    var low = 0;
+    var high = orderedItems.length - 1;
+    var prevValue, value, nextValue, middle;
+
+    while (low <= high && iteration < maxIterations) {
+      // get a new guess
+      middle = Math.floor(0.5 * (high + low));
+      prevValue = orderedItems[Math.max(0, middle - 1)][field];
+      value = orderedItems[middle][field];
+      nextValue = orderedItems[Math.min(orderedItems.length - 1, middle + 1)][field];
+
+      if (value == target) {
+        // we found the target
+        return middle;
+      } else if (prevValue < target && value > target) {
+        // target is in between of the previous and the current
+        return sidePreference == 'before' ? Math.max(0, middle - 1) : middle;
+      } else if (value < target && nextValue > target) {
+        // target is in between of the current and the next
+        return sidePreference == 'before' ? middle : Math.min(orderedItems.length - 1, middle + 1);
+      } else {
+        // didnt find the target, we need to change our boundaries.
+        if (value < target) {
+          // it is too small --> increase low
+          low = middle + 1;
+        } else {
+          // it is too big --> decrease high
+          high = middle - 1;
+        }
+      }
+      iteration++;
+    }
+
+    // didnt find anything. Return -1.
+    return -1;
+  };
+
+  /*
+   * Easing Functions - inspired from http://gizma.com/easing/
+   * only considering the t value for the range [0, 1] => [0, 1]
+   * https://gist.github.com/gre/1650294
+   */
+  exports.easingFunctions = {
+    // no easing, no acceleration
+    linear: function linear(t) {
+      return t;
+    },
+    // accelerating from zero velocity
+    easeInQuad: function easeInQuad(t) {
+      return t * t;
+    },
+    // decelerating to zero velocity
+    easeOutQuad: function easeOutQuad(t) {
+      return t * (2 - t);
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuad: function easeInOutQuad(t) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    },
+    // accelerating from zero velocity
+    easeInCubic: function easeInCubic(t) {
+      return t * t * t;
+    },
+    // decelerating to zero velocity
+    easeOutCubic: function easeOutCubic(t) {
+      return --t * t * t + 1;
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutCubic: function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+    },
+    // accelerating from zero velocity
+    easeInQuart: function easeInQuart(t) {
+      return t * t * t * t;
+    },
+    // decelerating to zero velocity
+    easeOutQuart: function easeOutQuart(t) {
+      return 1 - --t * t * t * t;
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuart: function easeInOutQuart(t) {
+      return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t;
+    },
+    // accelerating from zero velocity
+    easeInQuint: function easeInQuint(t) {
+      return t * t * t * t * t;
+    },
+    // decelerating to zero velocity
+    easeOutQuint: function easeOutQuint(t) {
+      return 1 + --t * t * t * t * t;
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuint: function easeInOutQuint(t) {
+      return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t;
     }
   };
 
@@ -23061,390 +23234,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  if (typeof window !== 'undefined') {
-    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-  }
-
-  var util = __webpack_require__(3);
-
-  var CanvasRenderer = (function () {
-    function CanvasRenderer(body, canvas) {
-      _classCallCheck(this, CanvasRenderer);
-
-      this.body = body;
-      this.canvas = canvas;
-
-      this.redrawRequested = false;
-      this.renderTimer = undefined;
-      this.requiresTimeout = true;
-      this.renderingActive = false;
-      this.renderRequests = 0;
-      this.pixelRatio = undefined;
-      this.allowRedrawRequests = true;
-
-      this.dragging = false;
-      this.options = {};
-      this.defaultOptions = {
-        hideEdgesOnDrag: false,
-        hideNodesOnDrag: false
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this._determineBrowserMethod();
-      this.bindEventListeners();
-    }
-
-    _createClass(CanvasRenderer, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
-
-        this.body.emitter.on('dragStart', function () {
-          _this.dragging = true;
-        });
-        this.body.emitter.on('dragEnd', function () {
-          return _this.dragging = false;
-        });
-        this.body.emitter.on('_resizeNodes', function () {
-          return _this._resizeNodes();
-        });
-        this.body.emitter.on('_redraw', function () {
-          if (_this.renderingActive === false) {
-            _this._redraw();
-          }
-        });
-        this.body.emitter.on('_blockRedrawRequests', function () {
-          _this.allowRedrawRequests = false;
-        });
-        this.body.emitter.on('_allowRedrawRequests', function () {
-          _this.allowRedrawRequests = true;
-        });
-        this.body.emitter.on('_requestRedraw', this._requestRedraw.bind(this));
-        this.body.emitter.on('_startRendering', function () {
-          _this.renderRequests += 1;
-          _this.renderingActive = true;
-          _this._startRendering();
-        });
-        this.body.emitter.on('_stopRendering', function () {
-          _this.renderRequests -= 1;
-          _this.renderingActive = _this.renderRequests > 0;
-          _this.renderTimer = undefined;
-        });
-        this.body.emitter.on('destroy', function () {
-          _this.renderRequests = 0;
-          _this.renderingActive = false;
-          if (_this.requiresTimeout === true) {
-            clearTimeout(_this.renderTimer);
-          } else {
-            cancelAnimationFrame(_this.renderTimer);
-          }
-          _this.body.emitter.off();
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          var fields = ['hideEdgesOnDrag', 'hideNodesOnDrag'];
-          util.selectiveDeepExtend(fields, this.options, options);
-        }
-      }
-    }, {
-      key: '_startRendering',
-      value: function _startRendering() {
-        if (this.renderingActive === true) {
-          if (this.renderTimer === undefined) {
-            if (this.requiresTimeout === true) {
-              this.renderTimer = window.setTimeout(this._renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
-            } else {
-              this.renderTimer = window.requestAnimationFrame(this._renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
-            }
-          }
-        }
-      }
-    }, {
-      key: '_renderStep',
-      value: function _renderStep() {
-        if (this.renderingActive === true) {
-          // reset the renderTimer so a new scheduled animation step can be set
-          this.renderTimer = undefined;
-
-          if (this.requiresTimeout === true) {
-            // this schedules a new simulation step
-            this._startRendering();
-          }
-
-          this._redraw();
-
-          if (this.requiresTimeout === false) {
-            // this schedules a new simulation step
-            this._startRendering();
-          }
-        }
-      }
-    }, {
-      key: 'redraw',
-
-      /**
-       * Redraw the network with the current data
-       * chart will be resized too.
-       */
-      value: function redraw() {
-        this.body.emitter.emit('setSize');
-        this._redraw();
-      }
-    }, {
-      key: '_requestRedraw',
-
-      /**
-       * Redraw the network with the current data
-       * @param hidden | used to get the first estimate of the node sizes. only the nodes are drawn after which they are quickly drawn over.
-       * @private
-       */
-      value: function _requestRedraw() {
-        if (this.redrawRequested !== true && this.renderingActive === false && this.allowRedrawRequests === true) {
-          this.redrawRequested = true;
-          if (this.requiresTimeout === true) {
-            window.setTimeout(this._redraw.bind(this, false), 0);
-          } else {
-            window.requestAnimationFrame(this._redraw.bind(this, false));
-          }
-        }
-      }
-    }, {
-      key: '_redraw',
-      value: function _redraw() {
-        var hidden = arguments[0] === undefined ? false : arguments[0];
-
-        this.body.emitter.emit('initRedraw');
-
-        this.redrawRequested = false;
-        var ctx = this.canvas.frame.canvas.getContext('2d');
-
-        // when the container div was hidden, this fixes it back up!
-        if (this.canvas.frame.canvas.width === 0 || this.canvas.frame.canvas.height === 0) {
-          this.canvas.setSize();
-        }
-
-        if (this.pixelRatio === undefined) {
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-        }
-
-        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
-        // clear the canvas
-        var w = this.canvas.frame.canvas.clientWidth;
-        var h = this.canvas.frame.canvas.clientHeight;
-        ctx.clearRect(0, 0, w, h);
-
-        // set scaling and translation
-        ctx.save();
-        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
-        ctx.scale(this.body.view.scale, this.body.view.scale);
-
-        ctx.beginPath();
-        this.body.emitter.emit('beforeDrawing', ctx);
-        ctx.closePath();
-
-        if (hidden === false) {
-          if (this.dragging === false || this.dragging === true && this.options.hideEdgesOnDrag === false) {
-            this._drawEdges(ctx);
-          }
-        }
-
-        if (this.dragging === false || this.dragging === true && this.options.hideNodesOnDrag === false) {
-          this._drawNodes(ctx, hidden);
-        }
-
-        if (this.controlNodesActive === true) {
-          this._drawControlNodes(ctx);
-        }
-
-        ctx.beginPath();
-        //this.physics.nodesSolver._debug(ctx,"#F00F0F");
-        this.body.emitter.emit('afterDrawing', ctx);
-        ctx.closePath();
-        // restore original scaling and translation
-        ctx.restore();
-
-        if (hidden === true) {
-          ctx.clearRect(0, 0, w, h);
-        }
-      }
-    }, {
-      key: '_resizeNodes',
-
-      /**
-       * Redraw all nodes
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Boolean} [alwaysShow]
-       * @private
-       */
-      value: function _resizeNodes() {
-        var ctx = this.canvas.frame.canvas.getContext('2d');
-        if (this.pixelRatio === undefined) {
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-        }
-        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        ctx.save();
-        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
-        ctx.scale(this.body.view.scale, this.body.view.scale);
-
-        var nodes = this.body.nodes;
-        var node = undefined;
-
-        // resize all nodes
-        for (var nodeId in nodes) {
-          if (nodes.hasOwnProperty(nodeId)) {
-            node = nodes[nodeId];
-            node.resize(ctx);
-            node.updateBoundingBox(ctx);
-          }
-        }
-
-        // restore original scaling and translation
-        ctx.restore();
-      }
-    }, {
-      key: '_drawNodes',
-
-      /**
-       * Redraw all nodes
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Boolean} [alwaysShow]
-       * @private
-       */
-      value: function _drawNodes(ctx) {
-        var alwaysShow = arguments[1] === undefined ? false : arguments[1];
-
-        var nodes = this.body.nodes;
-        var nodeIndices = this.body.nodeIndices;
-        var node = undefined;
-        var selected = [];
-        var margin = 20;
-        var topLeft = this.canvas.DOMtoCanvas({ x: -margin, y: -margin });
-        var bottomRight = this.canvas.DOMtoCanvas({
-          x: this.canvas.frame.canvas.clientWidth + margin,
-          y: this.canvas.frame.canvas.clientHeight + margin
-        });
-        var viewableArea = { top: topLeft.y, left: topLeft.x, bottom: bottomRight.y, right: bottomRight.x };
-
-        // draw unselected nodes;
-        for (var i = 0; i < nodeIndices.length; i++) {
-          node = nodes[nodeIndices[i]];
-          // set selected nodes aside
-          if (node.isSelected()) {
-            selected.push(nodeIndices[i]);
-          } else {
-            if (alwaysShow === true) {
-              node.draw(ctx);
-            } else if (node.isBoundingBoxOverlappingWith(viewableArea) === true) {
-              node.draw(ctx);
-            } else {
-              node.updateBoundingBox(ctx);
-            }
-          }
-        }
-
-        // draw the selected nodes on top
-        for (var i = 0; i < selected.length; i++) {
-          node = nodes[selected[i]];
-          node.draw(ctx);
-        }
-      }
-    }, {
-      key: '_drawEdges',
-
-      /**
-       * Redraw all edges
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @private
-       */
-      value: function _drawEdges(ctx) {
-        var edges = this.body.edges;
-        var edgeIndices = this.body.edgeIndices;
-        var edge = undefined;
-
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          if (edge.connected === true) {
-            edge.draw(ctx);
-          }
-        }
-      }
-    }, {
-      key: '_drawControlNodes',
-
-      /**
-       * Redraw all edges
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @private
-       */
-      value: function _drawControlNodes(ctx) {
-        var edges = this.body.edges;
-        var edgeIndices = this.body.edgeIndices;
-        var edge = undefined;
-
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          edge._drawControlNodes(ctx);
-        }
-      }
-    }, {
-      key: '_determineBrowserMethod',
-
-      /**
-       * Determine if the browser requires a setTimeout or a requestAnimationFrame. This was required because
-       * some implementations (safari and IE9) did not support requestAnimationFrame
-       * @private
-       */
-      value: function _determineBrowserMethod() {
-        if (typeof window !== 'undefined') {
-          var browserType = navigator.userAgent.toLowerCase();
-          this.requiresTimeout = false;
-          if (browserType.indexOf('msie 9.0') != -1) {
-            // IE 9
-            this.requiresTimeout = true;
-          } else if (browserType.indexOf('safari') != -1) {
-            // safari
-            if (browserType.indexOf('chrome') <= -1) {
-              this.requiresTimeout = true;
-            }
-          }
-        } else {
-          this.requiresTimeout = true;
-        }
-      }
-    }]);
-
-    return CanvasRenderer;
-  })();
-
-  exports['default'] = CanvasRenderer;
-  module.exports = exports['default'];
-
-/***/ },
-/* 59 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(47);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * Create the main frame for the Network.
@@ -23796,7 +23589,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -23809,7 +23602,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   var View = (function () {
     function View(body, canvas) {
@@ -24198,7 +23991,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24221,7 +24014,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -24397,7 +24190,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'onContext',
       value: function onContext(event) {
-        var pointer = this.getPointer({ x: event.pageX, y: event.pageY });
+        var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
         this.selectionHandler._generateClickEvent('oncontext', event, pointer);
       }
     }, {
@@ -24695,7 +24488,7 @@ return /******/ (function(modules) { // webpackBootstrap
           scale *= 1 + zoom;
 
           // calculate the pointer location
-          var pointer = this.getPointer({ x: event.pageX, y: event.pageY });
+          var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
 
           // apply the new scale
           this.zoom(scale, pointer);
@@ -24715,7 +24508,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function onMouseMove(event) {
         var _this3 = this;
 
-        var pointer = this.getPointer({ x: event.pageX, y: event.pageY });
+        var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
         var popupVisible = false;
 
         // check if the previously selected node is still selected
@@ -24904,7 +24697,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24919,7 +24712,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Node = __webpack_require__(74);
   var Edge = __webpack_require__(76);
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
@@ -25624,7 +25417,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25637,7 +25430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
@@ -26121,7 +25914,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26134,9 +25927,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(47);
 
   /**
    * clears the toolbar div element of children
@@ -26401,14 +26194,14 @@ return /******/ (function(modules) { // webpackBootstrap
         this._temporaryBindEvent('click', this._performAddNode.bind(this));
       }
     }, {
-      key: 'editNodeMode',
+      key: 'editNode',
 
       /**
        * call the bound function to handle the editing of the node. The node has to be selected.
        *
        * @private
        */
-      value: function editNodeMode() {
+      value: function editNode() {
         var _this2 = this;
 
         // when using the gui, enable edit mode if it wasnt already.
@@ -26429,7 +26222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             if (this.options.editNode.length === 2) {
               this.options.editNode(data, function (finalizedData) {
-                if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'delete') {
+                if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'editNode') {
                   // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
                   _this2.body.data.nodes.update(finalizedData);
                   _this2.showManipulatorToolbar();
@@ -26791,9 +26584,15 @@ return /******/ (function(modules) { // webpackBootstrap
         util.recursiveDOMDelete(this.closeDiv);
 
         // remove the manipulation divs
-        this.canvas.frame.removeChild(this.manipulationDiv);
-        this.canvas.frame.removeChild(this.editModeDiv);
-        this.canvas.frame.removeChild(this.closeDiv);
+        if (this.manipulationDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
+        if (this.editModeDiv) {
+          this.canvas.frame.removeChild(this.editModeDiv);
+        }
+        if (this.closeDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
 
         // set the references to undefined
         this.manipulationDiv = undefined;
@@ -26835,9 +26634,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_createEditNodeButton',
       value: function _createEditNodeButton(locale) {
-        var button = this._createButton('editNodeMode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
+        var button = this._createButton('editNode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
         this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.editNodeMode.bind(this));
+        this._bindHammerToDiv(button, this.editNode.bind(this));
       }
     }, {
       key: '_createEditEdgeButton',
@@ -27316,7 +27115,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27793,7 +27592,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28080,7 +27879,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28088,7 +27887,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var keycharm = __webpack_require__(88);
   var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * Turn an element into an clickToUse element.
@@ -28233,7 +28032,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -28275,6 +28074,222 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   exports['nl_NL'] = exports['nl'];
   exports['nl_BE'] = exports['nl'];
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(global) {'use strict';
+
+  var _rng;
+
+  var globalVar = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : null;
+
+  if (globalVar && globalVar.crypto && crypto.getRandomValues) {
+    // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
+    // Moderately fast, high quality
+    var _rnds8 = new Uint8Array(16);
+    _rng = function whatwgRNG() {
+      crypto.getRandomValues(_rnds8);
+      return _rnds8;
+    };
+  }
+
+  if (!_rng) {
+    // Math.random()-based (RNG)
+    //
+    // If all else fails, use Math.random().  It's fast, but is of unspecified
+    // quality.
+    var _rnds = new Array(16);
+    _rng = function () {
+      for (var i = 0, r; i < 16; i++) {
+        if ((i & 3) === 0) r = Math.random() * 4294967296;
+        _rnds[i] = r >>> ((i & 3) << 3) & 255;
+      }
+
+      return _rnds;
+    };
+  }
+
+  //     uuid.js
+  //
+  //     Copyright (c) 2010-2012 Robert Kieffer
+  //     MIT License - http://opensource.org/licenses/mit-license.php
+
+  // Unique ID creation requires a high quality random # generator.  We feature
+  // detect to determine the best RNG source, normalizing to a function that
+  // returns 128-bits of randomness, since that's what's usually required
+
+  //var _rng = require('./rng');
+
+  // Maps for number <-> hex string conversion
+  var _byteToHex = [];
+  var _hexToByte = {};
+  for (var i = 0; i < 256; i++) {
+    _byteToHex[i] = (i + 256).toString(16).substr(1);
+    _hexToByte[_byteToHex[i]] = i;
+  }
+
+  // **`parse()` - Parse a UUID into it's component bytes**
+  function parse(s, buf, offset) {
+    var i = buf && offset || 0,
+        ii = 0;
+
+    buf = buf || [];
+    s.toLowerCase().replace(/[0-9a-f]{2}/g, function (oct) {
+      if (ii < 16) {
+        // Don't overflow!
+        buf[i + ii++] = _hexToByte[oct];
+      }
+    });
+
+    // Zero out remaining bytes if string was short
+    while (ii < 16) {
+      buf[i + ii++] = 0;
+    }
+
+    return buf;
+  }
+
+  // **`unparse()` - Convert UUID byte array (ala parse()) into a string**
+  function unparse(buf, offset) {
+    var i = offset || 0,
+        bth = _byteToHex;
+    return bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]];
+  }
+
+  // **`v1()` - Generate time-based UUID**
+  //
+  // Inspired by https://github.com/LiosK/UUID.js
+  // and http://docs.python.org/library/uuid.html
+
+  // random #'s we need to init node and clockseq
+  var _seedBytes = _rng();
+
+  // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+  var _nodeId = [_seedBytes[0] | 1, _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]];
+
+  // Per 4.2.2, randomize (14 bit) clockseq
+  var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 16383;
+
+  // Previous uuid creation time
+  var _lastMSecs = 0,
+      _lastNSecs = 0;
+
+  // See https://github.com/broofa/node-uuid for API details
+  function v1(options, buf, offset) {
+    var i = buf && offset || 0;
+    var b = buf || [];
+
+    options = options || {};
+
+    var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
+
+    // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+    // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+    // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+    // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+    var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
+
+    // Per 4.2.1.2, use count of uuid's generated during the current clock
+    // cycle to simulate higher resolution clock
+    var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
+
+    // Time since last uuid creation (in msecs)
+    var dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000;
+
+    // Per 4.2.1.2, Bump clockseq on clock regression
+    if (dt < 0 && options.clockseq === undefined) {
+      clockseq = clockseq + 1 & 16383;
+    }
+
+    // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+    // time interval
+    if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+      nsecs = 0;
+    }
+
+    // Per 4.2.1.2 Throw error if too many uuids are requested
+    if (nsecs >= 10000) {
+      throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+    }
+
+    _lastMSecs = msecs;
+    _lastNSecs = nsecs;
+    _clockseq = clockseq;
+
+    // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+    msecs += 12219292800000;
+
+    // `time_low`
+    var tl = ((msecs & 268435455) * 10000 + nsecs) % 4294967296;
+    b[i++] = tl >>> 24 & 255;
+    b[i++] = tl >>> 16 & 255;
+    b[i++] = tl >>> 8 & 255;
+    b[i++] = tl & 255;
+
+    // `time_mid`
+    var tmh = msecs / 4294967296 * 10000 & 268435455;
+    b[i++] = tmh >>> 8 & 255;
+    b[i++] = tmh & 255;
+
+    // `time_high_and_version`
+    b[i++] = tmh >>> 24 & 15 | 16; // include version
+    b[i++] = tmh >>> 16 & 255;
+
+    // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+    b[i++] = clockseq >>> 8 | 128;
+
+    // `clock_seq_low`
+    b[i++] = clockseq & 255;
+
+    // `node`
+    var node = options.node || _nodeId;
+    for (var n = 0; n < 6; n++) {
+      b[i + n] = node[n];
+    }
+
+    return buf ? buf : unparse(b);
+  }
+
+  // **`v4()` - Generate random UUID**
+
+  // See https://github.com/broofa/node-uuid for API details
+  function v4(options, buf, offset) {
+    // Deprecated - 'format' argument, as supported in v1.2
+    var i = buf && offset || 0;
+
+    if (typeof options == 'string') {
+      buf = options == 'binary' ? new Array(16) : null;
+      options = null;
+    }
+    options = options || {};
+
+    var rnds = options.random || (options.rng || _rng)();
+
+    // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+    rnds[6] = rnds[6] & 15 | 64;
+    rnds[8] = rnds[8] & 63 | 128;
+
+    // Copy bytes to buffer, if provided
+    if (buf) {
+      for (var ii = 0; ii < 16; ii++) {
+        buf[i + ii] = rnds[ii];
+      }
+    }
+
+    return buf || unparse(rnds);
+  }
+
+  // Export public API
+  var uuid = v4;
+  uuid.v1 = v1;
+  uuid.v4 = v4;
+  uuid.parse = parse;
+  uuid.unparse = unparse;
+
+  module.exports = uuid;
+  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
 /* 69 */
@@ -31567,6 +31582,234 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+
+  (function (factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      window.propagating = factory();
+    }
+  }(function () {
+    var _firstTarget = null; // singleton, will contain the target element where the touch event started
+    var _processing = false; // singleton, true when a touch event is being handled
+
+    /**
+     * Extend an Hammer.js instance with event propagation.
+     *
+     * Features:
+     * - Events emitted by hammer will propagate in order from child to parent
+     *   elements.
+     * - Events are extended with a function `event.stopPropagation()` to stop
+     *   propagation to parent elements.
+     * - An option `preventDefault` to stop all default browser behavior.
+     *
+     * Usage:
+     *   var hammer = propagatingHammer(new Hammer(element));
+     *   var hammer = propagatingHammer(new Hammer(element), {preventDefault: true});
+     *
+     * @param {Hammer.Manager} hammer   An hammer instance.
+     * @param {Object} [options]        Available options:
+     *                                  - `preventDefault: true | 'mouse' | 'touch' | 'pen'`.
+     *                                    Enforce preventing the default browser behavior.
+     *                                    Cannot be set to `false`.
+     * @return {Hammer.Manager} Returns the same hammer instance with extended
+     *                          functionality
+     */
+    return function propagating(hammer, options) {
+      if (options && options.preventDefault === false) {
+        throw new Error('Only supports preventDefault == true');
+      }
+      var _options = options || {
+        preventDefault: false
+      };
+
+      if (hammer.Manager) {
+        // This looks like the Hammer constructor.
+        // Overload the constructors with our own.
+        var Hammer = hammer;
+
+        var PropagatingHammer = function(element, options) {
+          return propagating(new Hammer(element, options), _options);
+        };
+        Hammer.extend(PropagatingHammer, Hammer);
+        PropagatingHammer.Manager = function (element, options) {
+          return propagating(new Hammer.Manager(element, options), _options);
+        };
+
+        return PropagatingHammer;
+      }
+
+      // attach to DOM element
+      var element = hammer.element;
+      element.hammer = hammer;
+
+      // move the original functions that we will wrap
+      hammer._on = hammer.on;
+      hammer._off = hammer.off;
+      hammer._emit = hammer.emit;
+      hammer._destroy = hammer.destroy;
+
+      /** @type {Object.<String, Array.<function>>} */
+      hammer._handlers = {};
+
+      // register an event to catch the start of a gesture and store the
+      // target in a singleton
+      hammer._on('hammer.input', function (event) {
+        if (_options.preventDefault === true || (_options.preventDefault === event.pointerType)) {
+          event.preventDefault();
+        }
+        if (event.isFirst) {
+          _firstTarget = event.target;
+          _processing = true;
+        }
+        if (event.isFinal) {
+          _processing = false;
+        }
+      });
+
+      /**
+       * Register a handler for one or multiple events
+       * @param {String} events    A space separated string with events
+       * @param {function} handler A callback function, called as handler(event)
+       * @returns {Hammer.Manager} Returns the hammer instance
+       */
+      hammer.on = function (events, handler) {
+        // register the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (!_handlers) {
+            hammer._handlers[event] = _handlers = [];
+
+            // register the static, propagated handler
+            hammer._on(event, propagatedHandler);
+          }
+          _handlers.push(handler);
+        });
+
+        return hammer;
+      };
+
+      /**
+       * Unregister a handler for one or multiple events
+       * @param {String} events      A space separated string with events
+       * @param {function} [handler] Optional. The registered handler. If not
+       *                             provided, all handlers for given events
+       *                             are removed.
+       * @returns {Hammer.Manager}   Returns the hammer instance
+       */
+      hammer.off = function (events, handler) {
+        // unregister the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (_handlers) {
+            _handlers = handler ? _handlers.filter(function (h) {
+              return h !== handler;
+            }) : [];
+
+            if (_handlers.length > 0) {
+              hammer._handlers[event] = _handlers;
+            }
+            else {
+              // remove static, propagated handler
+              hammer._off(event, propagatedHandler);
+              delete hammer._handlers[event];
+            }
+          }
+        });
+
+        return hammer;
+      };
+
+      /**
+       * Emit to the event listeners
+       * @param {string} eventType
+       * @param {Event} event
+       */
+      hammer.emit = function(eventType, event) {
+        if (!_processing) {
+          _firstTarget = event.target;
+        }
+        hammer._emit(eventType, event);
+      };
+
+      hammer.destroy = function () {
+        // Detach from DOM element
+        var element = hammer.element;
+        delete element.hammer;
+
+        // clear all handlers
+        hammer._handlers = {};
+
+        // call original hammer destroy
+        hammer._destroy();
+      };
+
+      // split a string with space separated words
+      function split(events) {
+        return events.match(/[^ ]+/g);
+      }
+
+      /**
+       * A static event handler, applying event propagation.
+       * @param {Object} event
+       */
+      function propagatedHandler(event) {
+        // let only a single hammer instance handle this event
+        if (event.type !== 'hammer.input') {
+          // it is possible that the same srcEvent is used with multiple hammer events,
+          // we keep track on which events are handled in an object _handled
+          if (!event.srcEvent._handled) {
+            event.srcEvent._handled = {};
+          }
+
+          if (event.srcEvent._handled[event.type]) {
+            return;
+          }
+          else {
+            event.srcEvent._handled[event.type] = true;
+          }
+        }
+
+        // attach a stopPropagation function to the event
+        var stopped = false;
+        event.stopPropagation = function () {
+          stopped = true;
+        };
+
+        // attach firstTarget property to the event
+        event.firstTarget = _firstTarget;
+
+        // propagate over all elements (until stopped)
+        var elem = _firstTarget;
+        while (elem && !stopped) {
+          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
+          if (_handlers) {
+            for (var i = 0; i < _handlers.length && !stopped; i++) {
+              _handlers[i](event);
+            }
+          }
+
+          elem = elem.parentNode;
+        }
+      }
+
+      return hammer;
+    };
+  }));
+
+
+/***/ },
+/* 72 */
+/***/ function(module, exports, __webpack_require__) {
+
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
    * http://hammerjs.github.io/
    *
@@ -34033,234 +34276,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 72 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-
-  (function (factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      window.propagating = factory();
-    }
-  }(function () {
-    var _firstTarget = null; // singleton, will contain the target element where the touch event started
-    var _processing = false; // singleton, true when a touch event is being handled
-
-    /**
-     * Extend an Hammer.js instance with event propagation.
-     *
-     * Features:
-     * - Events emitted by hammer will propagate in order from child to parent
-     *   elements.
-     * - Events are extended with a function `event.stopPropagation()` to stop
-     *   propagation to parent elements.
-     * - An option `preventDefault` to stop all default browser behavior.
-     *
-     * Usage:
-     *   var hammer = propagatingHammer(new Hammer(element));
-     *   var hammer = propagatingHammer(new Hammer(element), {preventDefault: true});
-     *
-     * @param {Hammer.Manager} hammer   An hammer instance.
-     * @param {Object} [options]        Available options:
-     *                                  - `preventDefault: true | 'mouse' | 'touch' | 'pen'`.
-     *                                    Enforce preventing the default browser behavior.
-     *                                    Cannot be set to `false`.
-     * @return {Hammer.Manager} Returns the same hammer instance with extended
-     *                          functionality
-     */
-    return function propagating(hammer, options) {
-      if (options && options.preventDefault === false) {
-        throw new Error('Only supports preventDefault == true');
-      }
-      var _options = options || {
-        preventDefault: false
-      };
-
-      if (hammer.Manager) {
-        // This looks like the Hammer constructor.
-        // Overload the constructors with our own.
-        var Hammer = hammer;
-
-        var PropagatingHammer = function(element, options) {
-          return propagating(new Hammer(element, options), _options);
-        };
-        Hammer.extend(PropagatingHammer, Hammer);
-        PropagatingHammer.Manager = function (element, options) {
-          return propagating(new Hammer.Manager(element, options), _options);
-        };
-
-        return PropagatingHammer;
-      }
-
-      // attach to DOM element
-      var element = hammer.element;
-      element.hammer = hammer;
-
-      // move the original functions that we will wrap
-      hammer._on = hammer.on;
-      hammer._off = hammer.off;
-      hammer._emit = hammer.emit;
-      hammer._destroy = hammer.destroy;
-
-      /** @type {Object.<String, Array.<function>>} */
-      hammer._handlers = {};
-
-      // register an event to catch the start of a gesture and store the
-      // target in a singleton
-      hammer._on('hammer.input', function (event) {
-        if (_options.preventDefault === true || (_options.preventDefault === event.pointerType)) {
-          event.preventDefault();
-        }
-        if (event.isFirst) {
-          _firstTarget = event.target;
-          _processing = true;
-        }
-        if (event.isFinal) {
-          _processing = false;
-        }
-      });
-
-      /**
-       * Register a handler for one or multiple events
-       * @param {String} events    A space separated string with events
-       * @param {function} handler A callback function, called as handler(event)
-       * @returns {Hammer.Manager} Returns the hammer instance
-       */
-      hammer.on = function (events, handler) {
-        // register the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (!_handlers) {
-            hammer._handlers[event] = _handlers = [];
-
-            // register the static, propagated handler
-            hammer._on(event, propagatedHandler);
-          }
-          _handlers.push(handler);
-        });
-
-        return hammer;
-      };
-
-      /**
-       * Unregister a handler for one or multiple events
-       * @param {String} events      A space separated string with events
-       * @param {function} [handler] Optional. The registered handler. If not
-       *                             provided, all handlers for given events
-       *                             are removed.
-       * @returns {Hammer.Manager}   Returns the hammer instance
-       */
-      hammer.off = function (events, handler) {
-        // unregister the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (_handlers) {
-            _handlers = handler ? _handlers.filter(function (h) {
-              return h !== handler;
-            }) : [];
-
-            if (_handlers.length > 0) {
-              hammer._handlers[event] = _handlers;
-            }
-            else {
-              // remove static, propagated handler
-              hammer._off(event, propagatedHandler);
-              delete hammer._handlers[event];
-            }
-          }
-        });
-
-        return hammer;
-      };
-
-      /**
-       * Emit to the event listeners
-       * @param {string} eventType
-       * @param {Event} event
-       */
-      hammer.emit = function(eventType, event) {
-        if (!_processing) {
-          _firstTarget = event.target;
-        }
-        hammer._emit(eventType, event);
-      };
-
-      hammer.destroy = function () {
-        // Detach from DOM element
-        var element = hammer.element;
-        delete element.hammer;
-
-        // clear all handlers
-        hammer._handlers = {};
-
-        // call original hammer destroy
-        hammer._destroy();
-      };
-
-      // split a string with space separated words
-      function split(events) {
-        return events.match(/[^ ]+/g);
-      }
-
-      /**
-       * A static event handler, applying event propagation.
-       * @param {Object} event
-       */
-      function propagatedHandler(event) {
-        // let only a single hammer instance handle this event
-        if (event.type !== 'hammer.input') {
-          // it is possible that the same srcEvent is used with multiple hammer events,
-          // we keep track on which events are handled in an object _handled
-          if (!event.srcEvent._handled) {
-            event.srcEvent._handled = {};
-          }
-
-          if (event.srcEvent._handled[event.type]) {
-            return;
-          }
-          else {
-            event.srcEvent._handled[event.type] = true;
-          }
-        }
-
-        // attach a stopPropagation function to the event
-        var stopped = false;
-        event.stopPropagation = function () {
-          stopped = true;
-        };
-
-        // attach firstTarget property to the event
-        event.firstTarget = _firstTarget;
-
-        // propagate over all elements (until stopped)
-        var elem = _firstTarget;
-        while (elem && !stopped) {
-          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
-          if (_handlers) {
-            for (var i = 0; i < _handlers.length && !stopped; i++) {
-              _handlers[i](event);
-            }
-          }
-
-          elem = elem.parentNode;
-        }
-      }
-
-      return hammer;
-    };
-  }));
-
-
-/***/ },
 /* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -34275,8 +34290,8 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
-  var util = __webpack_require__(3);
+  var hammerUtil = __webpack_require__(47);
+  var util = __webpack_require__(57);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -34904,11 +34919,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(101);
+  var _nodesShapesText = __webpack_require__(102);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(102);
+  var _nodesShapesTriangle = __webpack_require__(101);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
@@ -34916,11 +34931,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _sharedValidator = __webpack_require__(45);
+  var _sharedValidator = __webpack_require__(44);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * @class Node
@@ -35371,7 +35386,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   var Label = (function () {
     function Label(body, options) {
@@ -35702,7 +35717,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   /**
    * @class Edge
@@ -35786,9 +35801,6 @@ return /******/ (function(modules) { // webpackBootstrap
           options.value = parseInt(options.value);
         }
 
-        // A node is connected when it has a from and to node that both exist in the network.body.nodes.
-        this.connect();
-
         // update label Module
         this.updateLabelModule();
 
@@ -35796,6 +35808,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // if anything has been updates, reset the selection width and the hover width
         this._setInteractionWidths();
+
+        // A node is connected when it has a from and to node that both exist in the network.body.nodes.
+        this.connect();
 
         return dataChanged;
       }
@@ -35890,6 +35905,8 @@ return /******/ (function(modules) { // webpackBootstrap
             this.to.detachEdge(this);
           }
         }
+
+        this.edgeType.connect();
       }
     }, {
       key: 'disconnect',
@@ -37392,9 +37409,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(47);
   var keycharm = __webpack_require__(88);
 
   var NavigationHandler = (function () {
@@ -38946,6 +38963,62 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
+  var _utilShapeBase = __webpack_require__(111);
+
+  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
+
+  var Triangle = (function (_ShapeBase) {
+    function Triangle(options, body, labelModule) {
+      _classCallCheck(this, Triangle);
+
+      _get(Object.getPrototypeOf(Triangle.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Triangle, _ShapeBase);
+
+    _createClass(Triangle, [{
+      key: 'resize',
+      value: function resize(ctx) {
+        this._resizeShape();
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this._drawShape(ctx, 'triangle', 3, x, y, selected, hover);
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return Triangle;
+  })(_utilShapeBase2['default']);
+
+  exports['default'] = Triangle;
+  module.exports = exports['default'];
+
+/***/ },
+/* 102 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
   var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
@@ -39009,62 +39082,6 @@ return /******/ (function(modules) { // webpackBootstrap
   })(_utilNodeBase2['default']);
 
   exports['default'] = Text;
-  module.exports = exports['default'];
-
-/***/ },
-/* 102 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilShapeBase = __webpack_require__(111);
-
-  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  var Triangle = (function (_ShapeBase) {
-    function Triangle(options, body, labelModule) {
-      _classCallCheck(this, Triangle);
-
-      _get(Object.getPrototypeOf(Triangle.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Triangle, _ShapeBase);
-
-    _createClass(Triangle, [{
-      key: 'resize',
-      value: function resize(ctx) {
-        this._resizeShape();
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this._drawShape(ctx, 'triangle', 3, x, y, selected, hover);
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return Triangle;
-  })(_utilShapeBase2['default']);
-
-  exports['default'] = Triangle;
   module.exports = exports['default'];
 
 /***/ },
@@ -39161,16 +39178,24 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'setOptions',
       value: function setOptions(options) {
         this.options = options;
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
         this.id = this.options.id;
         this.setupSupportNode();
-
-        // fix weird behaviour
-        if (this.from.id === this.to.id) {
+        this.connect();
+      }
+    }, {
+      key: 'connect',
+      value: function connect() {
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+        if (this.from === undefined || this.to === undefined) {
           this.via.setOptions({ physics: false });
         } else {
-          this.via.setOptions({ physics: true });
+          // fix weird behaviour where a selfreferencing node has physics enabled
+          if (this.from.id === this.to.id) {
+            this.via.setOptions({ physics: false });
+          } else {
+            this.via.setOptions({ physics: true });
+          }
         }
       }
     }, {
@@ -39313,11 +39338,6 @@ return /******/ (function(modules) { // webpackBootstrap
     _inherits(BezierEdgeStatic, _BezierEdgeBase);
 
     _createClass(BezierEdgeStatic, [{
-      key: 'cleanup',
-      value: function cleanup() {
-        return false;
-      }
-    }, {
       key: '_line',
 
       /**
@@ -39577,11 +39597,6 @@ return /******/ (function(modules) { // webpackBootstrap
     _inherits(StraightEdge, _EdgeBase);
 
     _createClass(StraightEdge, [{
-      key: 'cleanup',
-      value: function cleanup() {
-        return false;
-      }
-    }, {
       key: '_line',
 
       /**
@@ -39775,17 +39790,33 @@ return /******/ (function(modules) { // webpackBootstrap
 
       _get(Object.getPrototypeOf(CircleImageBase.prototype), 'constructor', this).call(this, options, body, labelModule);
       this.labelOffset = 0;
+      this.imageLoaded = false;
     }
 
     _inherits(CircleImageBase, _NodeBase);
 
     _createClass(CircleImageBase, [{
       key: '_resizeImage',
+
+      /**
+       * This function resizes the image by the options size when the image has not yet loaded. If the image has loaded, we
+       * force the update of the size again.
+       *
+       * @private
+       */
       value: function _resizeImage() {
-        if (!this.width || !this.height) {
+        var force = false;
+        if (!this.imageObj.width || !this.imageObj.height) {
+          // undefined or 0
+          this.imageLoaded = false;
+        } else if (this.imageLoaded === false) {
+          this.imageLoaded = true;
+          force = true;
+        }
+
+        if (!this.width || !this.height || force === true) {
           // undefined or 0
           var width, height, ratio;
-
           if (this.imageObj.width && this.imageObj.height) {
             // not undefined or 0
             width = 0;
@@ -40140,7 +40171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(57);
 
   var EdgeBase = (function () {
     function EdgeBase(options, body, labelModule) {
@@ -40156,6 +40187,14 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     _createClass(EdgeBase, [{
+      key: 'connect',
+      value: function connect() {}
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        return false;
+      }
+    }, {
       key: 'setOptions',
       value: function setOptions(options) {
         this.options = options;

@@ -7,7 +7,7 @@
 
     var graphOptions = {
         width: '100%',
-        height: 'calc(100vh - 167px)',
+        height: 'calc(100vh - 172px)',
         autoResize: true,
         configure: {
             enabled: false,

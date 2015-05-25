@@ -37,7 +37,7 @@
 
         _addEventListeners: function() {
             this._tabsHolder.find('[href="#graph"][role="tab"]').on('shown.bs.tab', function() {
-                //window.scrollTo(0, document.body.scrollHeight);
+                window.scrollTo(0, document.body.scrollHeight);
             });
         },
 

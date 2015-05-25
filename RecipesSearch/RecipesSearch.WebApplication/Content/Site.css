@@ -58,6 +58,7 @@ th, b {
 }
 .search-results .tab-pane#graph {
     padding: 0;
+    margin-bottom: 3px;
 }
 .search-results .empty-placeholder{
     font-size: 24px;
@@ -212,7 +213,7 @@ th, b {
 /* Graph view*/
 #graph.loading {
     width: 100%;
-    height: calc(100vh - 167px);
+    height: calc(100vh - 172px);
     position: relative;
 }
 #graph .loading-holder {
