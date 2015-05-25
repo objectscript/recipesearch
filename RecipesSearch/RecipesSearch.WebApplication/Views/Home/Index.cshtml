@@ -14,6 +14,21 @@
         }
         return Model.DefaultResultView == view ? activeClass : String.Empty;
     };
+
+    Func<string, string, bool> recipeNameComparer = (firstRecipe, secondRecipe) =>
+    {
+        firstRecipe = firstRecipe.Trim().ToLowerInvariant();
+        secondRecipe = secondRecipe.Trim().ToLowerInvariant();
+
+        var charsToRemove = new []{".", ";"};
+        for (int i = 0; i < charsToRemove.Length; ++i)
+        {
+            firstRecipe = firstRecipe.Replace(charsToRemove[i], "");
+            secondRecipe = secondRecipe.Replace(charsToRemove[i], "");
+        }
+
+        return firstRecipe.Equals(secondRecipe, StringComparison.CurrentCultureIgnoreCase);
+    };
 }
 
 <div class="row search-box">
@@ -51,7 +66,7 @@
         {
             <div class="row no-results-holder">
                 <div class="col-md-6">
-                    @if (Model.SpellcheckingEnabled && Model.SpellcheckedQuery.ToLowerInvariant().Trim() != Model.CurrentQuery.Replace(".", "").ToLowerInvariant().Trim())
+                    @if (Model.SpellcheckingEnabled && !recipeNameComparer(Model.CurrentQuery, Model.SpellcheckedQuery))
                     {
                         <div class="row">
                             <div class="col-md-8">
@@ -74,7 +89,7 @@
                     <span>Total count: @Model.TotalCount</span>
                 </div>
             </div>
-            if (Model.SpellcheckingEnabled && Model.SpellcheckedQuery.ToLowerInvariant().Trim() != Model.CurrentQuery.ToLowerInvariant().Trim())
+            if (!Model.ExactMatch && Model.SpellcheckingEnabled && !recipeNameComparer(Model.CurrentQuery, Model.SpellcheckedQuery))
             {
                 <div class="row">
                     <div class="col-md-8">
@@ -169,7 +184,8 @@
                     resultsOnPage: @Model.ResultsOnPage,
                     totalCount: @Model.TotalCount,
                     currentPage: @Model.CurrentPage,
-                    currentQuery: '@Model.CurrentQuery'
+                    currentQuery: '@Model.CurrentQuery',
+                    exactMatch: @(Model.ExactMatch ? "true" : "false")
                 };
             </script>
         }

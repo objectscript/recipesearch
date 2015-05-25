@@ -103,7 +103,7 @@
 
         _fetchData: function (query, exactMatch, callback) {
             var self = this;
-            exactMatch = exactMatch || 'true';
+            exactMatch = exactMatch || 'false';
 
             $.ajax({
                 method: "GET",

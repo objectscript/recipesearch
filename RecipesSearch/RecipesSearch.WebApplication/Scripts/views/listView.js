@@ -13,14 +13,15 @@
                 window.paginationData.resultsOnPage, 
                 window.paginationData.totalCount,
                 window.paginationData.currentPage,
-                window.paginationData.currentQuery);
+                window.paginationData.currentQuery,
+                window.paginationData.exactMatch);
 
             this._initExpanders();
             this._initBackToTop();
             this._initPinButtons();
         },
 
-        _initPagination:  function (itemsOnPage, items, currentPage, currentQuery) {
+        _initPagination:  function (itemsOnPage, items, currentPage, currentQuery, exactMatch) {
             this._container.find('.pagination-holder').pagination({
                 items: items,
                 itemsOnPage: itemsOnPage,
@@ -28,7 +29,7 @@
                 cssStyle: 'compact-theme',
                 selectOnClick: false,
                 onPageClick: function (pageNumber) {
-                    window.location.href = '/Home/Index?query=' + currentQuery + '&pageNumber=' + pageNumber;
+                    window.location.href = '/Home/Index?query=' + currentQuery + '&pageNumber=' + pageNumber + '&exactMatch=' + exactMatch;
                     return false;
                 }
             });
