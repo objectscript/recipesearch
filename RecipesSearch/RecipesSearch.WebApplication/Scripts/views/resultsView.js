@@ -14,17 +14,21 @@
         _graphView: null,
         _itemViews: [],
 
-        initialize: function() {
-            this.initListView();
-            this.initGraphView();
+        initialize: function () {
+            if (!!this._listViewContainer.length) {
+                this.initListView();
+            }
+            if (!!this._graphViewContainer.length) {
+                this.initGraphView();
+            }
+            this._restorePinnedRecipes();
+            this._addEventListeners();
         },
 
         initListView: function() {
             this._listView = new window.ListView(this, this._listViewContainer);
             this._listView.pinRecipeCallback = this.pinRecipe.bind(this);
-            this._listView.initialize();
-            this._addEventListeners();
-            this._restorePinnedRecipes();
+            this._listView.initialize();           
         },
 
         initGraphView: function () {
@@ -140,8 +144,15 @@
             return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
         },
 
-        _showTab: function(tabId) {
-            this._tabsHolder.find('[href="#' + tabId  + '"][role="tab"]').tab('show');
+        _showTab: function (tabId) {
+            var $tab = this._tabsHolder.find('[href="#' + tabId + '"][role="tab"]');
+
+            if (!!$tab.length) {
+                $tab.tab('show');
+                return;
+            }
+
+            this._tabsHolder.find('.tab-content .empty-placeholder').addClass('active');
         }
     };
 

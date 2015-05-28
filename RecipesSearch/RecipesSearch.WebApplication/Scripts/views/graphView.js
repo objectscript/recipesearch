@@ -353,8 +353,8 @@
             elementHtml +=
                 '<div class="header">' +
                     recipe.Name +
-                    '<i class="glyphicon glyphicon-remove close-icon" title="Pin recipe"></i>' +
-                    '<i class="glyphicon glyphicon-pushpin pin-icon" title="Close modal"></i>' +
+                    '<i class="glyphicon glyphicon-remove close-icon" title="Close modal"></i>' +
+                    '<i class="glyphicon glyphicon-pushpin pin-icon" title="Pin recipe"></i>' +
                 '</div>';
 
             elementHtml += '<div class="content">';

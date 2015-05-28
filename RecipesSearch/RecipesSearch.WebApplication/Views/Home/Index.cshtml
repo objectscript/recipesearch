@@ -20,7 +20,7 @@
         firstRecipe = firstRecipe.Trim().ToLowerInvariant();
         secondRecipe = secondRecipe.Trim().ToLowerInvariant();
 
-        var charsToRemove = new []{".", ";"};
+        var charsToRemove = new[] { ".", ";" };
         for (int i = 0; i < charsToRemove.Length; ++i)
         {
             firstRecipe = firstRecipe.Replace(charsToRemove[i], "");
@@ -44,74 +44,53 @@
                        value="@ViewBag.SearchQuery">
             </div>
             <button type="submit" class="btn btn-info glyphicon glyphicon-search"></button>
+            @if (Model != null && Model.TotalCount != 0)
+            {
+                <span class="results-count">Total count: @Model.TotalCount</span>
+            }
         </form>
     </div>
 </div>
 
 <div class="search-results">
     <div class="container-fluid results-list">
-        @if (Model == null)
+        @if (Model != null && !Model.ExactMatch && Model.SpellcheckingEnabled && !recipeNameComparer(Model.CurrentQuery, Model.SpellcheckedQuery))
         {
             <div class="row">
                 <div class="col-md-8">
-                    <div class="empty-placeholder">
-                        Type to search for recipes
-                    </div>
-                </div>
-            </div>
-            return;
-        }
-
-        @if (Model.ResultItems.Count == 0)
-        {
-            <div class="row no-results-holder">
-                <div class="col-md-6">
-                    @if (Model.SpellcheckingEnabled && !recipeNameComparer(Model.CurrentQuery, Model.SpellcheckedQuery))
-                    {
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="spellcheck-holder">
-                                    <p class="title">Try results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    <div class="alert alert-warning" role="alert">
-                        There are no results for this query :(
+                    <div class="spellcheck-holder suggest">
+                        <p class="title">Showing results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
+                        <p class="sub-title">Search instead for: <a href="/Home/Index?exactMatch=true&query=@Model.CurrentQuery">@Model.CurrentQuery</a></p>
                     </div>
                 </div>
             </div>
         }
-        else
+        @if (Model != null && Model.TotalCount == 0 && Model.SpellcheckingEnabled && !recipeNameComparer(Model.CurrentQuery, Model.SpellcheckedQuery))
         {
-            <div class="row results-count">
+            <div class="row">
                 <div class="col-md-8">
-                    <span>Total count: @Model.TotalCount</span>
-                </div>
-            </div>
-            if (!Model.ExactMatch && Model.SpellcheckingEnabled && !recipeNameComparer(Model.CurrentQuery, Model.SpellcheckedQuery))
-            {
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="spellcheck-holder suggest">
-                            <p class="title">Showing results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
-                            <p class="sub-title">Search instead for: <a href="/Home/Index?exactMatch=true&query=@Model.CurrentQuery">@Model.CurrentQuery</a></p>
-                        </div>
+                    <div class="spellcheck-holder">
+                        <p class="title">Try results for: <a href="/Home/Index?query=@Model.SpellcheckedQuery">@Model.SpellcheckedQuery</a></p>
                     </div>
                 </div>
-            }
-            <div role="tabpanel" class="results-tab">
-                @*<ul class="nav nav-tabs pinned-recipes" role="tablist"></ul>*@
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="tabs-separator"></li>
+            </div>
+        }
+        <div role="tabpanel" class="results-tab">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="tabs-separator"></li>
+                @if (Model != null && Model.TotalCount != 0)
+                {
                     <li role="presentation" class="@getTabActiveClass(ResultsViews.Graph) graph-view-tab">
                         <a href="#graph" role="tab" data-toggle="tab">Graph view</a>
                     </li>
                     <li role="presentation" class="@getTabActiveClass(ResultsViews.List)">
                         <a href="#list" role="tab" data-toggle="tab">List view</a>
                     </li>
-                </ul>
-                <div class="tab-content">
+                }
+            </ul>
+            <div class="tab-content">
+                @if (Model != null && Model.TotalCount != 0)
+                {
                     <div role="tabpanel" class="tab-pane @getTabActiveClass(ResultsViews.List)" id="list">
                         @for (var i = 0; i < Model.ResultItems.Count; ++i)
                         {
@@ -119,7 +98,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="result-item" id="recipe_@i" data-id="@searchResult.Id">
-                                        <h4 class="recipe-name">          
+                                        <h4 class="recipe-name">
                                             <i class="glyphicon glyphicon-pushpin pin-icon" title="Pin recipe" data-id="@searchResult.Id"></i>
                                             <i class="glyphicon glyphicon-screenshot show-on-graph" title="Show on graph" style="display: none" data-id="@searchResult.Id"></i>
                                             @searchResult.Name
@@ -175,19 +154,36 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                }
+                else if (Model == null)
+                {
+                    <div role="tabpanel" class="tab-pane active empty-placeholder">
+                        Type to search for recipes
+                    </div>
+                }
+                else if (Model != null && Model.TotalCount == 0)
+                {
+                    <div role="tabpanel" class="tab-pane active empty-placeholder">
+                        There are no results for this query :(
+                    </div>
+                }
             </div>
-        }
+        </div>
+
         @section Scripts {
-            <script>
-                var paginationData = {
-                    resultsOnPage: @Model.ResultsOnPage,
-                    totalCount: @Model.TotalCount,
-                    currentPage: @Model.CurrentPage,
-                    currentQuery: '@Model.CurrentQuery',
-                    exactMatch: @(Model.ExactMatch ? "true" : "false")
-                };
-            </script>
+
+            @if (Model != null)
+            {
+                <script>
+                    var paginationData = {
+                        resultsOnPage: @Model.ResultsOnPage,
+                        totalCount: @Model.TotalCount,
+                        currentPage: @Model.CurrentPage,
+                        currentQuery: '@Model.CurrentQuery',
+                        exactMatch: @(Model.ExactMatch ? "true" : "false")
+                        };
+                </script>
+            }
         }
     </div>
 </div>

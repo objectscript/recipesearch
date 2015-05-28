@@ -34,6 +34,7 @@ th, b {
 .search-box #searchForm {
     width: 100%;
     height: 46px;
+    position: relative;
 }
 .search-box #searchForm button{
     font-size: 16px;
@@ -50,6 +51,7 @@ th, b {
 
 .search-results {
     width: 100%;
+    margin-top: 12px;
 }
 .search-results .tab-pane{
     border: 1px solid #dfd7ca;
@@ -65,15 +67,13 @@ th, b {
     text-align: center;
     padding: 30px 0;
     background-color: #f8f5f0;
-    border-radius: 5px;
     color: #999;
-    margin-top: 20px;
 }
 .search-results .no-results-holder {
     margin-top: 20px;
 }
 
-.search-results .results-list .row{
+.search-results .results-list #list .row{
     margin-bottom: 20px;
 }
 .search-results .results-list .result-item{
@@ -200,14 +200,12 @@ th, b {
 .similar-results-holder.expanded {
     display: block;
 }
-.search-results .results-list .row.results-count {
-    margin: 0 0 2px 0;
-}
-.search-results .results-list .row.results-count span{
-    float: right;
+.search-box .results-count{
     font-size: 10px;
     color: #aaa;
-    margin-right: -5px;
+    position: absolute;
+    bottom: -13px;
+    right: 9px;
 }
 
 /* Graph view*/
@@ -342,7 +340,7 @@ th, b {
 /*Recipe item view*/
 .results-tab .tabs-separator {
     width: 100%;
-    margin-bottom: 5px;
+    margin-bottom: 9px;
 }
 .results-tab .recipe-item-tab {   
     margin-bottom: 1px;
