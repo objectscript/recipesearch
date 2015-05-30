@@ -31,6 +31,12 @@ namespace RecipesSearch.Data.Models
 
         public string ImageUrl { get; set; }
 
+        public string Category { get; set; }
+
+        public int? Rating { get; set; }
+
+        public int? CommentsCount { get; set; }        
+
         [NotMapped]
         public int? SimilarRecipeWeight { get; set; }
 

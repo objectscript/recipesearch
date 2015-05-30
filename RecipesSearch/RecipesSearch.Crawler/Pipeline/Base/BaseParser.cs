@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -102,6 +103,11 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
 
         protected virtual string GetTextBySelector(CQ queryObject, string selector, string defaultDelimiter = ".")
         {
+            if (String.IsNullOrEmpty(selector))
+            {
+                return String.Empty;
+            }
+
             var elements = queryObject.Find(selector);
             var itemText = elements
                 .Text((idx, text) =>
@@ -143,6 +149,28 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
             {
                 itemText = NormalizeDelimiter(itemText, delimiter);
             }
+
+            return itemText;
+        }
+
+        protected virtual string GetPlainTextBySelector(CQ queryObject, string selector)
+        {
+            if (String.IsNullOrEmpty(selector))
+            {
+                return String.Empty;
+            }
+
+            var elements = queryObject.Find(selector);
+            var itemText = elements.Text();
+
+            if (String.IsNullOrWhiteSpace(itemText) && elements.HasAttr("content"))
+            {
+                itemText = elements.Attr("content");
+            }
+
+            itemText = itemText ?? String.Empty;
+
+            itemText = itemText.Trim();
 
             return itemText;
         }
@@ -193,6 +221,24 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
             return crawledPage.Uri.AbsoluteUri + "/" + imgSrc;
         }
 
+        protected int? ParseIntValue(CQ queryObject, string selector)
+        {
+            var value = GetPlainTextBySelector(queryObject, selector);
+
+            if (String.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+            
+            int result;
+            if (Int32.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
         private string NormalizeDelimiter(string text, Delimiter delimiter)
         {
             var result = new StringBuilder();
@@ -234,6 +280,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
 
             return result.ToString();
         }
+
 
         protected class Delimiter
         {

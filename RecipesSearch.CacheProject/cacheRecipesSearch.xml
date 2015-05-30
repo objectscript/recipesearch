@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-24 19:59:11">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-05-30 16:20:35">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -962,7 +962,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63696,60198.833835</TimeChanged>
+<TimeChanged>63702,49768.451048</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1018,6 +1018,19 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Parameter name="MAXLEN" value="2000"/>
 </Property>
 
+<Property name="Category">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="300"/>
+</Property>
+
+<Property name="Rating">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="CommentsCount">
+<Type>%Integer</Type>
+</Property>
+
 <Property name="SiteId">
 <Type>%Integer</Type>
 <Required>1</Required>
@@ -1060,7 +1073,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="Upsert">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),ImageUrl:%String(MAXLEN=2000),SiteId:%Integer,ProcessKeywords:%Boolean,UpdateSpellcheckDict:%Boolean,BuildTf:%Boolean,TfBuilderName:%String</FormalSpec>
+<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),ImageUrl:%String(MAXLEN=2000),Category:%String(MAXLEN=300),Rating:%Integer,CommentsCount:%Integer,SiteId:%Integer,ProcessKeywords:%Boolean,UpdateSpellcheckDict:%Boolean,BuildTf:%Boolean,TfBuilderName:%String</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF ProcessKeywords{
@@ -1098,7 +1111,10 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			ExtendedKeywords = :keywordsAnalyzed,
 			RecipeName = :RecipeName, 
 			ImageUrl = :ImageUrl, 
-			ModifiedDate = GETUTCDATE()
+			Category = :Category,
+			Rating = :Rating,
+			CommentsCount = :CommentsCount,
+			ModifiedDate = GETUTCDATE()			
 			WHERE id = :recipeId)
 	} else{		
 		&sql(INSERT INTO SitePage(
@@ -1112,6 +1128,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			Keywords, 
 			ExtendedKeywords, 
 			RecipeName, 
+			Category,
+			Rating,
+			CommentsCount,
 			CreatedDate, 
 			ModifiedDate,
 			IsActive) 
@@ -1126,6 +1145,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			:Keywords, 
 			:keywordsAnalyzed, 
 			:RecipeName, 
+			:Category,
+			:Rating,
+			:CommentsCount,
 			GETUTCDATE(), 
 			GETUTCDATE(),
 			1))
@@ -1344,6 +1366,15 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Value name="15">
 <Value>IsActive</Value>
 </Value>
+<Value name="16">
+<Value>Category</Value>
+</Value>
+<Value name="17">
+<Value>Rating</Value>
+</Value>
+<Value name="18">
+<Value>CommentsCount</Value>
+</Value>
 </Data>
 </Storage>
 </Class>
@@ -1455,7 +1486,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63689,54678.034405</TimeChanged>
+<TimeChanged>63702,58630.578465</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1473,11 +1504,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 		// Seed sites to crawl		
 		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId, ParserId, IsActive, CreatedDate, ModifiedDate) 
-		VALUES('say7', 'http://www.say7.info/', @ConfigId, 'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
+		VALUES('say7', 'http://www.say7.info/', @ConfigId, 'Say7', 1, GETUTCDATE(), GETUTCDATE());
 		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
 		VALUES('edimdoma', 'http://www.edimdoma.ru/', @ConfigId,'EdimDoma', 1, GETUTCDATE(), GETUTCDATE());
 		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
-		VALUES('kedem', 'http://kedem.ru/', @ConfigId,'RecipeSchema', 1, GETUTCDATE(), GETUTCDATE());
+		VALUES('kedem', 'http://kedem.ru/', @ConfigId,'Kedem', 1, GETUTCDATE(), GETUTCDATE());
 		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
 		VALUES('gotovim-doma', 'http://gotovim-doma.ru/', @ConfigId,'GotovimDoma', 1, GETUTCDATE(), GETUTCDATE());
 		INSERT INTO RecipeSearch_Data.SiteToCrawl(Name, URL, ConfigId,ParserId, IsActive, CreatedDate, ModifiedDate) 
@@ -2113,7 +2144,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63685,76041.624881</TimeChanged>
+<TimeChanged>63702,53179.683316</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
@@ -2139,6 +2170,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			_" SiteId,"
 			_" URL,"
 			_" RecipeName, "
+			_" Category, "
+			_" Rating, "
+			_" CommentsCOunt, "
 			_##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildRelevancySubQuery(query)_","
 			_" CreatedDate," 
 			_" ModifiedDate"
@@ -2166,7 +2200,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63689,54048.433752</TimeChanged>
+<TimeChanged>63702,53367.993871</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
@@ -2243,6 +2277,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			_" SiteId,"
 			_" URL,"
 			_" RecipeName, "
+			_" Category, "
+			_" Rating, "
+			_" CommentsCount, "
 			_" CreatedDate," 
 			_" ModifiedDate,"
 			_" Weight AS SimilarRecipeWeight"
@@ -2284,6 +2321,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     set sitePage.ModifiedDate = result.Data("ModifiedDate") 
     set sitePage.CreatedDate = result.Data("CreatedDate") 
     set sitePage.RecipeName = result.Data("RecipeName")
+    set sitePage.Category = result.Data("Category")
+    set sitePage.Rating = result.Data("Rating")
+    set sitePage.CommentsCount = result.Data("CommentsCount")
     
     if includeNearest {
 		set sitePage.SimilarRecipeWeight = result.Data("SimilarRecipeWeight")   
@@ -2297,7 +2337,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchResultItem">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63689,53465.508571</TimeChanged>
+<TimeChanged>63702,53399.763527</TimeChanged>
 <TimeCreated>63689,53434.688769</TimeCreated>
 
 <Property name="ID">
@@ -2376,6 +2416,19 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Property name="SimilarRecipeWeight">
 <Type>%Integer</Type>
 <Required>1</Required>
+</Property>
+
+<Property name="Rating">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="CommentsCount">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="Category">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="300"/>
 </Property>
 </Class>
 

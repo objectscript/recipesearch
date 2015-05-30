@@ -106,10 +106,10 @@
                                         @Html.Partial("_ResultItem", searchResult)
                                     </div>
                                     <a href="#" data-expander="recipe_@i" data-show-text="More" data-hide-text="Less" class="expander">More</a>
-                                    <a href="#" data-expander="similar_@i" data-show-text="Show Similar" data-hide-text="Hide Similar" class="expander">Show Similar</a>
-
+                                    
                                     @if (searchResult.SimilarResults.Any())
                                     {
+                                        <a href="#" data-expander="similar_@i" data-show-text="Show Similar" data-hide-text="Hide Similar" class="expander">Show Similar</a>
                                         <div id="similar_@i" class="similar-results-holder">
                                             <span class="similar-label">Similar results:</span>
                                             <ul class="similar">

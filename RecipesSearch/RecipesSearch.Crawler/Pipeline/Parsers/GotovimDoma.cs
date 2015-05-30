@@ -26,11 +26,25 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
                 return;
             }
 
-            sitePage.RecipeName = GetTextBySelector(recipeWrapper, ".rcptitle.fn");
+            sitePage.RecipeName = GetPlainTextBySelector(recipeWrapper, ".rcptitle.fn");
             sitePage.Ingredients = GetTextBySelector(recipeWrapper, ".rcpstru");
             sitePage.RecipeInstructions = GetTextBySelector(recipeWrapper, ".instructions");
             sitePage.Description = String.Empty;
             sitePage.ImageUrl = GetImageUrl(crawledPage, recipeWrapper, ".photo");
+
+            sitePage.Category = GetPlainTextBySelector(csQueryDocument, "#wrapper > #content_wrapper > #content > #nav1 > a:last");
+
+            var commentsCountText = recipeWrapper.Find("#comments .hdr .count").Text();
+            if (!String.IsNullOrEmpty(commentsCountText))
+            {
+                commentsCountText = commentsCountText.Trim().Replace("(", "").Replace(")", "");
+                int commentsCount;
+
+                if (Int32.TryParse(commentsCountText, out commentsCount))
+                {
+                    sitePage.CommentsCount = commentsCount;
+                }
+            }
         }                
     }
 }

@@ -33,6 +33,12 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public int Id { get; set; }
 
+        public string Category { get; set; }
+
+        public int? Rating { get; set; }
+
+        public int? CommentsCount { get; set; } 
+
         public List<SearchResultItemViewModel> SimilarResults { get; set; } 
 
         public SearchResultItemViewModel(SitePage entity)
@@ -47,6 +53,9 @@ namespace RecipesSearch.WebApplication.ViewModels
             ImageUrl = entity.ImageUrl;
             SiteId = entity.SiteID;
             SimilarRecipeWeight = entity.SimilarRecipeWeight;
+            Category = entity.Category;
+            Rating = entity.Rating;
+            CommentsCount = entity.CommentsCount;
 
             if (entity.SimilarResults != null)
             {

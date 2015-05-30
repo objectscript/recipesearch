@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Abot.Poco;
-using CsQuery;
-using RecipesSearch.Data.Models;
-using RecipesSearch.SitePagesImporter.Pipeline.Base;
+﻿using RecipesSearch.SitePagesImporter.Pipeline.Base;
 
 namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
 {
@@ -17,21 +9,12 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
             get { return "Kulinar"; }
         }
 
-        public override void ParseContent(CrawledPage crawledPage, SitePage sitePage)
+        public KulinarParser()
         {
-            var csQueryDocument = crawledPage.CsQueryDocument;
-
-            if (!CheckForRecipeSchema(csQueryDocument))
-            {
-                return;
-            }
-
-            sitePage.RecipeName = GetTextBySelector(csQueryDocument, "[itemprop=name]");
-            sitePage.Description = String.Empty;
-            sitePage.Ingredients = GetTextBySelector(csQueryDocument, "[itemprop=ingredients]");
-            sitePage.RecipeInstructions = GetTextBySelector(csQueryDocument, "[itemprop=recipeInstructions] p");
-            sitePage.AdditionalData = GetTextBySelector(csQueryDocument, "[itemprop=summary]");
-            sitePage.ImageUrl = GetImageUrl(crawledPage, csQueryDocument, "[itemprop=image]");
+            RecipeInstructionsSelector = "[itemprop=recipeInstructions] p";
+            DescriptionSelector = null;
+            CommentsCountSelector = ".recipe_info_stat .article-info_stat-i:nth-child(2) > span";
+            RatingSelector = ".recipe_info_stat .article-info_stat-i:nth-child(4) > span";
         }
     }
 }

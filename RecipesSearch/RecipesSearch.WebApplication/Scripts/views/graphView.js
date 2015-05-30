@@ -243,13 +243,13 @@
 
         _handleCanvasClick: function (clickEventData) {
             var self = this;
-            var node = self._network.getNodeAt(clickEventData.pointer.DOM);
+            var nodeId = self._network.getNodeAt(clickEventData.pointer.DOM);
 
-            if (!node) {
+            if (!nodeId) {
                 self._network.unselectAll();
                 self._currentSelectedNodeId = null;
             } else {
-                var boundingBox = node.shape.boundingBox;
+                var boundingBox = self._network.getBoundingBox(nodeId);
                 var tooltipHeight = boundingBox.bottom - boundingBox.top;
                 var tooltipWidth = tooltipHeight;
                 var clickPositon = clickEventData.pointer.canvas;
@@ -260,7 +260,7 @@
                     openExpanded = true;                   
                 }
 
-                self._focusOnNode(node.id, 250, openExpanded);
+                self._focusOnNode(nodeId, 250, openExpanded);
             }           
         },
 

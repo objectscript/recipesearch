@@ -34,7 +34,10 @@ namespace RecipesSearch.DAL.Cache.Adapters
             command.Parameters.Add("Ingredients", sitePage.Ingredients);
             command.Parameters.Add("RecipeInstructions", sitePage.RecipeInstructions);
             command.Parameters.Add("AdditionalData", sitePage.AdditionalData ?? String.Empty);
-            command.Parameters.Add("ImageUrl", sitePage.ImageUrl ?? String.Empty);         
+            command.Parameters.Add("ImageUrl", sitePage.ImageUrl ?? String.Empty);
+            command.Parameters.Add("Category", sitePage.Category ?? String.Empty);
+            command.Parameters.Add("Rating", sitePage.Rating);
+            command.Parameters.Add("CommentsCount", sitePage.CommentsCount);
 
             var siteIdParemeter = new CacheParameter("SiteId", CacheDbType.Int);
             siteIdParemeter.Value = sitePage.SiteID;

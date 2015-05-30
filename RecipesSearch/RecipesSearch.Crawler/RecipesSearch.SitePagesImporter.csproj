@@ -88,8 +88,10 @@
     <Compile Include="Pipeline\KeywordExtractor.cs" />
     <Compile Include="Pipeline\Parsers\GotovimDoma.cs" />
     <Compile Include="Pipeline\Parsers\EdimDomaParser.cs" />
+    <Compile Include="Pipeline\Parsers\KedemParser.cs" />
+    <Compile Include="Pipeline\Parsers\Say7Parser.cs" />
     <Compile Include="Pipeline\Parsers\KulinarParser.cs" />
-    <Compile Include="Pipeline\Parsers\RecipeSchemaParser.cs" />
+    <Compile Include="Pipeline\Base\RecipeSchemaParser.cs" />
     <Compile Include="Pipeline\Preprocessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Abot.Poco;
-using CsQuery;
-using RecipesSearch.Data.Models;
-using RecipesSearch.SitePagesImporter.Pipeline.Base;
+﻿using RecipesSearch.SitePagesImporter.Pipeline.Base;
 
 namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
 {
@@ -19,7 +11,9 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
 
         public EdimDomaParser()
         {
-            RecipeInstructionsSelector = "[itemprop=recipeInstructions] .b-page_block__content";
+            RecipeInstructionsSelector = "[itemprop=recipeInstructions] .b-page_block__content .b-list__clause__text";
+            RecipeCategorySelector = ".l-centercol.utk-recipe .b-breadcrumbs p a:last";
+            RatingSelector = "[itemprop=ratingValue]";
         }
     }
 }
