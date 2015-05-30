@@ -91,6 +91,7 @@ th, b {
 .search-results .results-list .result-item .recipe-name{
     margin: 0 0 4px 0;
 }
+.search-results .results-list .similar .result-item-similar .recipe-category,
 .search-results .results-list .result-item .recipe-category{
     margin: 0;
     font-size: 11px;
@@ -156,6 +157,12 @@ th, b {
     margin-top: 5px;
     display: inline-block;
     font-size: 13px;
+}
+.similar-result-content {
+    background-color: #F9F9F9;
+    padding: 0 5px;
+    border-radius: 3px;
+    margin-top: 3px;
 }
 .search-results .results-list .similar{
     padding-left: 10px;

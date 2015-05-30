@@ -1,10 +1,5 @@
 ﻿@model RecipesSearch.WebApplication.ViewModels.SearchResultItemViewModel
 
-@if (!String.IsNullOrEmpty(Model.Category))
-{
-    <span class="recipe-category">@Model.Category</span>
-}
-
 @if (!String.IsNullOrEmpty(Model.ImageUrl))
 {
     <img src="@Model.ImageUrl" class="recipe-image"/>
@@ -32,12 +27,3 @@
 }
 
 <a class="recipe-url" href="@Model.URL" target="_blank">@Model.URL</a>
-
-@if (Model.Rating != null)
-{
-    <span class="recipe-rating">Рейтинг: @Model.Rating</span>
-}
-@if (Model.CommentsCount != null)
-{
-    <span class="recipe-rating">Комментариев: @Model.CommentsCount</span>
-}

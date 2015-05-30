@@ -121,7 +121,9 @@
                                                                 <i class="glyphicon glyphicon-pushpin pin-icon" title="Pin recipe" data-id="@searchResult.SimilarResults[j].Id"></i>
                                                                 <span data-expander="recipe_@(i + "_" + j)">@searchResult.SimilarResults[j].Name</span>
                                                             </h4>
-                                                            @Html.Partial("_ResultItem", searchResult.SimilarResults[j])
+                                                            <div class="similar-result-content">
+                                                                @Html.Partial("_ResultItem", searchResult.SimilarResults[j])
+                                                            </div>                                                            
                                                         </div>
                                                     </li>
                                                 }
