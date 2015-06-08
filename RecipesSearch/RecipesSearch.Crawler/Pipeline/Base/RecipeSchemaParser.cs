@@ -35,17 +35,19 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
                 return;
             }
 
-            sitePage.RecipeName = GetPlainTextBySelector(csQueryDocument, RecipeNameSelector);
-            sitePage.Description = GetTextBySelector(csQueryDocument, DescriptionSelector);
-            sitePage.Ingredients = GetTextBySelector(csQueryDocument, IngredientsSelector, ",");
-            sitePage.RecipeInstructions = GetTextBySelector(csQueryDocument, RecipeInstructionsSelector);
-            sitePage.AdditionalData = GetTextBySelector(csQueryDocument, SummarySelector);
-            sitePage.Category = GetPlainTextBySelector(csQueryDocument, RecipeCategorySelector);
-           
-            sitePage.Rating = ParseIntValue(csQueryDocument, RatingSelector);
-            sitePage.CommentsCount = ParseIntValue(csQueryDocument, CommentsCountSelector);
+            var recipeWrapper = csQueryDocument.Find("[itemtype=\"http://schema.org/Recipe\"]");
 
-            sitePage.ImageUrl = GetImageUrl(crawledPage, csQueryDocument, ImageSelector);
+            sitePage.RecipeName = GetPlainTextBySelector(recipeWrapper, RecipeNameSelector);
+            sitePage.Description = GetTextBySelector(recipeWrapper, DescriptionSelector);
+            sitePage.Ingredients = GetTextBySelector(recipeWrapper, IngredientsSelector, ",");
+            sitePage.RecipeInstructions = GetTextBySelector(recipeWrapper, RecipeInstructionsSelector);
+            sitePage.AdditionalData = GetTextBySelector(recipeWrapper, SummarySelector);
+            sitePage.Category = GetPlainTextBySelector(recipeWrapper, RecipeCategorySelector);
+
+            sitePage.Rating = ParseIntValue(recipeWrapper, RatingSelector);
+            sitePage.CommentsCount = ParseIntValue(recipeWrapper, CommentsCountSelector);
+
+            sitePage.ImageUrl = GetImageUrl(crawledPage, recipeWrapper, ImageSelector);
         }
 
         protected virtual bool CheckForRecipeSchema(CQ queryDocument)
