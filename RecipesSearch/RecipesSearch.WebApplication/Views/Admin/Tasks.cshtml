@@ -48,12 +48,12 @@
             @if (Model.TfIdfUpdatingInProgress)
             {
                 <div class="alert alert-success" role="alert">Tf/Idf update in progress.</div>
-    <label class="page-stat active">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
+                @*<label class="page-stat active">Empty tf/idf results: @Model.EmptyTfIdfCount</label>*@
             }
             else
             {
                 <div class="alert alert-warning" role="alert">Tf/Idf update idle</div>
-                <label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>
+                @*<label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>*@
                 @Html.Partial("_PostButton", new PostButtonModel
                 {
                     Action = "StartTfIdfUpdating",

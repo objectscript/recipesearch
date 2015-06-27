@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-05-31 20:10:17">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-06-27 14:15:50">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -831,7 +831,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.RecipeData.WordsTF">
 <Super>%Persistent</Super>
-<TimeChanged>63686,76817.650486</TimeChanged>
+<TimeChanged>63724,69343.414141</TimeChanged>
 <TimeCreated>63683,65238.598919</TimeCreated>
 
 <Property name="RecipeId">
@@ -855,6 +855,10 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Required>1</Required>
 </Property>
 
+<Property name="TFIDF">
+<Type>%Double</Type>
+</Property>
+
 <ForeignKey name="SitePage">
 <Properties>RecipeId</Properties>
 <ReferencedClass>RecipeSearch.Data.SitePage</ReferencedClass>
@@ -867,6 +871,10 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Index name="WordIDX">
 <Properties>Word</Properties>
+</Index>
+
+<Index name="TFIDFIDX">
+<Properties>TFIDF,RecipeId</Properties>
 </Index>
 
 <Storage name="Default">
@@ -891,6 +899,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Value>
 <Value name="5">
 <Value>WordCount</Value>
+</Value>
+<Value name="6">
+<Value>TFIDF</Value>
 </Value>
 </Data>
 </Storage>
@@ -962,7 +973,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63702,49768.451048</TimeChanged>
+<TimeChanged>63730,50670.361407</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1004,11 +1015,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Property>
 
 <Property name="AdditionalData">
-<Type>%String</Type>
-<Parameter name="MAXLEN" value="100000"/>
-</Property>
-
-<Property name="WordsTfIdf">
 <Type>%String</Type>
 <Parameter name="MAXLEN" value="100000"/>
 </Property>
@@ -1239,7 +1245,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetTFIDF</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>	SELECT ID, WordsTfIdf FROM SitePage</SqlQuery>
+<SqlQuery>	SELECT ID, RecipeId, Word, TFIDF FROM RecipeSearch_Data_RecipeData.WordsTF</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1268,7 +1274,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetTFIDFStatistic</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>	SELECT COUNT(*) AS EmptyTfIdf from RecipeSearch_Data.SitePage WHERE WordsTfIdf IS NULL OR WordsTfIdf = ''</SqlQuery>
+<SqlQuery>	SELECT CAST(((select COUNT(Id) FROM RecipeSearch_Data.SitePage) - (select COUNT(DISTINCT RecipeId) from RecipeSearch_Data_RecipeData.WordsTf WHERE TFIDF IS NOT NULL)) AS INT) AS EmptyTfIdfCount</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1879,7 +1885,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.RecipeAnalyze.TfBuild.Builder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63703,65452.434641</TimeChanged>
+<TimeChanged>63703,2752.520045</TimeChanged>
 <TimeCreated>63686,75654.215346</TimeCreated>
 
 <Method name="BuildTf">
@@ -1924,9 +1930,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Query name="GetTfBuilders">
 <Type>%SQLQuery</Type>
 <SqlProc>1</SqlProc>
-<SqlQuery>	select 'DefaultTfBuilder' UNION select 'TfBuilderWithDictionary' UNION
-	select 'TfBuilderWithDictionaryLog' UNION select 'TfBuilderWithDictionaryWeighted' UNION
-	select 'TfBuilderWithDictionaryLogWeighted'</SqlQuery>
+<SqlQuery>	select 'DefaultTfBuilder' UNION select 'TfBuilderWithDictionary'</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1999,7 +2003,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.TfBuilderWithDictionary">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63703,62155.055198</TimeChanged>
+<TimeChanged>63703,38177.720678</TimeChanged>
 <TimeCreated>63703,1166.508987</TimeCreated>
 
 <Method name="BuildTF">
@@ -2055,75 +2059,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			continue
 		}
 		
-		set wordTf = 0.5 + 0.5 * wordCount / maxCount
-		
-		&sql(INSERT INTO RecipeSearch_Data_RecipeData.WordsTF
-			(RecipeId, Word, TF, WordCount)
-			VALUES(:RecipeId, :word, :wordTf, :wordCount))
-	}
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.TfBuilderWithDictionaryLog">
-<Super>%Persistent</Super>
-<TimeChanged>63703,62161.581959</TimeChanged>
-<TimeCreated>63703,62155.483316</TimeCreated>
-
-<Method name="BuildTF">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>RecipeId:%Integer,Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000)</FormalSpec>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[
-	set extendedKeywords = 
-		Keywords_";"_RecipeName_"; "_Description_"; "_Ingredients
-		_"; "_RecipeInstructions_"; "_AdditionalData
-		
-	set extendedKeywordsList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(extendedKeywords)
-	set extendedKeywordsCountList = $LISTFROMSTRING("")
-	
-	set maxCount = -1
-	set length = $LISTLENGTH(extendedKeywordsList)
-	
-	for i=1:1:length{
-		set word = $LIST(extendedKeywordsList, i)
-		
-		if word = ""{
-			set extendedKeywordsCountList = extendedKeywordsCountList_$LISTBUILD("")
-			continue
-		}
-		
-		set count = 1
-		for j=i+1:1:length{
-			if $LIST(extendedKeywordsList,j) = word{
-				set $LIST(extendedKeywordsList,j) = ""
-				set count = count + 1
-			}
-		}
-		
-		if count > maxCount{
-			set maxCount = count
-		}
-		
-		set extendedKeywordsCountList = extendedKeywordsCountList_$LISTBUILD(count)		
-	}
-	
-	&sql(DELETE FROM RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :RecipeId)
-	
-	for i=1:1:length{
-		set word = $LIST(extendedKeywordsList, i)
-		set wordCount = $LIST(extendedKeywordsCountList, i)
-		
-		if word = "" {
-			continue
-		}
-		set inDict = $GET(^allDict(word))
-		
-		if inDict = "" {
-			continue
-		}
-		
+		// set wordTf = 0.5 + 0.5 * wordCount / maxCount
 		set wordTf = $ZLN(wordCount + 1)
 		
 		&sql(INSERT INTO RecipeSearch_Data_RecipeData.WordsTF
@@ -2132,214 +2068,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	}
 ]]></Implementation>
 </Method>
-
-<Storage name="Default">
-<Type>%Library.CacheStorage</Type>
-<DataLocation>^RecipeSear5F19.TfBuilderWi2217D</DataLocation>
-<DefaultData>TfBuilderWithDictionaryLogDefaultData</DefaultData>
-<IdLocation>^RecipeSear5F19.TfBuilderWi2217D</IdLocation>
-<IndexLocation>^RecipeSear5F19.TfBuilderWi2217I</IndexLocation>
-<StreamLocation>^RecipeSear5F19.TfBuilderWi2217S</StreamLocation>
-<Data name="TfBuilderWithDictionaryLogDefaultData">
-<Structure>listnode</Structure>
-<Subscript/>
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-</Data>
-</Storage>
-</Class>
-
-
-<Class name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.TfBuilderWithDictionaryLogWeighted">
-<Super>%Persistent</Super>
-<TimeChanged>63703,65459.371445</TimeChanged>
-<TimeCreated>63703,65457.086529</TimeCreated>
-
-<Method name="BuildTF">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>RecipeId:%Integer,Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000)</FormalSpec>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[
-	set extendedKeywords = 
-		Keywords_"; "_Description_"; "_Ingredients
-		_"; "_RecipeInstructions_"; "_AdditionalData
-		
-	set extendedKeywordsList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(extendedKeywords)
-	set recipeNameList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(RecipeName)
-	set allCountList = $LISTFROMSTRING("")
-	set allList = extendedKeywordsList_recipeNameList
-	
-	set maxCount = -1
-	set lengthExtendedKeywords = $LISTLENGTH(extendedKeywordsList)
-	set lengthRecipeName = $LISTLENGTH(recipeNameList)
-	set lengthAll = $LISTLENGTH(allList)
-	
-	for i=1:1:lengthAll{
-		set word = $LIST(allList, i)
-		
-		if word = ""{
-			set allCountList = allCountList_$LISTBUILD("")
-			continue
-		}
-		
-		set count = 1
-		if i > lengthExtendedKeywords {
-			set count = count + 2
-		}
-		for j=i+1:1:lengthAll{
-			if $LIST(allList,j) = word{
-				set $LIST(allList,j) = ""
-				set count = count + 1
-				if j > lengthExtendedKeywords {
-					set count = count + 2
-				}
-			}
-		}
-		
-		if count > maxCount{
-			set maxCount = count
-		}
-		
-		set allCountList = allCountList_$LISTBUILD(count)		
-	}
-	
-	&sql(DELETE FROM RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :RecipeId)
-	
-	for i=1:1:lengthAll{
-		set word = $LIST(allList, i)
-		set wordCount = $LIST(allCountList, i)
-		
-		if word = "" {
-			continue
-		}
-		set inDict = $GET(^allDict(word))
-		
-		if inDict = "" {
-			continue
-		}
-		set wordTf = $ZLN(wordCount + 1)
-		
-		&sql(INSERT INTO RecipeSearch_Data_RecipeData.WordsTF
-			(RecipeId, Word, TF, WordCount)
-			VALUES(:RecipeId, :word, :wordTf, :wordCount))
-	}
-]]></Implementation>
-</Method>
-
-<Storage name="Default">
-<Type>%Library.CacheStorage</Type>
-<DataLocation>^RecipeSear5F19.TfBuilderWit479D</DataLocation>
-<DefaultData>TfBuilderWithDictionaryLogWeightedDefaultData</DefaultData>
-<IdLocation>^RecipeSear5F19.TfBuilderWit479D</IdLocation>
-<IndexLocation>^RecipeSear5F19.TfBuilderWit479I</IndexLocation>
-<StreamLocation>^RecipeSear5F19.TfBuilderWit479S</StreamLocation>
-<Data name="TfBuilderWithDictionaryLogWeightedDefaultData">
-<Structure>listnode</Structure>
-<Subscript/>
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-</Data>
-</Storage>
-</Class>
-
-
-<Class name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.TfBuilderWithDictionaryWeighted">
-<Super>%Persistent</Super>
-<TimeChanged>63703,65361.303726</TimeChanged>
-<TimeCreated>63703,64990.320681</TimeCreated>
-
-<Method name="BuildTF">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>RecipeId:%Integer,Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000)</FormalSpec>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[
-	set extendedKeywords = 
-		Keywords_"; "_Description_"; "_Ingredients
-		_"; "_RecipeInstructions_"; "_AdditionalData
-		
-	set extendedKeywordsList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(extendedKeywords)
-	set recipeNameList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(RecipeName)
-	set allCountList = $LISTFROMSTRING("")
-	set allList = extendedKeywordsList_recipeNameList
-	
-	set maxCount = -1
-	set lengthExtendedKeywords = $LISTLENGTH(extendedKeywordsList)
-	set lengthRecipeName = $LISTLENGTH(recipeNameList)
-	set lengthAll = $LISTLENGTH(allList)
-	
-	for i=1:1:lengthAll{
-		set word = $LIST(allList, i)
-		
-		if word = ""{
-			set allCountList = allCountList_$LISTBUILD("")
-			continue
-		}
-		
-		set count = 1
-		if i > lengthExtendedKeywords {
-			set count = count + 2
-		}
-		for j=i+1:1:lengthAll{
-			if $LIST(allList,j) = word{
-				set $LIST(allList,j) = ""
-				set count = count + 1
-				if j > lengthExtendedKeywords {
-					set count = count + 2
-				}
-			}
-		}
-		
-		if count > maxCount{
-			set maxCount = count
-		}
-		
-		set allCountList = allCountList_$LISTBUILD(count)		
-	}
-	
-	&sql(DELETE FROM RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :RecipeId)
-	
-	for i=1:1:lengthAll{
-		set word = $LIST(allList, i)
-		set wordCount = $LIST(allCountList, i)
-		
-		if word = "" {
-			continue
-		}
-		set inDict = $GET(^allDict(word))
-		
-		if inDict = "" {
-			continue
-		}
-		set wordTf = 0.5 + 0.5 * wordCount / maxCount
-		
-		&sql(INSERT INTO RecipeSearch_Data_RecipeData.WordsTF
-			(RecipeId, Word, TF, WordCount)
-			VALUES(:RecipeId, :word, :wordTf, :wordCount))
-	}
-]]></Implementation>
-</Method>
-
-<Storage name="Default">
-<Type>%Library.CacheStorage</Type>
-<DataLocation>^RecipeSear5F19.TfBuilderWiE3D6D</DataLocation>
-<DefaultData>TfBuilderWithDictionaryWeightedDefaultData</DefaultData>
-<IdLocation>^RecipeSear5F19.TfBuilderWiE3D6D</IdLocation>
-<IndexLocation>^RecipeSear5F19.TfBuilderWiE3D6I</IndexLocation>
-<StreamLocation>^RecipeSear5F19.TfBuilderWiE3D6S</StreamLocation>
-<Data name="TfBuilderWithDictionaryWeightedDefaultData">
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-</Data>
-</Storage>
 </Class>
 
 
 <Class name="RecipeSearch.RecipeAnalyze.TfIdfBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63702,60566</TimeChanged>
+<TimeChanged>63724,69044.235504</TimeChanged>
 <TimeCreated>63686,77142.637964</TimeCreated>
 
 <Method name="CalculateTfIdf">
@@ -2360,10 +2094,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 		set documentTfIdf = ""
 		
-	   	&sql(declare recipeWordsCursor cursor for select Word, TF from RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :recipeId) 
+	   	&sql(declare recipeWordsCursor cursor for select Id, Word, TF from RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :recipeId) 
 	   	&sql(open recipeWordsCursor)
     	for {
-	   		&sql(fetch recipeWordsCursor into :word, :tf)
+	   		&sql(fetch recipeWordsCursor into :tfid, :word, :tf)
+	   		
 	   		quit:(SQLCODE '= 0)
 	   		
 	   		if $GET(^globalIdf(word), -1) = -1{
@@ -2371,11 +2106,10 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			}
 	   		
 	   		set tfidf = tf * ^globalIdf(word)
-	   		set documentTfIdf = documentTfIdf_word_","_tfidf_" "
+	   		&sql(update RecipeSearch_Data_RecipeData.WordsTF SET TFIDF = :tfidf WHERE Id = :tfid)
+	   		write SQLCODE
     	}
-    	&sql(close recipeWordsCursor) 
-    	
-    	&sql(update RecipeSearch_data.SitePage SET WordsTfIdf = :documentTfIdf WHERE Id = :recipeId) 	      
+    	&sql(close recipeWordsCursor)
     }
     &sql(close recipesCursor)
     
@@ -3140,7 +2874,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-31 18:10:58.099943">
+<Project name="RecipesSearch" LastModified="2015-05-31 12:15:20.739006">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
@@ -3172,9 +2906,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.TfBuilderWithDictionaryLog" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.TfBuilderWithDictionaryWeighted" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.TfBuilderWithDictionaryLogWeighted" type="CLS"></ProjectItem>
   </Items>
 </Project>
 </Export>

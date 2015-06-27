@@ -283,7 +283,6 @@ namespace RecipesSearch.WebApplication.Controllers
                 NearestsResultsUpdatedCount = similarResultsBuilder.UpdatedPagesCount,
                 TfIdfUpdatingInProgress = tfIdfBuilder.UpdateInProgress,
                 EmptyNearestResultsCount = pageStatsRepository.GetNearestResultsStatistic(),
-                EmptyTfIdfCount = pageStatsRepository.GetTfIdfStatistic(),
                 EmptyTfCount = pageStatsRepository.GetTfStatistic(),
                 IdfGlobalExists = pageStatsRepository.GetIdfStatistic() == 1,
                 TfUpdatingInProgress = TfBuilder.GetInstance().UpdateInProgress,

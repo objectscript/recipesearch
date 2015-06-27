@@ -83,42 +83,29 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
         private TfIdfInfo[] GetTfIdfInfos()
         {
-            List<SitePageTfIdf> pages;
-            
+            List<SitePageTfIdf> tfidfs;
+
             using (var cacheAdapter = new SimilarResultsAdapter())
             {
-                pages = cacheAdapter.GetWordsTfIdf();
+                tfidfs = cacheAdapter.GetWordsTfIdf();
             }
 
             var resultsList = new List<TfIdfInfo>();
 
-            for (int i = 0; i < pages.Count; ++i)
-            {
-                if (String.IsNullOrEmpty(pages[i].WordsTfIdf))
+            tfidfs
+                .GroupBy(tfidf => tfidf.RecipeId)
+                .ToList()
+                .ForEach(group =>
                 {
-                    continue;
-                }
-
-                var result = new TfIdfInfo
-                {
-                    Id = pages[i].Id,
-                    WordsTfIdf = new Dictionary<string, double>()
-                };                
-
-                var tfIdfParts = pages[i].WordsTfIdf.Split(new char[]{' '}, StringSplitOptions.RemoveEmptyEntries);
-
-                for (int j = 0; j < tfIdfParts.Length; ++j)
-                {
-                    var tfIdfWordParts = tfIdfParts[j].Split(',');
-
-                    var word = tfIdfWordParts[0];
-                    double tfidf = Double.Parse(tfIdfWordParts[1], CultureInfo.InvariantCulture);
-
-                    result.WordsTfIdf.Add(word, tfidf);
-                }
-
-                resultsList.Add(result);
-            }
+                    var tfIdfInfo = new TfIdfInfo {Id = group.Key};
+                    var dict = new Dictionary<string, double>();
+                    foreach (var sitePageTfIdf in group)
+                    {
+                        dict.Add(sitePageTfIdf.Word, sitePageTfIdf.TFIDF);
+                    }
+                    tfIdfInfo.WordsTfIdf = dict;
+                    resultsList.Add(tfIdfInfo);
+                });
 
             return resultsList.ToArray();
         }
