@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-06-27 14:15:50">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-06-29 17:15:29">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -1492,7 +1492,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63702,58630.578465</TimeChanged>
+<TimeChanged>63732,62009.397811</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1527,8 +1527,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	
 	// Seed search settings
 	IF NOT EXISTS(SELECT * FROM RecipeSearch_Data.SearchSettings) THEN BEGIN
-		INSERT INTO RecipeSearch_Data.SearchSettings(ResultsOnPage,ResultsForGraphView, SuggestionsCount,EnableSpellchecking,EnableSpellcheckingForSuggest, IsActive, CreatedDate, ModifiedDate) 
-		VALUES(25, 50, 10, 1, 1, 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO RecipeSearch_Data.SearchSettings(DefaultResultsView, ResultsOnPage,ResultsForGraphView, SuggestionsCount,EnableSpellchecking,EnableSpellcheckingForSuggest, IsActive, CreatedDate, ModifiedDate) 
+		VALUES(1, 25, 50, 10, 1, 1, 1, GETUTCDATE(), GETUTCDATE());
 	END
 	
 	// Seed tfIdf config
@@ -1747,111 +1747,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	   set ^globalIdf(word) = $ZLN(totalNumberOfDocuments / documentsCount)
     }
     &sql(close wordsCursor)
-]]></Implementation>
-</Method>
-</Class>
-
-
-<Class name="RecipeSearch.RecipeAnalyze.PageAnalyzer">
-<Super>%RegisteredObject</Super>
-<TimeChanged>63702,60566</TimeChanged>
-<TimeCreated>63681,75947.377003</TimeCreated>
-
-<Method name="AddWordsToGlobal">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>words:%String</FormalSpec>
-<Private>1</Private>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	set wordsStemmed = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).StemText(words)
-	set wordList = $LISTFROMSTRING(wordsStemmed, " ")
-	for i=1:1:$listlength(wordList) {
-		set curWord = $list(wordList,i)
-		set inDictionary = $GET(^allDict(curWord))
-		if inDictionary '= "" {
-			set curFrequency = $GET(^tempWords(curWord))
-			if curFrequency '= "" {
-				set ^tempWords(curWord) = curFrequency + 1
-			} else {
-				set ^tempWords(curWord) = 1
-			}
-		}
-	}
-]]></Implementation>
-</Method>
-
-<Method name="CountTfIdf">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	kill ^documentFrequency
-	kill ^tempWords
-	kill ^tf
-	kill ^maxtf
-	#sqlcompile SELECT = odbc
-	&sql(declare byalldata cursor for
-	      select ID,Keywords, RecipeName, Ingredients, RecipeInstructions
-          from RecipeSearch_Data.SitePage)
-    &sql(open byalldata)
-    set numberOfDocuments = 0
-    for {
-	   &sql(fetch byalldata into :curID,:Keywords,:RecipeName,:Ingredients,:RecipeInstructions)
-	   quit:(SQLCODE '= 0)
-	   set numberOfDocuments = numberOfDocuments + 1 
-	   do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(Keywords)
-	   do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(RecipeName)
-	   do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(Ingredients)
-	   do ##class(RecipeSearch.RecipeAnalyze.PageAnalyzer).AddWordsToGlobal(RecipeInstructions)
-
-	   set termFrequency = ""
-	   set maxFrequency = 0
-	   set key = $Order(^tempWords(""))
-	   while key '= "" {
-		   set curFrequency = $GET(^tempWords(key))
-		   set allFrequency = $GET(^documentFrequency(key))
-		   if allFrequency = "" {
-			   set ^documentFrequency(key) = 1
-		   } else {
-			   set ^documentFrequency(key) = allFrequency + 1
-		   }
-		   if curFrequency > maxFrequency {
-			   set maxFrequency = curFrequency
-		   }
-		   set termFrequency = termFrequency_key_","_curFrequency_" "
-		   set key = $Order(^tempWords(key))
-	   }
-	   set ^tf(curID) = termFrequency
-	   set ^maxtf(curID) = maxFrequency
-	   kill ^tempWords
-	   
-	   // &sql(update RecipeSearch_data.SitePage set AdvancedKeywords = :enhancedKeywords where ID = :ID)
-    }
-    &sql(close byalldata)
-    
-    &sql(declare byURL cursor for
-	      select ID,URL
-	      from RecipeSearch_Data.SitePage)
-    &sql(open byURL)
-    for {
-	   &sql(fetch byURL into :curID,:curURL)
-	   quit:(SQLCODE '= 0)
-	   set termFrequency = $GET(^tf(curID))
-	   set maxFrequency = $GET(^maxtf(curID))
-	   set frequencyList = $LISTFROMSTRING(termFrequency, " ")
-	   set documentTfIdf = ""
-	   for i=1:1:$listlength(frequencyList)-1 {
-		   set curGroup = $list(frequencyList,i)
-		   set curWord = $PIECE(curGroup, ",", 1)
-		   set curFrequency = $PIECE(curGroup, ",", 2)
-		   set curDocumentFrequency = ^documentFrequency(curWord)
-		   set curIdf = $ZLN(numberOfDocuments / curDocumentFrequency)
-		   set curTf = (0.5 * curFrequency / maxFrequency) + 0.5
-		   set curTfIdf = curTf * curIdf
-		   set documentTfIdf = documentTfIdf_curWord_","_curTfIdf_" "
-	   }
-	   &sql(update RecipeSearch_Data.SitePage set WordsTfIdf = :documentTfIdf where ID = :curID)
-    }
-    &sql(close byURL)
 ]]></Implementation>
 </Method>
 </Class>
@@ -2874,7 +2769,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-05-31 12:15:20.739006">
+<Project name="RecipesSearch" LastModified="2015-06-29 17:06:12">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
@@ -2891,7 +2786,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Builder" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.DefaultIdfBuilder" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.IdfBuilderWithDictionary" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.PageAnalyzer" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.RecipeAnalyze.StringAnalyzer" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Builder" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.DefaultTfBuilder" type="CLS"></ProjectItem>

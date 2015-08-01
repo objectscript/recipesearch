@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="RecipesSearch.ImporterService.BuilderService" CodeBehind="BuilderService.svc.cs" %>

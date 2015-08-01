@@ -13,6 +13,7 @@ using RecipesSearch.Data.Views;
 using RecipesSearch.SearchEngine.SimilarResults;
 using RecipesSearch.SearchEngine.SimilarResults.CacheBuilders;
 using RecipesSearch.SitePagesImporter.Importer;
+using RecipesSearch.WebApplication.BuilderService;
 using RecipesSearch.WebApplication.Enums;
 using RecipesSearch.WebApplication.ImporterService;
 using RecipesSearch.WebApplication.ViewModels;
@@ -29,6 +30,7 @@ namespace RecipesSearch.WebApplication.Controllers
         private readonly SitePageManager _sitePageManager = new SitePageManager();
 
         private readonly ImporterServiceClient _importer = new ImporterServiceClient();
+        private readonly BuilderServiceClient _builder = new BuilderServiceClient();
 
         public ActionResult Config()
         {
@@ -274,20 +276,19 @@ namespace RecipesSearch.WebApplication.Controllers
             ViewBag.AdminPage = AdminPages.Tasks;
 
             var similarResultsBuilder = SimilarResultsBuilder.GetInstance();
-            var tfIdfBuilder = TfIdfBuilder.GetInstance();
             var pageStatsRepository = new PageStatsRepository();
 
             return View(new TasksViewModel
             {
                 NearestsResultsUpdatingInProgress = similarResultsBuilder.UpdateInProgress,
                 NearestsResultsUpdatedCount = similarResultsBuilder.UpdatedPagesCount,
-                TfIdfUpdatingInProgress = tfIdfBuilder.UpdateInProgress,
+                TfIdfUpdatingInProgress = _builder.IsTfIdfBuildInProgress(),
                 EmptyNearestResultsCount = pageStatsRepository.GetNearestResultsStatistic(),
                 EmptyTfCount = pageStatsRepository.GetTfStatistic(),
                 IdfGlobalExists = pageStatsRepository.GetIdfStatistic() == 1,
-                TfUpdatingInProgress = TfBuilder.GetInstance().UpdateInProgress,
-                IdfUpdatingInProgress = IdfBuilder.GetInstance().UpdateInProgress,
-                AllTasksBuildInProgress = AllTasksBuilder.GetInstance().UpdateInProgress
+                TfUpdatingInProgress = _builder.IsTfBuildInProgress(),
+                IdfUpdatingInProgress = _builder.IsIdfBuildInProgress(),
+                AllTasksBuildInProgress = _builder.AllTasksBuildInProgress()
             });
         }
 
@@ -315,7 +316,7 @@ namespace RecipesSearch.WebApplication.Controllers
         [HttpPost]
         public ActionResult StartAllTasksUpdating()
         {
-            AllTasksBuilder.GetInstance().RunAllTasks();
+            _builder.BuildAllTasks();
 
             return RedirectToAction("Tasks");
         }
@@ -323,7 +324,7 @@ namespace RecipesSearch.WebApplication.Controllers
         [HttpPost]
         public ActionResult StopAllTasksUpdating()
         {
-            AllTasksBuilder.GetInstance().StopUpdating();
+            _builder.StopAllTasksUpdating();
 
             return RedirectToAction("Tasks");
         }
@@ -331,8 +332,7 @@ namespace RecipesSearch.WebApplication.Controllers
         [HttpPost]
         public ActionResult StartTfIdfUpdating()
         {
-            var tfIdfBuilder = TfIdfBuilder.GetInstance();
-            tfIdfBuilder.Build();
+            _builder.BuildTfIdf();
 
             return RedirectToAction("Tasks");
         }
@@ -340,8 +340,7 @@ namespace RecipesSearch.WebApplication.Controllers
         [HttpPost]
         public ActionResult StartTfUpdating()
         {
-            var tfBuilder = TfBuilder.GetInstance();
-            tfBuilder.Build();
+            _builder.BuildTf();
 
             return RedirectToAction("Tasks");
         }
@@ -349,8 +348,7 @@ namespace RecipesSearch.WebApplication.Controllers
         [HttpPost]
         public ActionResult StartIdfUpdating()
         {
-            var idfBuilder = IdfBuilder.GetInstance();
-            idfBuilder.Build();
+            _builder.BuildIdf();
 
             return RedirectToAction("Tasks");
         }

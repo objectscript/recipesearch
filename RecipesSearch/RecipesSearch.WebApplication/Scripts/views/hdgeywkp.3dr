@@ -53,15 +53,10 @@
                 onlyDynamicEdges: false,
                 fit: true
             }
+        },
+        layout: {
+            hierarchical: true
         }
-        //layout: {
-        //    hierarchical: {
-        //        enabled: true,
-        //        levelSeparation: 150,
-        //        direction: 'LR',   // UD, DU, LR, RL
-        //        sortMethod: 'hubsize' // hubsize, directed
-        //    }
-        //}
     };
 
     GraphView.prototype = {
@@ -174,13 +169,13 @@
             }
 
             for (var i = 0; i < nodes.length; ++i) {
-                var nodeId = nodes[i].id;
-                var edgesCount = edgeCount[nodeId] || 0;
-                if (maxEdgeCountRecipeId == nodeId) {
+                var id = nodes[i].id;
+                if (maxEdgeCountRecipeId === id) {
                     nodes[i].level = 1;
                 } else {
-                    nodes[i].level = 1 + Math.ceil((maxEdgeCount - edgesCount) / 5);
+                    nodes[i].level = edgeCount[id] / 10 + 1;
                 }
+                
             }
 
             this._centralRecipeId = maxEdgeCountRecipeId;
@@ -261,13 +256,13 @@
 
         _handleCanvasClick: function (clickEventData) {
             var self = this;
-            var nodeId = self._network.getNodeAt(clickEventData.pointer.DOM);
+            var node = self._network.getNodeAt(clickEventData.pointer.DOM);
 
-            if (!nodeId) {
+            if (!node) {
                 self._network.unselectAll();
                 self._currentSelectedNodeId = null;
             } else {
-                var boundingBox = self._network.getBoundingBox(nodeId);
+                var boundingBox = node.shape.boundingBox;
                 var tooltipHeight = boundingBox.bottom - boundingBox.top;
                 var tooltipWidth = tooltipHeight;
                 var clickPositon = clickEventData.pointer.canvas;
@@ -278,7 +273,7 @@
                     openExpanded = true;                   
                 }
 
-                self._focusOnNode(nodeId, 250, openExpanded);
+                self._focusOnNode(node.id, 250, openExpanded);
             }           
         },
 

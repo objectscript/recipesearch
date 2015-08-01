@@ -175,6 +175,11 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Service References\BuilderService\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Compile Include="Service References\ImporterService\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -240,10 +245,24 @@
     <Content Include="Scripts\views\listView.js" />
     <Content Include="Scripts\libs\vis.js" />
     <Content Include="Scripts\_references.js" />
+    <None Include="Service References\BuilderService\BuilderService.wsdl" />
+    <None Include="Service References\BuilderService\BuilderService.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\BuilderService\BuilderService1.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Service References\ImporterService\ImporterService.disco" />
     <None Include="Service References\ImporterService\configuration91.svcinfo" />
     <None Include="Service References\ImporterService\configuration.svcinfo" />
     <None Include="Service References\ImporterService\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <None Include="Service References\BuilderService\BuilderService.disco" />
+    <None Include="Service References\BuilderService\configuration91.svcinfo" />
+    <None Include="Service References\BuilderService\configuration.svcinfo" />
+    <None Include="Service References\BuilderService\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
@@ -275,6 +294,13 @@
     <Content Include="Views\Shared\_PostButton.cshtml" />
     <Content Include="Views\Admin\_SitesInfo.cshtml" />
     <Content Include="Views\Admin\SearchSettings.cshtml" />
+    <Content Include="Views\Admin\_AdminLayout.cshtml" />
+    <Content Include="Views\Admin\_ViewStart.cshtml" />
+    <Content Include="Views\Admin\SitesToCrawlSettings.cshtml" />
+    <Content Include="Views\Admin\CrawlingHistory.cshtml" />
+    <Content Include="Views\Home\_ResultItem.cshtml" />
+    <Content Include="Views\Admin\Tasks.cshtml" />
+    <Content Include="Views\Admin\_TfIdfConfig.cshtml" />
     <None Include="Service References\ImporterService\ImporterService.wsdl" />
     <None Include="Service References\ImporterService\ImporterService.xsd">
       <SubType>Designer</SubType>
@@ -288,13 +314,6 @@
     <None Include="Service References\ImporterService\ImporterService3.xsd">
       <SubType>Designer</SubType>
     </None>
-    <Content Include="Views\Admin\_AdminLayout.cshtml" />
-    <Content Include="Views\Admin\_ViewStart.cshtml" />
-    <Content Include="Views\Admin\SitesToCrawlSettings.cshtml" />
-    <Content Include="Views\Admin\CrawlingHistory.cshtml" />
-    <Content Include="Views\Home\_ResultItem.cshtml" />
-    <Content Include="Views\Admin\Tasks.cshtml" />
-    <Content Include="Views\Admin\_TfIdfConfig.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RecipesSearch.BusinessServices\RecipesSearch.BusinessServices.csproj">
@@ -323,6 +342,7 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <WCFMetadataStorage Include="Service References\BuilderService\" />
     <WCFMetadataStorage Include="Service References\ImporterService\" />
   </ItemGroup>
   <PropertyGroup>

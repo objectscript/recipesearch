@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ImporterService.svc" />
+    <Content Include="BuilderService.svc" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -69,7 +70,11 @@
       <DependentUpon>ImporterService.svc</DependentUpon>
     </Compile>
     <Compile Include="IImporterService.cs" />
+    <Compile Include="IBuilderService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="BuilderService.svc.cs">
+      <DependentUpon>BuilderService.svc</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -99,6 +104,10 @@
     <ProjectReference Include="..\RecipesSearch.Data\RecipesSearch.Data.csproj">
       <Project>{f4257151-8806-4a0e-8e8b-9fe49ff98b47}</Project>
       <Name>RecipesSearch.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RecipesSearch.SearchEngine\RecipesSearch.SearchEngine.csproj">
+      <Project>{3785d491-7bfc-429b-a8e3-cb84f83644f6}</Project>
+      <Name>RecipesSearch.SearchEngine</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
