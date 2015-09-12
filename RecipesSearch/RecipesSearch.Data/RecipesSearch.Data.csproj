@@ -53,6 +53,7 @@
     <Compile Include="Models\Logging\LogRecordType.cs" />
     <Compile Include="Models\SitePage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\BuildersState.cs" />
     <Compile Include="Views\SiteInfo.cs" />
     <Compile Include="Views\SitePageTfIdf.cs" />
   </ItemGroup>

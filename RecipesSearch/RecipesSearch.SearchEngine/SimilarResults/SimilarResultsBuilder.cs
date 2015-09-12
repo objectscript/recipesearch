@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RecipesSearch.BusinessServices.Logging;
@@ -21,6 +18,10 @@ namespace RecipesSearch.SearchEngine.SimilarResults
         }
 
         public bool UpdateInProgress { get; private set; }
+
+        public decimal Percentage { get; private set; }
+
+        public bool PreviousBuildFailed { get; private set; }
 
         private static SimilarResultsBuilder _instance;
 
@@ -52,9 +53,13 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
                     _updatedPagesCount = -1;
                     UpdateInProgress = true;
+                    PreviousBuildFailed = false;
+                    Percentage = 0;
                     _cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
 
+                    Logger.LogInfo("Similar results build: GetInfo started");
                     var tfIdfInfos = GetTfIdfInfos();
+                    Logger.LogInfo("Similar results build: GetInfo finished");
 
                     _updatedPagesCount = 0;
 
@@ -67,9 +72,10 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 catch (Exception exception)
                 {
                     UpdateInProgress = false;
+                    PreviousBuildFailed = true;
                     Logger.LogError(String.Format("SimilarResultsBuilder.FindNearestResults failed"), exception);                    
                 }               
-            }, TaskCreationOptions.AttachedToParent);
+            }, TaskCreationOptions.LongRunning);
         }
 
         public void StopUpdating()
@@ -165,6 +171,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                     }
 
                     Interlocked.Increment(ref _updatedPagesCount);
+                    Percentage = _updatedPagesCount * 1m /pages.Length * 100m;
                 }             
             });         
         }

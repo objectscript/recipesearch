@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using InterSystems.Data.CacheClient;
 using RecipesSearch.DAL.Cache.Adapters.Base;
@@ -12,6 +13,8 @@ namespace RecipesSearch.DAL.Cache.Adapters
 {
     public class TfIdfAdapter :  CacheAdapter
     {
+        private int BatchSize { get { return 100; } }
+
         public int GetTfIdfStatistic()
         {
             return GetStatistic("SitePage_GetTFIDFStatistic", Constants.DefaultCachePackage);
@@ -26,27 +29,32 @@ namespace RecipesSearch.DAL.Cache.Adapters
             return GetStatistic("SitePage_GetIdfStatistic", Constants.DefaultCachePackage);
         }
 
-        public void UpdateTfIdf()
+        public void UpdateTfIdf(CancellationToken cancellationToken, Action<decimal> progressCallback = null)
         {
-            RunTfIdfTask("SitePage_UpdateTfIdf", Constants.DefaultCachePackage);
+            RunTfIdfTask("TfIdfBuilder_BuildTfIdfQuery", Constants.RecipeAnalyzeCachePackage, cancellationToken, null, progressCallback);
         }
 
-        public void UpdateTf(string builderName)
+        public void UpdateTf(string builderName, CancellationToken cancellationToken, Action<decimal> progressCallback = null)
         {
             RunTfIdfTask(
-                "Builder_BuildTf", 
+                "Builder_BuildTfQuery", 
                 Constants.TfBuilderCachePackage, 
-                command => command.Parameters.AddWithValue("builderName", builderName)
+                cancellationToken,
+                command => command.Parameters.AddWithValue("builderName", builderName),
+                progressCallback
             );
         }
 
         public void UpdateIdf(string builderName)
         {
-            RunTfIdfTask(
-                "Builder_BuildIdf", 
-                Constants.IdfBuilderCachePackage, 
-                command => command.Parameters.AddWithValue("builderName", builderName)
-            );
+            var command = new CacheCommand(GetFullProcedureName("Builder_BuildIdf", Constants.IdfBuilderCachePackage), CacheConnection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("builderName", builderName);
+
+            command.CommandTimeout = 60 * 10;
+
+            command.ExecuteNonQuery();
         }
 
         public List<string> GetTfBuilders()
@@ -86,19 +94,69 @@ namespace RecipesSearch.DAL.Cache.Adapters
             return result;
         }
 
-        private void RunTfIdfTask(string sprocName, string packageName, Action<CacheCommand> addParameters = null)
+        private void RunTfIdfTask(string sprocName, string packageName, CancellationToken cancellationToken, Action<CacheCommand> addParameters = null, Action<decimal> progressCallback = null)
         {
-            var command = new CacheCommand(GetFullProcedureName(sprocName, packageName), CacheConnection);
+            var recipesCount = GetRecipesCount();
+            int updatedCount = 0;
+
+            int idx = recipesCount.MinId;
+            while (idx <= recipesCount.MaxId)
+            {
+                var command = new CacheCommand(GetFullProcedureName(sprocName, packageName), CacheConnection);
+                command.CommandType = CommandType.StoredProcedure;
+
+                if (addParameters != null)
+                {
+                    addParameters(command);
+                }
+
+                command.Parameters.AddWithValue("startId", idx);
+                command.Parameters.AddWithValue("endId", idx + BatchSize - 1);
+
+                command.CommandTimeout = 60;
+
+                //var reader = command.ExecuteReader();
+                updatedCount += (int)command.ExecuteScalar();
+
+                idx += BatchSize;
+
+                if (progressCallback != null)
+                {
+                    progressCallback(updatedCount*1m/recipesCount.Count*100m);
+                }
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+            }       
+        }
+
+        private RecipesCount GetRecipesCount()
+        {
+            var command = new CacheCommand(GetFullProcedureName("SitePage_GetRecipesCount"), CacheConnection);
             command.CommandType = CommandType.StoredProcedure;
 
-            if (addParameters != null)
+            using (var reader = command.ExecuteReader())
             {
-                addParameters(command);
-            }            
+                reader.Read();
+                var recipesCount = new RecipesCount
+                {
+                    Count = (int) reader[0],
+                    MinId = (int) reader[1],
+                    MaxId = (int) reader[2],
+                };
+                return recipesCount;
+            }
+        }
 
-            command.CommandTimeout = 60 * 60; // 1 hour
+        private struct RecipesCount
+        {
+            public int Count { get; set; }
 
-            command.ExecuteNonQuery();
+            public int MinId { get; set; }
+
+            public int MaxId { get; set; }
         }
     }
 }

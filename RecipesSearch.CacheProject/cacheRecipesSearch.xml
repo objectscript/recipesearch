@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-06-29 17:15:29">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-09-12 22:33:29">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -973,7 +973,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63730,50670.361407</TimeChanged>
+<TimeChanged>63807,80375.113422</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1296,6 +1296,14 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
 
+<Query name="GetRecipesCount">
+<Type>%SQLQuery</Type>
+<SqlProc>1</SqlProc>
+<SqlQuery>	SELECT COUNT(Id), Min(Id), Max(Id) FROM RecipeSearch_Data.SitePage</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+<Parameter name="SELECTMODE" value="RUNTIME"/>
+</Query>
+
 <Method name="GetIdfStatisticProc">
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Integer</ReturnType>
@@ -1311,13 +1319,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <SqlProc>1</SqlProc>
 <SqlQuery>	SELECT CAST(RecipeSearch_Data.SitePage_GetIdfStatisticProc() AS INT) AS IdfGlobalExists</SqlQuery>
 </Query>
-
-<Method name="UpdateTfIdf">
-<ClassMethod>1</ClassMethod>
-<SqlProc>1</SqlProc>
-<Implementation><![CDATA[	do ##class(RecipeSearch.RecipeAnalyze.TfIdfBuilder).CalculateTfIdf()
-]]></Implementation>
-</Method>
 
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
@@ -1780,20 +1781,29 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.RecipeAnalyze.TfBuild.Builder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63703,2752.520045</TimeChanged>
+<TimeChanged>63807,79886.170406</TimeChanged>
 <TimeCreated>63686,75654.215346</TimeCreated>
+
+<Query name="BuildTfQuery">
+<Type>%SQLQuery</Type>
+<FormalSpec>builderName:%String,startId:%Integer,endId:%Integer</FormalSpec>
+<SqlProc>1</SqlProc>
+<SqlQuery>	SELECT CAST(RecipeSearch_RecipeAnalyze_TfBuild.Builder_BuildTf(:builderName, :startId, :endId) AS INT) AS RowCount</SqlQuery>
+</Query>
 
 <Method name="BuildTf">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>builderName:%String</FormalSpec>
+<FormalSpec>builderName:%String,startId:%Integer,endId:%Integer</FormalSpec>
+<ReturnType>%Integer</ReturnType>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
-	do ##class(RecipeSearch.Logging.LogRecord).AddRecord(4, "TfBuilder start", "")
-	
+	do ##class(RecipeSearch.Logging.LogRecord).AddRecord(4, "TfBuilder start. Stard id: "_startId_", End id:"_endId, "")
+	set count = 0
 	try {
 		&sql(declare recipesCursor cursor for
 	      	select ID, Keywords, RecipeName, Description, Ingredients, RecipeInstructions,AdditionalData
-          	from RecipeSearch_Data.SitePage)
+          	from RecipeSearch_Data.SitePage
+          	WHERE Id >= :startId AND Id <= :endId)
           
     	&sql(open recipesCursor)
     	for {
@@ -1808,6 +1818,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     			Ingredients, 
     			RecipeInstructions, 
     			AdditionalData)
+    		
+    		set count = count + 1
     	}
     	&sql(close recipesCursor)
     	
@@ -1815,10 +1827,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	}
 	catch {
 		do ##class(RecipeSearch.Logging.LogRecord).AddRecord(1, "TfBuilder failed", $zerror)
-		return
+		return 0
 	}
 	
 	do ##class(RecipeSearch.Logging.LogRecord).AddRecord(4, "TfBuilder finished", "")
+	
+	return count
 ]]></Implementation>
 </Method>
 
@@ -1968,20 +1982,29 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.RecipeAnalyze.TfIdfBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63724,69044.235504</TimeChanged>
+<TimeChanged>63807,80326.020191</TimeChanged>
 <TimeCreated>63686,77142.637964</TimeCreated>
+
+<Query name="BuildTfIdfQuery">
+<Type>%SQLQuery</Type>
+<FormalSpec>startId:%Integer,endId:%Integer</FormalSpec>
+<SqlProc>1</SqlProc>
+<SqlQuery>	SELECT CAST(RecipeSearch_RecipeAnalyze.TfIdfBuilder_CalculateTfIdf(:startId, :endId) AS INT) AS RowCount</SqlQuery>
+</Query>
 
 <Method name="CalculateTfIdf">
 <ClassMethod>1</ClassMethod>
+<FormalSpec>startId:%Integer,endId:%Integer</FormalSpec>
+<ReturnType>%Integer</ReturnType>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
-  
   try {
 	  
-	do ##class(RecipeSearch.Logging.LogRecord).AddRecord(4, "TfIdfBuilder started", "")
-	
+	do ##class(RecipeSearch.Logging.LogRecord).AddRecord(4, "TfIdfBuilder started. Stard id: "_startId_", End id:"_endId, "")
+	set count = 0
     &sql(declare recipesCursor cursor for
-	      select id from RecipeSearch_Data.SitePage)        
+	      select id from RecipeSearch_Data.SitePage
+	      WHERE Id >= :startId AND Id <= :endId)        
     &sql(open recipesCursor)
     for {
 	   	&sql(fetch recipesCursor into :recipeId)
@@ -2005,6 +2028,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	   		write SQLCODE
     	}
     	&sql(close recipeWordsCursor)
+    	set count = count + 1
     }
     &sql(close recipesCursor)
     
@@ -2012,7 +2036,10 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
   }
   catch{
 	  do ##class(RecipeSearch.Logging.LogRecord).AddRecord(1, "TfBuilder failed", $zerror)
+	  return 0
   }
+  
+  return count
 ]]></Implementation>
 </Method>
 </Class>
@@ -2769,7 +2796,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-06-29 17:06:12">
+<Project name="RecipesSearch" LastModified="2015-08-01 13:03:21.381377">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>

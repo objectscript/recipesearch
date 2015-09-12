@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.DAL.Cache.Adapters;
@@ -12,7 +10,11 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
 {
     public class TfBuilder : BaseCacheBuilder
     {
+        public decimal Progress { get; private set; }
+
         private static readonly TfBuilder Instance = new TfBuilder();
+
+        private CancellationTokenSource _cancellationTokenSource;
 
         private TfBuilder()
         {
@@ -26,11 +28,13 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
 
         protected override void BuildAction()
         {
+            _cancellationTokenSource = new CancellationTokenSource();
+            Progress = 0;
             var tfIdfConfig = new TfIdfConfigRepository().GetConfig();
 
             using (var cacheAdapter = new TfIdfAdapter())
             {
-                cacheAdapter.UpdateTf(tfIdfConfig.TfBuilderName);
+                cacheAdapter.UpdateTf(tfIdfConfig.TfBuilderName, _cancellationTokenSource.Token, progress => Progress = progress);
             }
         }
 
@@ -47,6 +51,16 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
             {
                 Logger.LogError(String.Format("TfBuilder.GetTfBuilders failed"), exception);
                 return new List<string>();
+            }
+        }
+
+        public void StopUpdating()
+        {
+            if (UpdateInProgress)
+            {
+                _cancellationTokenSource.Cancel();
+                UpdateInProgress = false;
+                Progress = 0;
             }
         }
     }

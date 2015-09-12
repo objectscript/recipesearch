@@ -20,6 +20,8 @@ namespace RecipesSearch.WebApplication
                       "~/Content/simplePagination.css",
                       "~/Content/vis.css",
                       "~/Content/site.css"));
+
+            BundleTable.EnableOptimizations = false;
         }
     }
 }

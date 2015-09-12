@@ -229,7 +229,10 @@
 
             this._network.on('stabilizationIterationsDone', function () {
                 self._network.stopSimulation();
-                self._focusOnNode(self._centralRecipeId, 600);
+
+                if (self._centralRecipeId !== -1) {
+                    self._focusOnNode(self._centralRecipeId, 600);
+                }               
 
                 self._toggleProgress(false);
                 self._createShowAllEdgesButton();

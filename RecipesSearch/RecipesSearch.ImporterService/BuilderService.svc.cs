@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.ServiceModel;
-using System.Text;
+﻿using System.ServiceModel;
+using RecipesSearch.Data.Views;
 using RecipesSearch.SearchEngine.SimilarResults;
 using RecipesSearch.SearchEngine.SimilarResults.CacheBuilders;
 
@@ -16,10 +12,16 @@ namespace RecipesSearch.ImporterService
         private readonly IdfBuilder _idfBuilder = IdfBuilder.GetInstance();
         private readonly TfIdfBuilder _tfIdfBuilder = TfIdfBuilder.GetInstance();
         private readonly AllTasksBuilder _allTasksBuilder = AllTasksBuilder.GetInstance();
+        private readonly SimilarResultsBuilder _similarResultsBuilder = SimilarResultsBuilder.GetInstance();
 
         public void BuildTf()
         {
             _tfBuilder.Build();
+        }
+
+        public void StopTfBuild()
+        {
+            _tfBuilder.StopUpdating();
         }
 
         public void BuildTfIdf()
@@ -27,9 +29,24 @@ namespace RecipesSearch.ImporterService
             _tfIdfBuilder.Build();
         }
 
+        public void StopTfIdfBuild()
+        {
+            _tfIdfBuilder.StopUpdating();
+        }
+
         public void BuildIdf()
         {
             _idfBuilder.Build();
+        }
+
+        public void BuildSimilarResults(int resultsCount)
+        {
+            _similarResultsBuilder.FindNearestResults(resultsCount);
+        }
+
+        public void StopSimilarResultsBuild()
+        {
+            _similarResultsBuilder.StopUpdating();
         }
 
         public void BuildAllTasks()
@@ -42,24 +59,24 @@ namespace RecipesSearch.ImporterService
             _allTasksBuilder.StopUpdating();
         }
 
-        public bool IsTfBuildInProgress()
+        public BuildersState GetBuildersState()
         {
-            return _tfBuilder.UpdateInProgress;
-        }
-
-        public bool IsIdfBuildInProgress()
-        {
-            return _idfBuilder.UpdateInProgress;
-        }
-
-        public bool IsTfIdfBuildInProgress()
-        {
-            return _tfIdfBuilder.UpdateInProgress;
-        }
-
-        public bool AllTasksBuildInProgress()
-        {
-            return _allTasksBuilder.UpdateInProgress;
+            return new BuildersState
+            {
+                IdfBuildInProgress = _idfBuilder.UpdateInProgress,
+                TfBuildInProgress = _tfBuilder.UpdateInProgress,
+                TfBuildProgress = _tfBuilder.Progress,
+                TfIdfBuildInProgress = _tfIdfBuilder.UpdateInProgress,
+                TfIdfBuildProgress = _tfIdfBuilder.Progress,
+                AllTasksBuildInProgress = _allTasksBuilder.UpdateInProgress,
+                SimilarResultsUpdateInProgress = _similarResultsBuilder.UpdateInProgress,
+                SimilarResultsUpdatedCount = _similarResultsBuilder.UpdatedPagesCount,
+                TfBuildFailed = _tfBuilder.PreviousBuildFailed,
+                IdfBuildFailed = _idfBuilder.PreviousBuildFailed,
+                TfIdfBuildFailed = _tfIdfBuilder.PreviousBuildFailed,
+                SimilarResultsBuildFailed = _similarResultsBuilder.PreviousBuildFailed,
+                SimilarResultsPercentage = _similarResultsBuilder.Percentage
+            };
         }
     }
 }

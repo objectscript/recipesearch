@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using InterSystems.Data.CacheClient;
 using RecipesSearch.DAL.Cache.Adapters.Base;
 using RecipesSearch.DAL.Cache.Utilities;
-using RecipesSearch.Data.Models;
 using RecipesSearch.Data.Views;
 
 namespace RecipesSearch.DAL.Cache.Adapters

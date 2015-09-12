@@ -473,6 +473,9 @@ form.post-button {
     margin-bottom: 10px;
     display: block;
 }
+.admin .tasks .tfidf-progress {
+    margin-bottom: 30px;
+}
 
 /* Crawling history */
 .admin .crawling-history .table th {
@@ -599,4 +602,20 @@ form.post-button {
 
 .alert-warning {
     background-color: #C2C2C0;
+    position: relative;
+}
+.alert-warning.failed:after {
+    content: "!";
+    display: block;
+    position: absolute;
+    font-size: 14px;
+    width: 20px;
+    padding-left: 1px;
+    padding-top: 1px;
+    height: 20px;
+    background-color: red;
+    text-align: center;
+    border-radius: 7px;
+    top: 14px;
+    right: 15px;
 }

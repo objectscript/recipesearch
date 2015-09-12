@@ -4,6 +4,7 @@
     <xsd:schema targetNamespace="http://tempuri.org/Imports">
       <xsd:import schemaLocation="http://localhost:10310/BuilderService.svc?xsd=xsd0" namespace="http://tempuri.org/" />
       <xsd:import schemaLocation="http://localhost:10310/BuilderService.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://localhost:10310/BuilderService.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Views" />
     </xsd:schema>
   </wsdl:types>
   <wsdl:message name="IBuilderService_BuildTf_InputMessage">
@@ -12,17 +13,41 @@
   <wsdl:message name="IBuilderService_BuildTf_OutputMessage">
     <wsdl:part name="parameters" element="tns:BuildTfResponse" />
   </wsdl:message>
+  <wsdl:message name="IBuilderService_StopTfBuild_InputMessage">
+    <wsdl:part name="parameters" element="tns:StopTfBuild" />
+  </wsdl:message>
+  <wsdl:message name="IBuilderService_StopTfBuild_OutputMessage">
+    <wsdl:part name="parameters" element="tns:StopTfBuildResponse" />
+  </wsdl:message>
   <wsdl:message name="IBuilderService_BuildTfIdf_InputMessage">
     <wsdl:part name="parameters" element="tns:BuildTfIdf" />
   </wsdl:message>
   <wsdl:message name="IBuilderService_BuildTfIdf_OutputMessage">
     <wsdl:part name="parameters" element="tns:BuildTfIdfResponse" />
   </wsdl:message>
+  <wsdl:message name="IBuilderService_StopTfIdfBuild_InputMessage">
+    <wsdl:part name="parameters" element="tns:StopTfIdfBuild" />
+  </wsdl:message>
+  <wsdl:message name="IBuilderService_StopTfIdfBuild_OutputMessage">
+    <wsdl:part name="parameters" element="tns:StopTfIdfBuildResponse" />
+  </wsdl:message>
   <wsdl:message name="IBuilderService_BuildIdf_InputMessage">
     <wsdl:part name="parameters" element="tns:BuildIdf" />
   </wsdl:message>
   <wsdl:message name="IBuilderService_BuildIdf_OutputMessage">
     <wsdl:part name="parameters" element="tns:BuildIdfResponse" />
+  </wsdl:message>
+  <wsdl:message name="IBuilderService_BuildSimilarResults_InputMessage">
+    <wsdl:part name="parameters" element="tns:BuildSimilarResults" />
+  </wsdl:message>
+  <wsdl:message name="IBuilderService_BuildSimilarResults_OutputMessage">
+    <wsdl:part name="parameters" element="tns:BuildSimilarResultsResponse" />
+  </wsdl:message>
+  <wsdl:message name="IBuilderService_StopSimilarResultsBuild_InputMessage">
+    <wsdl:part name="parameters" element="tns:StopSimilarResultsBuild" />
+  </wsdl:message>
+  <wsdl:message name="IBuilderService_StopSimilarResultsBuild_OutputMessage">
+    <wsdl:part name="parameters" element="tns:StopSimilarResultsBuildResponse" />
   </wsdl:message>
   <wsdl:message name="IBuilderService_BuildAllTasks_InputMessage">
     <wsdl:part name="parameters" element="tns:BuildAllTasks" />
@@ -36,42 +61,40 @@
   <wsdl:message name="IBuilderService_StopAllTasksUpdating_OutputMessage">
     <wsdl:part name="parameters" element="tns:StopAllTasksUpdatingResponse" />
   </wsdl:message>
-  <wsdl:message name="IBuilderService_IsTfBuildInProgress_InputMessage">
-    <wsdl:part name="parameters" element="tns:IsTfBuildInProgress" />
+  <wsdl:message name="IBuilderService_GetBuildersState_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetBuildersState" />
   </wsdl:message>
-  <wsdl:message name="IBuilderService_IsTfBuildInProgress_OutputMessage">
-    <wsdl:part name="parameters" element="tns:IsTfBuildInProgressResponse" />
-  </wsdl:message>
-  <wsdl:message name="IBuilderService_IsIdfBuildInProgress_InputMessage">
-    <wsdl:part name="parameters" element="tns:IsIdfBuildInProgress" />
-  </wsdl:message>
-  <wsdl:message name="IBuilderService_IsIdfBuildInProgress_OutputMessage">
-    <wsdl:part name="parameters" element="tns:IsIdfBuildInProgressResponse" />
-  </wsdl:message>
-  <wsdl:message name="IBuilderService_IsTfIdfBuildInProgress_InputMessage">
-    <wsdl:part name="parameters" element="tns:IsTfIdfBuildInProgress" />
-  </wsdl:message>
-  <wsdl:message name="IBuilderService_IsTfIdfBuildInProgress_OutputMessage">
-    <wsdl:part name="parameters" element="tns:IsTfIdfBuildInProgressResponse" />
-  </wsdl:message>
-  <wsdl:message name="IBuilderService_AllTasksBuildInProgress_InputMessage">
-    <wsdl:part name="parameters" element="tns:AllTasksBuildInProgress" />
-  </wsdl:message>
-  <wsdl:message name="IBuilderService_AllTasksBuildInProgress_OutputMessage">
-    <wsdl:part name="parameters" element="tns:AllTasksBuildInProgressResponse" />
+  <wsdl:message name="IBuilderService_GetBuildersState_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetBuildersStateResponse" />
   </wsdl:message>
   <wsdl:portType name="IBuilderService">
     <wsdl:operation name="BuildTf">
       <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/BuildTf" message="tns:IBuilderService_BuildTf_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/BuildTfResponse" message="tns:IBuilderService_BuildTf_OutputMessage" />
     </wsdl:operation>
+    <wsdl:operation name="StopTfBuild">
+      <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/StopTfBuild" message="tns:IBuilderService_StopTfBuild_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/StopTfBuildResponse" message="tns:IBuilderService_StopTfBuild_OutputMessage" />
+    </wsdl:operation>
     <wsdl:operation name="BuildTfIdf">
       <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/BuildTfIdf" message="tns:IBuilderService_BuildTfIdf_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/BuildTfIdfResponse" message="tns:IBuilderService_BuildTfIdf_OutputMessage" />
     </wsdl:operation>
+    <wsdl:operation name="StopTfIdfBuild">
+      <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/StopTfIdfBuild" message="tns:IBuilderService_StopTfIdfBuild_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/StopTfIdfBuildResponse" message="tns:IBuilderService_StopTfIdfBuild_OutputMessage" />
+    </wsdl:operation>
     <wsdl:operation name="BuildIdf">
       <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/BuildIdf" message="tns:IBuilderService_BuildIdf_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/BuildIdfResponse" message="tns:IBuilderService_BuildIdf_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="BuildSimilarResults">
+      <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/BuildSimilarResults" message="tns:IBuilderService_BuildSimilarResults_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/BuildSimilarResultsResponse" message="tns:IBuilderService_BuildSimilarResults_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="StopSimilarResultsBuild">
+      <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/StopSimilarResultsBuild" message="tns:IBuilderService_StopSimilarResultsBuild_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/StopSimilarResultsBuildResponse" message="tns:IBuilderService_StopSimilarResultsBuild_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="BuildAllTasks">
       <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/BuildAllTasks" message="tns:IBuilderService_BuildAllTasks_InputMessage" />
@@ -81,27 +104,24 @@
       <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/StopAllTasksUpdating" message="tns:IBuilderService_StopAllTasksUpdating_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/StopAllTasksUpdatingResponse" message="tns:IBuilderService_StopAllTasksUpdating_OutputMessage" />
     </wsdl:operation>
-    <wsdl:operation name="IsTfBuildInProgress">
-      <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/IsTfBuildInProgress" message="tns:IBuilderService_IsTfBuildInProgress_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/IsTfBuildInProgressResponse" message="tns:IBuilderService_IsTfBuildInProgress_OutputMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="IsIdfBuildInProgress">
-      <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/IsIdfBuildInProgress" message="tns:IBuilderService_IsIdfBuildInProgress_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/IsIdfBuildInProgressResponse" message="tns:IBuilderService_IsIdfBuildInProgress_OutputMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="IsTfIdfBuildInProgress">
-      <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/IsTfIdfBuildInProgress" message="tns:IBuilderService_IsTfIdfBuildInProgress_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/IsTfIdfBuildInProgressResponse" message="tns:IBuilderService_IsTfIdfBuildInProgress_OutputMessage" />
-    </wsdl:operation>
-    <wsdl:operation name="AllTasksBuildInProgress">
-      <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/AllTasksBuildInProgress" message="tns:IBuilderService_AllTasksBuildInProgress_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/AllTasksBuildInProgressResponse" message="tns:IBuilderService_AllTasksBuildInProgress_OutputMessage" />
+    <wsdl:operation name="GetBuildersState">
+      <wsdl:input wsaw:Action="http://tempuri.org/IBuilderService/GetBuildersState" message="tns:IBuilderService_GetBuildersState_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IBuilderService/GetBuildersStateResponse" message="tns:IBuilderService_GetBuildersState_OutputMessage" />
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="BasicHttpBinding_IBuilderService" type="tns:IBuilderService">
     <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="BuildTf">
       <soap:operation soapAction="http://tempuri.org/IBuilderService/BuildTf" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="StopTfBuild">
+      <soap:operation soapAction="http://tempuri.org/IBuilderService/StopTfBuild" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -118,8 +138,35 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="StopTfIdfBuild">
+      <soap:operation soapAction="http://tempuri.org/IBuilderService/StopTfIdfBuild" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="BuildIdf">
       <soap:operation soapAction="http://tempuri.org/IBuilderService/BuildIdf" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="BuildSimilarResults">
+      <soap:operation soapAction="http://tempuri.org/IBuilderService/BuildSimilarResults" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="StopSimilarResultsBuild">
+      <soap:operation soapAction="http://tempuri.org/IBuilderService/StopSimilarResultsBuild" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -145,35 +192,8 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="IsTfBuildInProgress">
-      <soap:operation soapAction="http://tempuri.org/IBuilderService/IsTfBuildInProgress" style="document" />
-      <wsdl:input>
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output>
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="IsIdfBuildInProgress">
-      <soap:operation soapAction="http://tempuri.org/IBuilderService/IsIdfBuildInProgress" style="document" />
-      <wsdl:input>
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output>
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="IsTfIdfBuildInProgress">
-      <soap:operation soapAction="http://tempuri.org/IBuilderService/IsTfIdfBuildInProgress" style="document" />
-      <wsdl:input>
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output>
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="AllTasksBuildInProgress">
-      <soap:operation soapAction="http://tempuri.org/IBuilderService/AllTasksBuildInProgress" style="document" />
+    <wsdl:operation name="GetBuildersState">
+      <soap:operation soapAction="http://tempuri.org/IBuilderService/GetBuildersState" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>

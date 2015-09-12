@@ -9,14 +9,10 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders.Base
 {
     public abstract class BaseCacheBuilder
     {
-        public bool UpdateInProgress { get; private set; }
-        public bool PreviousBuildFailed { get; private set; }
+        public bool UpdateInProgress { get; protected set; }
+        public bool PreviousBuildFailed { get; protected set; }
 
         protected string BuilderName;
-
-        protected BaseCacheBuilder()
-        {
-        }
 
         public Task Build()
         {
@@ -37,7 +33,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders.Base
                     UpdateInProgress = false;
                     PreviousBuildFailed = true;
                 }
-            }, TaskCreationOptions.AttachedToParent);
+            }, TaskCreationOptions.LongRunning);
         }
 
         protected abstract void BuildAction();

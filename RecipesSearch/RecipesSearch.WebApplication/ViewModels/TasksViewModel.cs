@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RecipesSearch.Data.Models;
-
-namespace RecipesSearch.WebApplication.ViewModels
+﻿namespace RecipesSearch.WebApplication.ViewModels
 {
     public class TasksViewModel
     {
@@ -31,5 +21,19 @@ namespace RecipesSearch.WebApplication.ViewModels
         public bool IdfGlobalExists { get; set; }
 
         public int EmptyNearestResultsCount { get; set; }
+
+        public decimal TfProgress { get; set; }
+
+        public decimal TfIdfProgress { get; set; }
+
+        public bool TfBuildFailed { get; set; }
+
+        public bool IdfBuildFailed { get; set; }
+
+        public bool TfIdfBuildFailed { get; set; }
+
+        public bool SimilarResultsBuildFailed { get; set; }
+
+        public decimal SimilarResultsPercentage { get; set; }
     }
 }

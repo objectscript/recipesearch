@@ -8,13 +8,21 @@
     <div class="col-md-6 tasks">
         <div>
             @if (Model.TfUpdatingInProgress)
-            {
-                <div class="alert alert-success" role="alert">Tf update in progress.</div>
-                <label class="page-stat active">Empty tf results: @Model.EmptyTfCount</label>
+            {              
+                <div class="alert alert-success " role="alert">Tf update in progress.</div>
+                <label class="page-stat active">Empty tf results: @Model.EmptyTfCount. Progress: @Math.Round(Model.TfProgress)%</label>
+                @Html.Partial("_PostButton", new PostButtonModel
+                {
+                    Action = "StopTfUpdating",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Stop updating"
+                })
             }
             else
             {
-                <div class="alert alert-warning" role="alert">Tf update idle</div>
+                var alertClass = Model.TfBuildFailed ? "failed" : String.Empty;
+                <div class="alert alert-warning @alertClass" role="alert">Tf update idle</div>
                 <label class="page-stat">Empty tf results: @Model.EmptyTfCount</label>
                 @Html.Partial("_PostButton", new PostButtonModel
                 {
@@ -29,11 +37,12 @@
             @if (Model.IdfUpdatingInProgress)
             {
                 <div class="alert alert-success" role="alert">Idf update in progress.</div>
-                <label class="page-stat active">Idf global exists: @Model.IdfGlobalExists</label>
+                <label class="page-stat active">Idf global exists:@Model.IdfGlobalExists</label>
             }
             else
             {
-                <div class="alert alert-warning" role="alert">Idf update idle</div>
+                var alertClass = Model.IdfBuildFailed ? "failed" : String.Empty;
+                <div class="alert alert-warning @alertClass" role="alert">Idf update idle</div>
                 <label class="page-stat">Idf global exists: @Model.IdfGlobalExists</label>
                 @Html.Partial("_PostButton", new PostButtonModel
                 {
@@ -48,11 +57,19 @@
             @if (Model.TfIdfUpdatingInProgress)
             {
                 <div class="alert alert-success" role="alert">Tf/Idf update in progress.</div>
-                @*<label class="page-stat active">Empty tf/idf results: @Model.EmptyTfIdfCount</label>*@
+                <label class="page-stat active">Tf/Idf progress: @Math.Round(Model.TfIdfProgress)%</label>
+                @Html.Partial("_PostButton", new PostButtonModel
+                {
+                    Action = "StopTfIdfUpdating",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Stop updating"
+                })
             }
             else
             {
-                <div class="alert alert-warning" role="alert">Tf/Idf update idle</div>
+                var alertClass = Model.TfIdfBuildFailed ? "failed" : String.Empty;
+                <div class="alert alert-warning @alertClass" role="alert">Tf/Idf update idle</div>
                 @*<label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>*@
                 @Html.Partial("_PostButton", new PostButtonModel
                 {
@@ -74,7 +91,7 @@
                 {
                     <div class="alert alert-success" role="alert">Nearest results update in progress. Updated pages: @Model.NearestsResultsUpdatedCount</div>
                 }
-                <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount</label>
+                <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount. Progress: @Math.Round(Model.SimilarResultsPercentage)%</label>
                 @Html.Partial("_PostButton", new PostButtonModel
                 {
                     Action = "StopNearestResultsUpdating",
@@ -85,7 +102,8 @@
             }
             else
             {
-                <div class="alert alert-warning" role="alert">Nearest results update idle</div>
+                var alertClass = Model.SimilarResultsBuildFailed ? "failed" : String.Empty;
+                <div class="alert alert-warning @alertClass" role="alert">Nearest results update idle</div>
                 <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount</label>
                 @Html.Partial("_PostButton", new PostButtonModel
                 {

@@ -1,23 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using RecipesSearch.BusinessServices.Logging;
-using RecipesSearch.CacheService.Services;
+﻿using System.Threading;
 using RecipesSearch.DAL.Cache.Adapters;
-using RecipesSearch.Data.Views;
 using RecipesSearch.SearchEngine.SimilarResults.CacheBuilders.Base;
-using Wintellect.PowerCollections;
 
 namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
 {
     public class TfIdfBuilder : BaseCacheBuilder
     {
+        public decimal Progress { get; private set; }
+
         private static readonly TfIdfBuilder Instance = new TfIdfBuilder();
+
+        private CancellationTokenSource _cancellationTokenSource;
 
         private TfIdfBuilder()
         {
@@ -31,9 +24,21 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
 
         protected override void BuildAction()
         {
+            _cancellationTokenSource = new CancellationTokenSource();
+            Progress = 0;
+
             using (var cacheAdapter = new TfIdfAdapter())
             {
-                cacheAdapter.UpdateTfIdf();
+                cacheAdapter.UpdateTfIdf(_cancellationTokenSource.Token, progress => Progress = progress);
+            }
+        }
+        public void StopUpdating()
+        {
+            if (UpdateInProgress)
+            {
+                _cancellationTokenSource.Cancel();
+                UpdateInProgress = false;
+                Progress = 0;
             }
         }
     }

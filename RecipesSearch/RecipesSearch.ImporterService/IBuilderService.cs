@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.ServiceModel;
-using System.Text;
+﻿using System.ServiceModel;
+using RecipesSearch.Data.Views;
 
 namespace RecipesSearch.ImporterService
 {
@@ -14,10 +10,22 @@ namespace RecipesSearch.ImporterService
         void BuildTf();
 
         [OperationContract]
+        void StopTfBuild();
+
+        [OperationContract]
         void BuildTfIdf();
 
         [OperationContract]
+        void StopTfIdfBuild();
+
+        [OperationContract]
         void BuildIdf();
+
+        [OperationContract]
+        void BuildSimilarResults(int resultsCount);
+
+        [OperationContract]
+        void StopSimilarResultsBuild();
 
         [OperationContract]
         void BuildAllTasks();
@@ -26,15 +34,6 @@ namespace RecipesSearch.ImporterService
         void StopAllTasksUpdating();
 
         [OperationContract]
-        bool IsTfBuildInProgress();
-
-        [OperationContract]
-        bool IsIdfBuildInProgress();
-
-        [OperationContract]
-        bool IsTfIdfBuildInProgress();
-
-        [OperationContract]
-        bool AllTasksBuildInProgress();
+        BuildersState GetBuildersState();
     }
 }

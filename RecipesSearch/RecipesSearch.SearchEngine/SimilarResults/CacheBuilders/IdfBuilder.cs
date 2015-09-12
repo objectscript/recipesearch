@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.DAL.Cache.Adapters;
