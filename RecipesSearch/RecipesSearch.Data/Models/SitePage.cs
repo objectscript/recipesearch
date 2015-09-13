@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using RecipesSearch.Data.Framework;
 using RecipesSearch.Data.Models.Base;
+using RecipesSearch.Data.Views;
 
 namespace RecipesSearch.Data.Models
 {
@@ -42,5 +43,7 @@ namespace RecipesSearch.Data.Models
 
         [NotMapped]
         public List<SitePage> SimilarResults { get; set; }
+
+        public TfIdfInfo TfIdfInfo { get; set; }
     }
 }

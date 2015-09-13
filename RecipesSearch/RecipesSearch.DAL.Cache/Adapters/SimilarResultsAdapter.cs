@@ -24,7 +24,7 @@ namespace RecipesSearch.DAL.Cache.Adapters
             return tfIdf;
         }
 
-        public bool UpdateSimilarResults(int pageId, IList<int> results, IList<int> weigths)
+        public void UpdateSimilarResults(int pageId, IList<int> results, IList<int> weigths)
         {
             EnsureConnectionOpened();
 
@@ -40,7 +40,7 @@ namespace RecipesSearch.DAL.Cache.Adapters
 
             command.Parameters.Add("NearestResults", String.Join(" ", resultsWithWeights)); 
 
-            return command.ExecuteNonQuery() != 0;
+            command.ExecuteNonQuery();
         }    
 
         public int GetNearestResultsStatistic()

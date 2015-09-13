@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.CacheService.Services;
 using RecipesSearch.Data.Models;
@@ -14,11 +12,50 @@ namespace RecipesSearch.SearchEngine.Search
     {
         private readonly SearchService _searchService = new SearchService();
 
-        public List<SitePage> SearchByQuery(string query, int pageNumber, int pageSize, bool spellcheck, bool exactMatch, out int totalCount, out string spellcheckQuery)
+        public List<SitePage> SearchByQuery(
+            string query, 
+            int pageNumber,
+            int resultsOnPage,
+            bool exactMatch, 
+            SearchSettings searchSettings,
+            out int totalCount, 
+            out string spellcheckQuery)
         {
             try
             {
-                return _searchService.SearchByQuery(query, pageNumber, pageSize, spellcheck, exactMatch, out totalCount, out spellcheckQuery);
+                var searchResults = _searchService.SearchByQuery(
+                    query, 
+                    pageNumber,
+                    resultsOnPage, 
+                    searchSettings.EnableSpellchecking,
+                    exactMatch, 
+                    searchSettings.OnlineTfIdfEnabled,
+                    searchSettings.MaxOnlineIdfRecipesCount,
+                    searchSettings.OnlineTfIdfBuilderName,
+                    out totalCount, 
+                    out spellcheckQuery);
+
+                if (searchSettings.OnlineTfIdfEnabled)
+                {
+                    var tfIdfInfo = searchResults.Select(searchResult => searchResult.TfIdfInfo).ToArray();
+                    for (var i = 0; i < searchResults.Count; ++i)
+                    {
+                        searchResults[i].SimilarResults = new List<SitePage>();
+                        SimilarResultsBuilder.FindNearest(tfIdfInfo, i, 10, (id, nearestResults, weights) =>
+                        {
+                            for(var j = 0; j < nearestResults.Count; ++j)
+                            {
+                                var nearestPage = FindAndCopyPage(searchResults, nearestResults[j]);
+                                nearestPage.SimilarRecipeWeight = weights[j];
+                                searchResults[i].SimilarResults.Add(nearestPage);
+                            }
+
+                            searchResults[i].SimilarResults.Reverse();
+                        });
+                    }
+                }
+
+                return searchResults;
             }
             catch (Exception exception)
             {
@@ -27,6 +64,30 @@ namespace RecipesSearch.SearchEngine.Search
                 spellcheckQuery = String.Empty;
                 return new List<SitePage>();
             }     
+        }
+
+        private SitePage FindAndCopyPage(IEnumerable<SitePage> pages, int id)
+        {
+            var page = pages.First(p => p.Id == id);
+            return new SitePage
+            {
+                Id = page.Id,
+                SiteID = page.Id,
+                AdditionalData = page.AdditionalData,
+                Category = page.Category,
+                CommentsCount = page.CommentsCount,
+                CreatedDate = page.CreatedDate,
+                ModifiedDate = page.ModifiedDate,
+                Description = page.Description,
+                IsActive = page.IsActive,
+                ImageUrl = page.ImageUrl,
+                Ingredients = page.Ingredients,
+                Keywords = page.Keywords,
+                Rating = page.Rating,
+                RecipeInstructions = page.RecipeInstructions,
+                RecipeName = page.RecipeName,
+                URL = page.URL
+            };
         }
     }
 }

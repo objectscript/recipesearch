@@ -49,12 +49,13 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             {
                 try
                 {
-                    LoggerWrapper.LogInfo("Similar results build started");
-
-                    _updatedPagesCount = -1;
                     UpdateInProgress = true;
+                    _updatedPagesCount = -1;
                     PreviousBuildFailed = false;
                     Percentage = 0;
+
+                    LoggerWrapper.LogInfo("Similar results build started");
+                 
                     _cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
 
                     LoggerWrapper.LogInfo("Similar results build: GetInfo started");
@@ -104,12 +105,11 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 .ForEach(group =>
                 {
                     var tfIdfInfo = new TfIdfInfo {Id = group.Key};
-                    var dict = new Dictionary<string, double>();
-                    foreach (var sitePageTfIdf in group)
-                    {
-                        dict.Add(sitePageTfIdf.Word, sitePageTfIdf.TFIDF);
-                    }
-                    tfIdfInfo.WordsTfIdf = dict;
+
+                    tfIdfInfo.WordsTfIdf = group.ToDictionary(
+                        sitePageTfIdf => sitePageTfIdf.Word,
+                        sitePageTfIdf => sitePageTfIdf.TFIDF);
+
                     resultsList.Add(tfIdfInfo);
                 });
 
@@ -126,48 +126,14 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             Parallel.For(0, pages.Length, parallelOptions, i =>
             {
                 using (var cacheAdapter = new SimilarResultsAdapter())
-                {
-                    var dists = new OrderedBag<Tuple<double, int>>();
-                    double maxDist = double.MaxValue;
-                    int distsSize = 0;
-
-                    for (int j = 0; j < pages.Length; ++j)
-                    {
-                        if (i == j)
-                        {
-                            continue;
-                        }
-
-                        var dist = FindDistance(pages[i].WordsTfIdf, pages[j].WordsTfIdf, maxDist);
-                        if (dist > maxDist)
-                        {
-                            continue;
-                        }
-
-                        dists.Add(new Tuple<double, int>(dist, pages[j].Id));
-
-                        if (distsSize == k)
-                        {
-                            dists.RemoveLast();
-                            var lastDist = dists.GetLast().Item1;
-                            maxDist = lastDist;
-                        }
-                        else
-                        {
-                            distsSize++;
-                        }
-                    }
-
+                {                  
                     try
                     {
-                        cacheAdapter.UpdateSimilarResults(
-                            pages[i].Id, 
-                            dists.Select(item => item.Item2).ToList(), 
-                            dists.Select(item => (int)item.Item1).ToList());
+                        FindNearest(pages, i, k, cacheAdapter.UpdateSimilarResults);
                     }
                     catch (Exception exception)
                     {
-                        LoggerWrapper.LogError(String.Format("SimilarResultsBuilder.GetKNearest save failed"), exception);
+                        LoggerWrapper.LogError(String.Format("SimilarResultsBuilder.GetKNearest for id = {0} failed", pages[i].Id), exception);
                     }
 
                     Interlocked.Increment(ref _updatedPagesCount);
@@ -176,7 +142,45 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             });         
         }
 
-        private double FindDistance(Dictionary<string, double> first, Dictionary<string, double> second, double maxAllowedDist)
+        public static void FindNearest(TfIdfInfo[] pages, int idx, int countToFind, Action<int, List<int>, List<int>> callback)
+        {
+            var dists = new OrderedBag<Tuple<double, int>>();
+            double maxDist = double.MaxValue;
+            int distsSize = 0;
+
+            for (int j = 0; j < pages.Length; ++j)
+            {
+                if (idx == j)
+                {
+                    continue;
+                }
+
+                var dist = FindDistance(pages[idx].WordsTfIdf, pages[j].WordsTfIdf, maxDist);
+                if (dist > maxDist)
+                {
+                    continue;
+                }
+
+                dists.Add(new Tuple<double, int>(dist, pages[j].Id));
+
+                if (distsSize == countToFind)
+                {
+                    dists.RemoveLast();
+                    var lastDist = dists.GetLast().Item1;
+                    maxDist = lastDist;
+                }
+                else
+                {
+                    distsSize++;
+                }
+            }
+
+            callback(pages[idx].Id,
+                dists.Select(item => item.Item2).ToList(),
+                dists.Select(item => (int) item.Item1).ToList());
+        }
+
+        public static double FindDistance(Dictionary<string, double> first, Dictionary<string, double> second, double maxAllowedDist)
         {
             double dist = 0;
 

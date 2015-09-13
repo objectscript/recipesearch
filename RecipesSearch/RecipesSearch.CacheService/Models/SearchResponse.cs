@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using RecipesSearch.Data.Models;
+using RecipesSearch.Data.Views;
 
 namespace RecipesSearch.CacheService.Models
 {
@@ -22,6 +19,8 @@ namespace RecipesSearch.CacheService.Models
             public SitePage Result { get; set; }
 
             public List<SitePage> SimilarResults { get; set; }
+
+            public List<SitePageTfIdf> WordsTfIdf { get; set; } 
         }
     }
 }

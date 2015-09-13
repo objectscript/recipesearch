@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.BusinessServices.SqlRepositories.Base;
@@ -37,7 +34,7 @@ namespace RecipesSearch.WebApplication.Controllers
                 string spellcheckedQuery;
 
                 var searchResult = _searchProvider
-                    .SearchByQuery(query, pageNumber, searchSettings.ResultsOnPage, searchSettings.EnableSpellchecking, exactMatch, out totalCount, out spellcheckedQuery)
+                    .SearchByQuery(query, pageNumber, searchSettings.ResultsOnPage, exactMatch, searchSettings, out totalCount, out spellcheckedQuery)
                     .Select(result => new SearchResultItemViewModel(result))
                     .ToList();
 
@@ -85,7 +82,7 @@ namespace RecipesSearch.WebApplication.Controllers
                 string spellcheckedQuery;
 
                 results = _searchProvider
-                    .SearchByQuery(query, 1, searchSettings.ResultsForGraphView, searchSettings.EnableSpellchecking, exactMatch, out totalCount, out spellcheckedQuery)
+                    .SearchByQuery(query, 1, searchSettings.ResultsForGraphView, exactMatch, searchSettings, out totalCount, out spellcheckedQuery)
                     .Select(result => new SearchResultItemViewModel(result))
                     .ToList();               
             }
