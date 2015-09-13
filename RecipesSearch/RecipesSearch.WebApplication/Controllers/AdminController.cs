@@ -53,7 +53,7 @@ namespace RecipesSearch.WebApplication.Controllers
         {
             ViewBag.AdminPage = AdminPages.SearchSettings;
             var searchSettings = _searchSettingsRepository.GetSearchSettings();
-            return View(SearchSettingsViewModel.GetViewModel(searchSettings));
+            return View(SearchSettingsViewModel.GetViewModel(searchSettings, _searchSettingsRepository.GetOnlineTfIdfBuilders()));
         }
 
         public ActionResult CrawlingHistory()

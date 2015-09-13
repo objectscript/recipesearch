@@ -1,12 +1,12 @@
 ﻿@model RecipesSearch.WebApplication.ViewModels.TfIdfConfigViewModel
 @{
     var tfBuildersList = Model.AvailableTfBuilders
-      .Select(name => new SelectListItem { Text = name, Value = name })
-      .ToList();
+        .Select(name => new SelectListItem { Text = name, Value = name })
+        .ToList();
 
     var idfBuildersList = Model.AvailableIdfBuilders
-    .Select(name => new SelectListItem { Text = name, Value = name })
-    .ToList();
+        .Select(name => new SelectListItem { Text = name, Value = name })
+        .ToList();
 }
 @using (Html.BeginForm("UpdateTfIdfConfig", "Admin", FormMethod.Post, new { id = "updateConfigForm" }))
 {

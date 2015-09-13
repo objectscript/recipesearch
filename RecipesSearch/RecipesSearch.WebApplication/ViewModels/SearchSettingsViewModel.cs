@@ -41,6 +41,20 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Spellcheck autosuggest query")]
         public bool EnableSpellcheckingForSuggest { get; set; }
 
+        [Display(Name = "Online TF/IDF calculation is enabled")]
+        public bool OnlineTfIdfEnabled { get; set; }
+
+        [Required(ErrorMessage = "Field is required")]
+        [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
+        [Display(Name = "Count of recipes to compute IDF.")]
+        public int MaxOnlineIdfRecipesCount { get; set; }
+
+        [Required(ErrorMessage = "Field is required")]
+        [Display(Name = "Online TF/IDF builder to use")]
+        public string OnlineTfIdfBuilderName { get; set; }
+
+        public List<string> AvailableOnlineTfIdfBuilders { get; set; }
+
         public static SearchSettings GetEntity(SearchSettingsViewModel viewModel)
         {
             return new SearchSettings
@@ -51,11 +65,14 @@ namespace RecipesSearch.WebApplication.ViewModels
                 EnableSpellchecking = viewModel.EnableSpellchecking,
                 EnableSpellcheckingForSuggest = viewModel.EnableSpellcheckingForSuggest,
                 ResultsForGraphView = viewModel.ResultsForGraphView,
-                DefaultResultsView = (int)Enum.Parse(typeof(ResultsViews), viewModel.DefaultResultsView)
+                DefaultResultsView = (int)Enum.Parse(typeof(ResultsViews), viewModel.DefaultResultsView),
+                OnlineTfIdfEnabled = viewModel.OnlineTfIdfEnabled,
+                MaxOnlineIdfRecipesCount = viewModel.MaxOnlineIdfRecipesCount,
+                OnlineTfIdfBuilderName = viewModel.OnlineTfIdfBuilderName
             };
         }
 
-        public static SearchSettingsViewModel GetViewModel(SearchSettings entity)
+        public static SearchSettingsViewModel GetViewModel(SearchSettings entity, List<string> availableTfIdfBuilders)
         {
             return new SearchSettingsViewModel
             {
@@ -65,7 +82,11 @@ namespace RecipesSearch.WebApplication.ViewModels
                 EnableSpellchecking = entity.EnableSpellchecking,
                 EnableSpellcheckingForSuggest = entity.EnableSpellcheckingForSuggest,
                 ResultsForGraphView = entity.ResultsForGraphView,
-                DefaultResultsView = ((ResultsViews)entity.DefaultResultsView).ToString()
+                DefaultResultsView = ((ResultsViews)entity.DefaultResultsView).ToString(),
+                OnlineTfIdfEnabled = entity.OnlineTfIdfEnabled,
+                AvailableOnlineTfIdfBuilders = availableTfIdfBuilders,
+                MaxOnlineIdfRecipesCount = entity.MaxOnlineIdfRecipesCount,
+                OnlineTfIdfBuilderName = entity.OnlineTfIdfBuilderName
             };
         }
     }

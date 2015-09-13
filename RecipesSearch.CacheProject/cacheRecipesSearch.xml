@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-09-12 22:33:29">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-09-13 15:36:23">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -910,7 +910,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SearchSettings">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63689,66860.897512</TimeChanged>
+<TimeChanged>63808,56178.53556</TimeChanged>
 <TimeCreated>63610,79681.607063</TimeCreated>
 
 <Property name="ResultsOnPage">
@@ -943,6 +943,29 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Required>1</Required>
 </Property>
 
+<Property name="OnlineTfIdfEnabled">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="MaxOnlineIdfRecipesCount">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="OnlineTfIdfBuilderName">
+<Type>%String</Type>
+<Required>1</Required>
+</Property>
+
+<Query name="GetOnlineTfIdfBuilders">
+<Type>%SQLQuery</Type>
+<SqlProc>1</SqlProc>
+<SqlQuery>	select 'DefaultOnlineTfIdfBuilder'</SqlQuery>
+<Parameter name="CONTAINID" value="1"/>
+<Parameter name="SELECTMODE" value="RUNTIME"/>
+</Query>
+
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
 <DefaultData>SearchSettingsDefaultData</DefaultData>
@@ -965,6 +988,15 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Value>
 <Value name="6">
 <Value>DefaultResultsView</Value>
+</Value>
+<Value name="7">
+<Value>OnlineTfIdfEnabled</Value>
+</Value>
+<Value name="8">
+<Value>MaxOnlineIdfRecipesCount</Value>
+</Value>
+<Value name="9">
+<Value>OnlineTfIdfBuilderName</Value>
 </Value>
 </Data>
 </Storage>
@@ -1493,7 +1525,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63732,62009.397811</TimeChanged>
+<TimeChanged>63808,55057.402873</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1528,8 +1560,20 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	
 	// Seed search settings
 	IF NOT EXISTS(SELECT * FROM RecipeSearch_Data.SearchSettings) THEN BEGIN
-		INSERT INTO RecipeSearch_Data.SearchSettings(DefaultResultsView, ResultsOnPage,ResultsForGraphView, SuggestionsCount,EnableSpellchecking,EnableSpellcheckingForSuggest, IsActive, CreatedDate, ModifiedDate) 
-		VALUES(1, 25, 50, 10, 1, 1, 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO RecipeSearch_Data.SearchSettings(
+			DefaultResultsView,
+			ResultsOnPage,
+			ResultsForGraphView,
+			SuggestionsCount,
+			EnableSpellchecking,
+			EnableSpellcheckingForSuggest,
+			OnlineTfIdfEnabled,
+			MaxOnlineIdfRecipesCount,
+			OnlineTfIdfBuilderName,
+			IsActive,
+			CreatedDate,
+			ModifiedDate) 
+		VALUES(1, 25, 50, 10, 1, 1, 0, 200, 'DefaultOnlineTfIdfBuilder', 1, GETUTCDATE(), GETUTCDATE());
 	END
 	
 	// Seed tfIdf config
@@ -1982,7 +2026,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.RecipeAnalyze.TfIdfBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63807,80326.020191</TimeChanged>
+<TimeChanged>63808,54137.944395</TimeChanged>
 <TimeCreated>63686,77142.637964</TimeCreated>
 
 <Query name="BuildTfIdfQuery">
@@ -2010,9 +2054,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	   	&sql(fetch recipesCursor into :recipeId)
 	   	quit:(SQLCODE '= 0)
 
-		set documentTfIdf = ""
-		
-	   	&sql(declare recipeWordsCursor cursor for select Id, Word, TF from RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :recipeId) 
+	   	&sql(declare recipeWordsCursor cursor for select Id, LCASE(Word), TF from RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :recipeId) 
 	   	&sql(open recipeWordsCursor)
     	for {
 	   		&sql(fetch recipeWordsCursor into :tfid, :word, :tf)
@@ -2025,7 +2067,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	   		
 	   		set tfidf = tf * ^globalIdf(word)
 	   		&sql(update RecipeSearch_Data_RecipeData.WordsTF SET TFIDF = :tfidf WHERE Id = :tfid)
-	   		write SQLCODE
     	}
     	&sql(close recipeWordsCursor)
     	set count = count + 1
@@ -2120,7 +2161,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.RESTBroker">
 <Super>%CSP.REST</Super>
-<TimeChanged>63681,76503.316604</TimeChanged>
+<TimeChanged>63808,54719.376149</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
 
 <XData name="UrlMap">
@@ -2143,8 +2184,20 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	set spellcheck = %request.Get("spellcheck", 0)
 	set exactMatch = %request.Get("exactMatch", 0) // ignore spellchecking result
 	
+	set onlineTfIdf = %request.Get("onlineTfIdf", 0)
+	set maxIdfRecipesCount = %request.Get("maxIdfRecipesCount", 200)
+	set onlineTfIdfBuilderName = %request.Get("onlineTfIdfBuilderName", "DefaultOnlineTfIdfBuilder")
+	
 	try {
-    	do ##class(RecipeSearch.SearchAPI.Search.SearchEngine).SearchPages(query, spellcheck, exactMatch, pageNumber, pageSize)
+    	do ##class(RecipeSearch.SearchAPI.Search.SearchEngine).SearchPages(
+    	query,
+    	spellcheck,
+    	exactMatch,
+    	pageNumber,
+    	pageSize,
+    	onlineTfIdf,
+    	maxIdfRecipesCount,
+    	onlineTfIdfBuilderName)
 	} catch err {
     	write err.AsSystemError()
     }
@@ -2173,14 +2226,99 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
+<Class name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.DefaultOnlineTfIdfBuilder">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63808,54392.885931</TimeChanged>
+<TimeCreated>63808,50461.308907</TimeCreated>
+
+<Method name="BuildTfIdf">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>recipesIdsToCalculateIdf:%List,recipesToCalculatedTfIdf:%ListOfObjects</FormalSpec>
+<Implementation><![CDATA[
+	set totalNumberOfDocuments = $LISTLENGTH(recipesIdsToCalculateIdf)
+	
+	for i = 1:1:totalNumberOfDocuments{
+		set recipeId = $LIST(recipesIdsToCalculateIdf, i)
+	
+		&sql(declare wordsCursor cursor for
+	      select LCASE(Word), COUNT(Word) as DocumentsCount 
+	      from RecipeSearch_Data_RecipeData.WordsTF 
+	      WHERE RecipeId = :recipeId
+	      GROUP BY Word)  
+	            
+    	&sql(open wordsCursor)
+    	for {
+	   		&sql(fetch wordsCursor into :word,:currentDocumentsCount)
+	   		quit:(SQLCODE '= 0)
+	   		set documentsCount(word) = $GET(documentsCount(word), 0) + currentDocumentsCount
+    	}
+    	
+    	&sql(close wordsCursor)
+	}
+	
+	set key = $Order(documentsCount(""))
+ 	while (key '= "") {
+ 		set localIdf(key) = $ZLN(totalNumberOfDocuments / documentsCount(key))
+ 		set key = $Order(documentsCount(key))
+ 	}
+
+	for i=1:1:recipesToCalculatedTfIdf.Count() {		
+		set recipeItem = recipesToCalculatedTfIdf.GetAt(i)
+		set recipeId = recipeItem.Result.ID
+	    
+	    &sql(declare recipeWordsCursor cursor for select Id, LCASE(Word), TF from RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = :recipeId) 
+	   	&sql(open recipeWordsCursor)
+    	for {
+	   		&sql(fetch recipeWordsCursor into :tfid, :word, :tf)	   		
+	   		quit:(SQLCODE '= 0)
+	   		
+	   		if $GET(localIdf(word), -1) = -1{
+				continue
+			}
+	   		
+	   		set tfidf = tf * localIdf(word)
+	   		
+	   		set wordTfIDf = ##class(RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf).%New()
+	   		set wordTfIDf.Word = word
+	   		set wordTfIDf.TFIDF = tfidf
+	   		do recipeItem.WordsTFIDF.Insert(wordTfIDf)
+    	}
+    	&sql(close recipeWordsCursor)
+	}
+	//zw localIdf
+	//
+    
+    //zw localIdf
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf">
+<Super>%RegisteredObject</Super>
+<TimeChanged>63808,53940.42362</TimeChanged>
+<TimeCreated>63808,53934.153372</TimeCreated>
+
+<Property name="Word">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="200"/>
+</Property>
+
+<Property name="TFIDF">
+<Type>%Double</Type>
+</Property>
+</Class>
+
+
 <Class name="RecipeSearch.SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63702,53179.683316</TimeChanged>
+<TimeChanged>63808,54731.437568</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
+<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer,onlineTfIdf:%Boolean,maxIdfRecipesCount:%Integer,onlineTfIdfBuilderName:%String</FormalSpec>
 <Implementation><![CDATA[
 	if spellcheck {
 		set spellcheckedQuery = ##class(RecipeSearch.Spellcheck.Spellchecker).SpellcheckText(query)
@@ -2217,7 +2355,13 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	set tSC = result.Prepare(sqlQuery) 
     set tSC = result.Execute()
      
-    set searchResult = ##class(RecipeSearch.SearchAPI.Search.SearchResult).PopulateFromResultSet(result, pageNumber, pageSize)           
+    set searchResult = ##class(RecipeSearch.SearchAPI.Search.SearchResult).PopulateFromResultSet(
+    	result,
+    	pageNumber,
+    	pageSize,
+    	onlineTfIdf,
+    	maxIdfRecipesCount,
+    	onlineTfIdfBuilderName)           
 	
 	if spellcheck{
 		set searchResult.SpellcheckedQuery = spellcheckedQuery
@@ -2231,7 +2375,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63702,53367.993871</TimeChanged>
+<TimeChanged>63808,54661.040033</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
@@ -2253,19 +2397,23 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="PopulateFromResultSet">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>result:%Library.ResultSet,pageNumber:%Integer,pageSize:%Integer</FormalSpec>
+<FormalSpec>result:%Library.ResultSet,pageNumber:%Integer,pageSize:%Integer,onlineTfIdf:%Boolean,maxIdfRecipesCount:%Integer,onlineTfIdfBuilderName:%String</FormalSpec>
 <ReturnType>%Library.ResultSet</ReturnType>
 <Implementation><![CDATA[
-	
 	// TODO: make it more performant
 	set startIndex = (pageNumber - 1) * pageSize + 1
 	
 	set searchResults = ##class(RecipeSearch.SearchAPI.Search.SearchResult).%New()
 	set searchResults.Items = ##class(%ListOfObjects).%New()
+	set recipesIdsToCalculateIdf = $LISTFROMSTRING("")
 	
 	set count = 0
     while (result.Next()) 
     { 
+    	if count < maxIdfRecipesCount {
+	    	set recipesIdsToCalculateIdf = recipesIdsToCalculateIdf_$LISTBUILD(result.Data("ID"))
+    	}
+    	
     	set count = count + 1 
 		continue:(count < startIndex) 
         
@@ -2276,14 +2424,26 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
         
         set sitePageResult = ##class(RecipeSearch.SearchAPI.Search.SitePageResult).%New()
         
-        set sitePageResult.Result = ##class(RecipeSearch.SearchAPI.Search.SearchResult).MapResultToSitePage(result, 0)
-        set sitePageResult.SimilarResults = ##class(RecipeSearch.SearchAPI.Search.SearchResult).GetSimilarResults(result.Data("ID"))
+        set sitePageResult.Result = ##class(RecipeSearch.SearchAPI.Search.SearchResult).MapResultToSitePage(result, 0)      
               
-        set tSC = searchResults.Items.Insert(sitePageResult) 
-        
+        set tSC = searchResults.Items.Insert(sitePageResult)         
 	}
-    
-   	set searchResults.PageNumber = pageNumber
+	
+	if 'onlineTfIdf {
+		for i=1:1:searchResults.Items.Count() {		
+			set searchResultItem = searchResults.Items.GetAt(i)
+			set id = searchResultItem.Result.ID
+	        set searchResultItem.SimilarResults = ##class(RecipeSearch.SearchAPI.Search.SearchResult).GetSimilarResults(id)
+		}
+    } else {
+	    do $classmethod("RecipeSearch.SearchAPI.Search.OnlineTfIdf."_onlineTfIdfBuilderName, "BuildTfIdf",
+    			recipesIdsToCalculateIdf, 
+    			searchResults.Items)
+    			
+	    //do ##class(.DefaultOnlineTfIdfBuilder).BuildTfIdf(recipesIdsToCalculateIdf, searchResults.Items)
+    }
+
+	set searchResults.PageNumber = pageNumber
 	set searchResults.TotalCount = count
 	
 	return searchResults
@@ -2323,7 +2483,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	set tSC = result.Prepare(sqlQuery) 
     set tSC = result.Execute()
     
-    
     while (result.Next()) 
     {
 	    set similarResult = ##class(RecipeSearch.SearchAPI.Search.SearchResult).MapResultToSitePage(result, 1)
@@ -2331,6 +2490,15 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     }   
 			    
     return similarResultsObjects
+]]></Implementation>
+</Method>
+
+<Method name="CalculateSimilarResults">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%ListOfObjects</ReturnType>
+<Implementation><![CDATA[
+	set similarResultsObjects = ##class(%ListOfObjects).%New()
+	return similarResultsObjects
 ]]></Implementation>
 </Method>
 
@@ -2466,7 +2634,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SitePageResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63689,53538.942846</TimeChanged>
+<TimeChanged>63808,53966.74658</TimeChanged>
 <TimeCreated>63673,70073.256262</TimeCreated>
 
 <Property name="Result">
@@ -2475,6 +2643,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Property name="SimilarResults">
 <Type>RecipeSearch.SearchAPI.Search.SearchResultItem</Type>
+<Collection>list</Collection>
+</Property>
+
+<Property name="WordsTFIDF">
+<Type>RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf</Type>
 <Collection>list</Collection>
 </Property>
 </Class>
@@ -2796,7 +2969,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-08-01 13:03:21.381377">
+<Project name="RecipesSearch" LastModified="2015-09-13 15:11:25.5829">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
@@ -2827,6 +3000,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.DefaultOnlineTfIdfBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf" type="CLS"></ProjectItem>
   </Items>
 </Project>
 </Export>

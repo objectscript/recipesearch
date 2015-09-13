@@ -67,6 +67,11 @@ namespace RecipesSearch.DAL.Cache.Adapters
             return GetBuilders("Builder_GetIdfBuilders", Constants.IdfBuilderCachePackage);
         }
 
+        public List<string> GetOnlineTfIdfBuilders()
+        {
+            return GetBuilders("SearchSettings_GetOnlineTfIdfBuilders", Constants.DefaultCachePackage);
+        }
+
         private int GetStatistic(string sprocName, string packageName)
         {
             var command = new CacheCommand(GetFullProcedureName(sprocName, packageName), CacheConnection);

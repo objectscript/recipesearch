@@ -5,15 +5,18 @@
     ViewBag.Title = "Search Settings";
 
     var resultViews = new List<SelectListItem>();
-    resultViews.Add(new SelectListItem()
+    resultViews.Add(new SelectListItem
     {
         Text = "Graph", Value = ResultsViews.Graph.ToString()
     });
-    resultViews.Add(new SelectListItem()
+    resultViews.Add(new SelectListItem
     {
         Text = "List",
         Value = ResultsViews.List.ToString()
     });
+    var onlineTfIdfBuildersList = Model.AvailableOnlineTfIdfBuilders
+       .Select(name => new SelectListItem { Text = name, Value = name })
+       .ToList();
 }
 
 <div class="row settings">
@@ -51,6 +54,23 @@
             <div class="form-group">
                 @Html.LabelFor(model => model.EnableSpellcheckingForSuggest)
                 @Html.CheckBoxFor(model => model.EnableSpellcheckingForSuggest)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.OnlineTfIdfEnabled)
+                @Html.CheckBoxFor(model => model.OnlineTfIdfEnabled)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.MaxOnlineIdfRecipesCount)
+                @Html.TextBoxFor(model => model.MaxOnlineIdfRecipesCount, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.MaxOnlineIdfRecipesCount)
+            </div>
+             <div class="form-group">
+                @Html.LabelFor(model => model.OnlineTfIdfBuilderName)
+                @Html.DropDownListFor(
+                    model => model.OnlineTfIdfBuilderName,
+                    onlineTfIdfBuildersList,
+                    new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.OnlineTfIdfBuilderName)
             </div>
             <div class="right">
                 <input type="submit" class="btn btn-link" value="Update settings" />

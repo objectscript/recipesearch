@@ -18,5 +18,11 @@ namespace RecipesSearch.Data.Models
         public bool EnableSpellchecking { get; set; }
 
         public bool EnableSpellcheckingForSuggest { get; set; }
+
+        public bool OnlineTfIdfEnabled { get; set; }
+
+        public int MaxOnlineIdfRecipesCount { get; set; }
+
+        public string OnlineTfIdfBuilderName { get; set; }
     }
 }
