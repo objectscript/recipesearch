@@ -7,7 +7,8 @@
     var resultViews = new List<SelectListItem>();
     resultViews.Add(new SelectListItem
     {
-        Text = "Graph", Value = ResultsViews.Graph.ToString()
+        Text = "Graph",
+        Value = ResultsViews.Graph.ToString()
     });
     resultViews.Add(new SelectListItem
     {
@@ -20,9 +21,10 @@
 }
 
 <div class="row settings">
-    <div class="col-md-6">
-        @using (Html.BeginForm("UpdateSearchSettings", "Admin", FormMethod.Post, new { id = "updateSearchSettingsForm" }))
-        {
+
+    @using (Html.BeginForm("UpdateSearchSettings", "Admin", FormMethod.Post, new { id = "updateSearchSettingsForm" }))
+    {
+        <div class="col-md-6">
             @Html.HiddenFor(model => model.Id)
             <div class="form-group">
                 @Html.LabelFor(model => model.ResultsOnPage)
@@ -35,12 +37,12 @@
                 @Html.ValidationMessageFor(model => model.ResultsForGraphView)
             </div>
             <div class="form-group">
-                 @Html.LabelFor(model => model.DefaultResultsView)
-                 @Html.DropDownListFor(
-                    model => model.DefaultResultsView,
-                    resultViews,
-                    new { @class = "form-control" })
-                 @Html.ValidationMessageFor(model => model.DefaultResultsView)
+                @Html.LabelFor(model => model.DefaultResultsView)
+                @Html.DropDownListFor(
+                model => model.DefaultResultsView,
+                resultViews,
+                new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.DefaultResultsView)
             </div>
             <div class="form-group">
                 @Html.LabelFor(model => model.SuggestionsCount)
@@ -54,7 +56,12 @@
             <div class="form-group">
                 @Html.LabelFor(model => model.EnableSpellcheckingForSuggest)
                 @Html.CheckBoxFor(model => model.EnableSpellcheckingForSuggest)
-            </div>
+            </div>    
+            <div class="right">
+                <input type="submit" class="btn btn-link" value="Update settings" />
+            </div>        
+        </div>
+        <div class="col-md-6">
             <div class="form-group">
                 @Html.LabelFor(model => model.OnlineTfIdfEnabled)
                 @Html.CheckBoxFor(model => model.OnlineTfIdfEnabled)
@@ -64,17 +71,20 @@
                 @Html.TextBoxFor(model => model.MaxOnlineIdfRecipesCount, new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.MaxOnlineIdfRecipesCount)
             </div>
-             <div class="form-group">
+            <div class="form-group">
+                @Html.LabelFor(model => model.OnlineTfIdfSimilarResultsCount)
+                @Html.TextBoxFor(model => model.OnlineTfIdfSimilarResultsCount, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.OnlineTfIdfSimilarResultsCount)
+            </div>
+            <div class="form-group">
                 @Html.LabelFor(model => model.OnlineTfIdfBuilderName)
                 @Html.DropDownListFor(
-                    model => model.OnlineTfIdfBuilderName,
-                    onlineTfIdfBuildersList,
-                    new { @class = "form-control" })
+                model => model.OnlineTfIdfBuilderName,
+                onlineTfIdfBuildersList,
+                new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.OnlineTfIdfBuilderName)
             </div>
-            <div class="right">
-                <input type="submit" class="btn btn-link" value="Update settings" />
-            </div>
-        }
-    </div>
+        </div>
+    }
+
 </div>

@@ -15,7 +15,7 @@ namespace RecipesSearch.SearchEngine.Search
         public List<SitePage> SearchByQuery(
             string query, 
             int pageNumber,
-            int resultsOnPage,
+            int pageSize,
             bool exactMatch, 
             SearchSettings searchSettings,
             out int totalCount, 
@@ -26,7 +26,7 @@ namespace RecipesSearch.SearchEngine.Search
                 var searchResults = _searchService.SearchByQuery(
                     query, 
                     pageNumber,
-                    resultsOnPage, 
+                    pageSize, 
                     searchSettings.EnableSpellchecking,
                     exactMatch, 
                     searchSettings.OnlineTfIdfEnabled,
@@ -35,24 +35,31 @@ namespace RecipesSearch.SearchEngine.Search
                     out totalCount, 
                     out spellcheckQuery);
 
+                int startIndex = (pageNumber - 1)*pageSize;
+
                 if (searchSettings.OnlineTfIdfEnabled)
                 {
                     var tfIdfInfo = searchResults.Select(searchResult => searchResult.TfIdfInfo).ToArray();
-                    for (var i = 0; i < searchResults.Count; ++i)
-                    {
-                        searchResults[i].SimilarResults = new List<SitePage>();
-                        SimilarResultsBuilder.FindNearest(tfIdfInfo, i, 10, (id, nearestResults, weights) =>
+                    var resultsToUpdate = searchResults.Skip(startIndex).Take(pageSize).ToList();
+
+                    for (var i = 0; i < resultsToUpdate.Count; ++i)
+                    {                      
+                        SimilarResultsBuilder.FindNearest(tfIdfInfo, i, searchSettings.OnlineTfIdfSimilarResultsCount, (id, nearestResults, weights) =>
                         {
+                            resultsToUpdate[i].SimilarResults = new List<SitePage>();
+
                             for(var j = 0; j < nearestResults.Count; ++j)
                             {
                                 var nearestPage = FindAndCopyPage(searchResults, nearestResults[j]);
                                 nearestPage.SimilarRecipeWeight = weights[j];
-                                searchResults[i].SimilarResults.Add(nearestPage);
+                                resultsToUpdate[i].SimilarResults.Add(nearestPage);
                             }
 
-                            searchResults[i].SimilarResults.Reverse();
+                            resultsToUpdate[i].SimilarResults.Reverse();
                         });
                     }
+
+                    searchResults = resultsToUpdate;
                 }
 
                 return searchResults;

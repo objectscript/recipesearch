@@ -24,5 +24,7 @@ namespace RecipesSearch.Data.Models
         public int MaxOnlineIdfRecipesCount { get; set; }
 
         public string OnlineTfIdfBuilderName { get; set; }
+
+        public int OnlineTfIdfSimilarResultsCount { get; set; }
     }
 }

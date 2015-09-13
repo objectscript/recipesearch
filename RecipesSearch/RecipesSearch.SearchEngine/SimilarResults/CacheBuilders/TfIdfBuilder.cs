@@ -32,6 +32,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
                 cacheAdapter.UpdateTfIdf(_cancellationTokenSource.Token, progress => Progress = progress);
             }
         }
+
         public void StopUpdating()
         {
             if (UpdateInProgress)

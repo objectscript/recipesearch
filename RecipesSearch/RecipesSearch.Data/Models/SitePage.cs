@@ -44,6 +44,7 @@ namespace RecipesSearch.Data.Models
         [NotMapped]
         public List<SitePage> SimilarResults { get; set; }
 
+        [NotMapped]
         public TfIdfInfo TfIdfInfo { get; set; }
     }
 }

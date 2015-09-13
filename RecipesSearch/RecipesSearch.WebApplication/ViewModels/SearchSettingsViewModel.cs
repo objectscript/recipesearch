@@ -46,8 +46,13 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         [Required(ErrorMessage = "Field is required")]
         [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
-        [Display(Name = "Count of recipes to compute IDF.")]
+        [Display(Name = "Count of recipes to compute TF/IDF")]
         public int MaxOnlineIdfRecipesCount { get; set; }
+
+        [Required(ErrorMessage = "Field is required")]
+        [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
+        [Display(Name = "Count of similar results to find during online TF/IDF")]
+        public int OnlineTfIdfSimilarResultsCount { get; set; }
 
         [Required(ErrorMessage = "Field is required")]
         [Display(Name = "Online TF/IDF builder to use")]
@@ -68,7 +73,8 @@ namespace RecipesSearch.WebApplication.ViewModels
                 DefaultResultsView = (int)Enum.Parse(typeof(ResultsViews), viewModel.DefaultResultsView),
                 OnlineTfIdfEnabled = viewModel.OnlineTfIdfEnabled,
                 MaxOnlineIdfRecipesCount = viewModel.MaxOnlineIdfRecipesCount,
-                OnlineTfIdfBuilderName = viewModel.OnlineTfIdfBuilderName
+                OnlineTfIdfBuilderName = viewModel.OnlineTfIdfBuilderName,
+                OnlineTfIdfSimilarResultsCount = viewModel.OnlineTfIdfSimilarResultsCount
             };
         }
 
@@ -86,7 +92,8 @@ namespace RecipesSearch.WebApplication.ViewModels
                 OnlineTfIdfEnabled = entity.OnlineTfIdfEnabled,
                 AvailableOnlineTfIdfBuilders = availableTfIdfBuilders,
                 MaxOnlineIdfRecipesCount = entity.MaxOnlineIdfRecipesCount,
-                OnlineTfIdfBuilderName = entity.OnlineTfIdfBuilderName
+                OnlineTfIdfBuilderName = entity.OnlineTfIdfBuilderName,
+                OnlineTfIdfSimilarResultsCount = entity.OnlineTfIdfSimilarResultsCount
             };
         }
     }
