@@ -29,7 +29,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders.Base
                 }
                 catch (Exception exception)
                 {
-                    Logger.LogError(String.Format("{0}.Build failed", BuilderName), exception);
+                    LoggerWrapper.LogError(String.Format("{0}.Build failed", BuilderName), exception);
                     UpdateInProgress = false;
                     PreviousBuildFailed = true;
                 }

@@ -40,7 +40,7 @@ namespace RecipesSearch.BusinessServices.PageStorage
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("SitePageManager.GetSitesInfo failed"), exception);
+                LoggerWrapper.LogError(String.Format("SitePageManager.GetSitesInfo failed"), exception);
                 return null;
             }
         }

@@ -68,7 +68,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
             }
             catch (Exception e)
             {
-                Logger.LogError("Crawler: Error saving page.", e);
+                LoggerWrapper.LogError("Crawler: Error saving page.", e);
             }
         }
 

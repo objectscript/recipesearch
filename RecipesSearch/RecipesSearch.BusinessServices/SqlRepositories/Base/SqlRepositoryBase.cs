@@ -42,7 +42,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories.Base
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("SqlRepositoryBase.SaveEntity<{0}> failed", typeof(T)), exception);
+                LoggerWrapper.LogError(String.Format("SqlRepositoryBase.SaveEntity<{0}> failed", typeof(T)), exception);
                 return null;
             }      
         }
@@ -58,7 +58,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories.Base
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("SqlRepositoryBase.GetEntityById<{0}> failed", typeof(T)), exception);
+                LoggerWrapper.LogError(String.Format("SqlRepositoryBase.GetEntityById<{0}> failed", typeof(T)), exception);
                 return null;
             }
         }
@@ -77,7 +77,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories.Base
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("SqlRepositoryBase.GetEntities<{0}> failed", typeof(T)), exception);
+                LoggerWrapper.LogError(String.Format("SqlRepositoryBase.GetEntities<{0}> failed", typeof(T)), exception);
                 return null;
             }
         }
@@ -93,7 +93,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories.Base
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("SqlRepositoryBase.DeleteEntity<{0}> failed", typeof(T)), exception);
+                LoggerWrapper.LogError(String.Format("SqlRepositoryBase.DeleteEntity<{0}> failed", typeof(T)), exception);
                 return false;
             }
         }

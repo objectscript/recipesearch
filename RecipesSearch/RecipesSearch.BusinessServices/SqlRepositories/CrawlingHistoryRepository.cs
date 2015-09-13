@@ -48,7 +48,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
             }
             catch (Exception exception)
             {
-                Logger.LogError("CrawlingHistoryRepository.Clear() failed", exception);
+                LoggerWrapper.LogError("CrawlingHistoryRepository.Clear() failed", exception);
                 return false;
             }
         }

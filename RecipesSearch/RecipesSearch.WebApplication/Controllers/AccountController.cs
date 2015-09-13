@@ -63,7 +63,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("Login error.", ex);
+                LoggerWrapper.LogError("Login error.", ex);
                 return View("Error");
             }
         }
@@ -89,7 +89,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("Login error.", ex);
+                LoggerWrapper.LogError("Login error.", ex);
             }
             return RedirectToAction("Index", "Home");
         }

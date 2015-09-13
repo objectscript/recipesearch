@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NLog">
+      <HintPath>..\packages\NLog.4.1.1\lib\net45\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -42,7 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Logging\Logger.cs" />
+    <Compile Include="Logging\LoggerWrapper.cs" />
     <Compile Include="PageStorage\SitePageManager.cs" />
     <Compile Include="PageStorage\CachePageStorage.cs" />
     <Compile Include="PageStorage\IPageStorage.cs" />
@@ -64,6 +67,9 @@
       <Project>{f4257151-8806-4a0e-8e8b-9fe49ff98b47}</Project>
       <Name>RecipesSearch.Data</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

@@ -49,7 +49,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             {
                 try
                 {
-                    Logger.LogInfo("Similar results build started");
+                    LoggerWrapper.LogInfo("Similar results build started");
 
                     _updatedPagesCount = -1;
                     UpdateInProgress = true;
@@ -57,9 +57,9 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                     Percentage = 0;
                     _cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
 
-                    Logger.LogInfo("Similar results build: GetInfo started");
+                    LoggerWrapper.LogInfo("Similar results build: GetInfo started");
                     var tfIdfInfos = GetTfIdfInfos();
-                    Logger.LogInfo("Similar results build: GetInfo finished");
+                    LoggerWrapper.LogInfo("Similar results build: GetInfo finished");
 
                     _updatedPagesCount = 0;
 
@@ -67,13 +67,13 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
                     UpdateInProgress = false;
 
-                    Logger.LogInfo("Similar results build finished");
+                    LoggerWrapper.LogInfo("Similar results build finished");
                 }
                 catch (Exception exception)
                 {
                     UpdateInProgress = false;
                     PreviousBuildFailed = true;
-                    Logger.LogError(String.Format("SimilarResultsBuilder.FindNearestResults failed"), exception);                    
+                    LoggerWrapper.LogError(String.Format("SimilarResultsBuilder.FindNearestResults failed"), exception);                    
                 }               
             }, TaskCreationOptions.LongRunning);
         }
@@ -167,7 +167,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                     }
                     catch (Exception exception)
                     {
-                        Logger.LogError(String.Format("SimilarResultsBuilder.GetKNearest save failed"), exception);
+                        LoggerWrapper.LogError(String.Format("SimilarResultsBuilder.GetKNearest save failed"), exception);
                     }
 
                     Interlocked.Increment(ref _updatedPagesCount);

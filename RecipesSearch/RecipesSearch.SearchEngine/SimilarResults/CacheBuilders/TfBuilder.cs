@@ -49,7 +49,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("TfBuilder.GetTfBuilders failed"), exception);
+                LoggerWrapper.LogError(String.Format("TfBuilder.GetTfBuilders failed"), exception);
                 return new List<string>();
             }
         }

@@ -52,7 +52,7 @@ namespace RecipesSearch.CacheService.Utils
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        Logger.LogError(String.Format("Request failed. Received HTTP {0}", response.StatusCode), null);
+                        LoggerWrapper.LogError(String.Format("Request failed. Received HTTP {0}", response.StatusCode), null);
                     }
 
                     using (var responseStream = response.GetResponseStream())
@@ -69,7 +69,7 @@ namespace RecipesSearch.CacheService.Utils
             }
             catch (Exception e)
             {
-                Logger.LogError(String.Format("Request failed."), e);
+                LoggerWrapper.LogError(String.Format("Request failed."), e);
                 return default(T);
             }            
         }

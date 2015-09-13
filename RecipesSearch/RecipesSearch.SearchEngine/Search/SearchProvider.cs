@@ -22,7 +22,7 @@ namespace RecipesSearch.SearchEngine.Search
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("SearchProvider.SearchByQuery failed"), exception);
+                LoggerWrapper.LogError(String.Format("SearchProvider.SearchByQuery failed"), exception);
                 totalCount = 0;
                 spellcheckQuery = String.Empty;
                 return new List<SitePage>();

@@ -21,7 +21,7 @@ namespace RecipesSearch.SearchEngine.Suggestion
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("SearchProvider.SuggestByQuery failed"), exception);
+                LoggerWrapper.LogError(String.Format("SearchProvider.SuggestByQuery failed"), exception);
                 return new List<string>();
             }     
         }

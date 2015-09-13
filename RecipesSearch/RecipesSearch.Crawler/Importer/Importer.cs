@@ -203,7 +203,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
                 }
                 catch (Exception exception)
                 {
-                    Logger.LogError(
+                    LoggerWrapper.LogError(
                         String.Format("SitePagesImporter.Importer.CrawlSites(). Failed to crawl site {0}", _currentCrawledSite.URL), exception);
                 }
             }

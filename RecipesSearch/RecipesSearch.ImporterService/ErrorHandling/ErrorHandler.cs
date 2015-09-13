@@ -17,7 +17,7 @@ namespace RecipesSearch.ImporterService.ErrorHandling
 
         public bool HandleError(Exception error)
         {
-            Logger.LogError("Importer service exception", error);
+            LoggerWrapper.LogError("Importer service exception", error);
             return true;
         }
     }

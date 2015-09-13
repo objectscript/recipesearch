@@ -84,7 +84,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 }
                 catch (Exception exception)
                 {
-                    Logger.LogError(String.Format("AllTasksBuilder.RunAllTasks failed"), exception);
+                    LoggerWrapper.LogError(String.Format("AllTasksBuilder.RunAllTasks failed"), exception);
                     UpdateInProgress = false;
                 }               
             }, TaskCreationOptions.AttachedToParent);

@@ -22,7 +22,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
             }
             catch (Exception exception)
             {
-                Logger.LogError("PageStatsRepository.GetTfIdfStatistic() failed", exception);
+                LoggerWrapper.LogError("PageStatsRepository.GetTfIdfStatistic() failed", exception);
                 return -1;
             }
         }
@@ -38,7 +38,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
             }
             catch (Exception exception)
             {
-                Logger.LogError("PageStatsRepository.GetTfStatistic() failed", exception);
+                LoggerWrapper.LogError("PageStatsRepository.GetTfStatistic() failed", exception);
                 return -1;
             }
         }
@@ -54,7 +54,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
             }
             catch (Exception exception)
             {
-                Logger.LogError("PageStatsRepository.GetIdfStatistic() failed", exception);
+                LoggerWrapper.LogError("PageStatsRepository.GetIdfStatistic() failed", exception);
                 return -1;
             }
         }
@@ -70,7 +70,7 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
             }
             catch (Exception exception)
             {
-                Logger.LogError("PageStatsRepository.GetNearestResultsStatistic() failed", exception);
+                LoggerWrapper.LogError("PageStatsRepository.GetNearestResultsStatistic() failed", exception);
                 return -1;
             }
         }

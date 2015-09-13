@@ -22,7 +22,7 @@ namespace RecipesSearch.BusinessServices.PageStorage
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("CachePageStorage.SaveSitePage failed"), exception);
+                LoggerWrapper.LogError(String.Format("CachePageStorage.SaveSitePage failed"), exception);
                 return false;
             }     
         }
@@ -35,7 +35,7 @@ namespace RecipesSearch.BusinessServices.PageStorage
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("CachePageStorage.GetSitesInfo failed"), exception);
+                LoggerWrapper.LogError(String.Format("CachePageStorage.GetSitesInfo failed"), exception);
                 return null;
             }  
         }
@@ -48,7 +48,7 @@ namespace RecipesSearch.BusinessServices.PageStorage
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("CachePageStorage.DeletePages({0}) failed", siteId), exception);
+                LoggerWrapper.LogError(String.Format("CachePageStorage.DeletePages({0}) failed", siteId), exception);
                 return false;
             } 
         }
@@ -61,7 +61,7 @@ namespace RecipesSearch.BusinessServices.PageStorage
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("CachePageStorage.DeletePages failed"), exception);
+                LoggerWrapper.LogError(String.Format("CachePageStorage.DeletePages failed"), exception);
                 return false;
             }
         }

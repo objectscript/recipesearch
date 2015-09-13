@@ -88,7 +88,7 @@ namespace RecipesSearch.SitePagesImporter.Crawler
         {
             if (_configuration.LoggingEnabled)
             {
-                Logger.LogCrawlerInfo(message);
+                LoggerWrapper.LogCrawlerInfo(message);
             }
 
         }

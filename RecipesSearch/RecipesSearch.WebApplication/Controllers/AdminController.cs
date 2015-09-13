@@ -6,7 +6,6 @@ using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.BusinessServices.PageStorage;
 using RecipesSearch.BusinessServices.SqlRepositories;
 using RecipesSearch.Data.Views;
-using RecipesSearch.SearchEngine.SimilarResults;
 using RecipesSearch.SearchEngine.SimilarResults.CacheBuilders;
 using RecipesSearch.WebApplication.BuilderService;
 using RecipesSearch.WebApplication.ImporterService;
@@ -87,7 +86,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("UpdateSearchSettings error.", ex);
+                LoggerWrapper.LogError("UpdateSearchSettings error.", ex);
                 return View("Error");
             }
         }
@@ -106,7 +105,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("UpdateCrawlerConfig error.", ex);
+                LoggerWrapper.LogError("UpdateCrawlerConfig error.", ex);
                 return View("Error");
             }
         }
@@ -121,7 +120,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("RemoveSiteToCrawl error.", ex);
+                LoggerWrapper.LogError("RemoveSiteToCrawl error.", ex);
                 return View("Error");
             }
         }
@@ -140,7 +139,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("AddSiteToCrawl error.", ex);
+                LoggerWrapper.LogError("AddSiteToCrawl error.", ex);
                 return View("Error");
             }
         }
@@ -155,7 +154,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("StartCrawling error.", ex);
+                LoggerWrapper.LogError("StartCrawling error.", ex);
                 return View("Error");
             }
         }
@@ -170,7 +169,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("StopCrawling error.", ex);
+                LoggerWrapper.LogError("StopCrawling error.", ex);
                 return View("Error");
             }
         }
@@ -185,7 +184,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("StopCrawling error.", ex);
+                LoggerWrapper.LogError("StopCrawling error.", ex);
                 return View("Error");
             }
         }
@@ -200,7 +199,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("ClearSitePages error.", ex);
+                LoggerWrapper.LogError("ClearSitePages error.", ex);
                 return View("Error");
             }
         }
@@ -215,7 +214,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("ClearAllSites error.", ex);
+                LoggerWrapper.LogError("ClearAllSites error.", ex);
                 return View("Error");
             }
         }
@@ -231,7 +230,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("ClearSitePages error.", ex);
+                LoggerWrapper.LogError("ClearSitePages error.", ex);
                 return View("Error");
             }
         }
@@ -246,7 +245,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("RemoveSiteFromCrawlQueue error.", ex);
+                LoggerWrapper.LogError("RemoveSiteFromCrawlQueue error.", ex);
                 return View("Error");
             }
         }
@@ -261,7 +260,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("StopCurrentSiteImporting error.", ex);
+                LoggerWrapper.LogError("StopCurrentSiteImporting error.", ex);
                 return View("Error");
             }
         }
@@ -403,7 +402,7 @@ namespace RecipesSearch.WebApplication.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError("UpdateTfIdfConfig error.", ex);
+                LoggerWrapper.LogError("UpdateTfIdfConfig error.", ex);
                 return View("Error");
             }
         }

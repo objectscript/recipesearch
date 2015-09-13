@@ -42,7 +42,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults.CacheBuilders
             }
             catch (Exception exception)
             {
-                Logger.LogError(String.Format("IdfBuilder.GetIdfBuilders failed"), exception);
+                LoggerWrapper.LogError(String.Format("IdfBuilder.GetIdfBuilders failed"), exception);
                 return new List<string>();
             }
         }
