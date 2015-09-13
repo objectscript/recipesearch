@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-09-13 17:03:54">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-09-13 22:44:19">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -910,7 +910,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SearchSettings">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63808,56178.53556</TimeChanged>
+<TimeChanged>63808,61493.494931</TimeChanged>
 <TimeCreated>63610,79681.607063</TimeCreated>
 
 <Property name="ResultsOnPage">
@@ -949,6 +949,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Property>
 
 <Property name="MaxOnlineIdfRecipesCount">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="OnlineTfIdfSimilarResultsCount">
 <Type>%Integer</Type>
 <Required>1</Required>
 </Property>
@@ -997,6 +1002,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Value>
 <Value name="9">
 <Value>OnlineTfIdfBuilderName</Value>
+</Value>
+<Value name="10">
+<Value>OnlineTfIdfSimilarResultsCount</Value>
 </Value>
 </Data>
 </Storage>
@@ -1525,7 +1533,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63808,55057.402873</TimeChanged>
+<TimeChanged>63808,61510.959578</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1570,10 +1578,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			OnlineTfIdfEnabled,
 			MaxOnlineIdfRecipesCount,
 			OnlineTfIdfBuilderName,
+			OnlineTfIdfSimilarResultsCount,
 			IsActive,
 			CreatedDate,
 			ModifiedDate) 
-		VALUES(1, 25, 50, 10, 1, 1, 0, 200, 'DefaultOnlineTfIdfBuilder', 1, GETUTCDATE(), GETUTCDATE());
+		VALUES(1, 25, 50, 10, 1, 1, 0, 200, 'DefaultOnlineTfIdfBuilder', 10, 1, GETUTCDATE(), GETUTCDATE());
 	END
 	
 	// Seed tfIdf config
@@ -2971,7 +2980,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Project name="RecipesSearch" LastModified="2015-09-13 15:11:25.5829">
+<Project name="RecipesSearch" LastModified="2015-09-13 15:11:25.582736">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
@@ -2995,6 +3004,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     <ProjectItem name="RecipeSearch.RecipeAnalyze.TfIdfBuilder" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.PredicateBuilder" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.RESTBroker" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.DefaultOnlineTfIdfBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResult" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResultItem" type="CLS"></ProjectItem>
@@ -3002,8 +3013,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.DefaultOnlineTfIdfBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf" type="CLS"></ProjectItem>
   </Items>
 </Project>
 </Export>
