@@ -32,7 +32,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
             sitePage.Description = String.Empty;
             sitePage.ImageUrl = GetImageUrl(crawledPage, recipeWrapper, ".photo");
 
-            sitePage.Category = GetPlainTextBySelector(csQueryDocument, "#wrapper > #content_wrapper > #content > #nav1 > a:last");
+            sitePage.Category = GetTextBySelector(csQueryDocument, "#wrapper > #content_wrapper > #content > #nav1 > a");
 
             var commentsCountText = recipeWrapper.Find("#comments .hdr .count").Text();
             if (!String.IsNullOrEmpty(commentsCountText))

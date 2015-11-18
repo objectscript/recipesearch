@@ -42,7 +42,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
             sitePage.Ingredients = GetTextBySelector(recipeWrapper, IngredientsSelector, ",");
             sitePage.RecipeInstructions = GetTextBySelector(recipeWrapper, RecipeInstructionsSelector);
             sitePage.AdditionalData = GetTextBySelector(recipeWrapper, SummarySelector);
-            sitePage.Category = GetPlainTextBySelector(recipeWrapper, RecipeCategorySelector);
+            sitePage.Category = GetTextBySelector(csQueryDocument, RecipeCategorySelector);
 
             sitePage.Rating = ParseIntValue(recipeWrapper, RatingSelector);
             sitePage.CommentsCount = ParseIntValue(recipeWrapper, CommentsCountSelector);

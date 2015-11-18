@@ -12,6 +12,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
         public Say7Parser()
         {
             CommentsCountSelector = "[itemprop=interactionCount]";
+            RecipeCategorySelector = "#sitepos.bc li > a";
         }
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Abot.Poco;
-using HtmlAgilityPack;
+﻿using Abot.Poco;
 using RecipesSearch.SitePagesImporter.Pipeline.Base;
 using RecipesSearch.Data.Models;
 
@@ -16,12 +10,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
         {
             var parser = ParsersResolver.GetParserById(site.ParserId);
 
-            if (parser == null)
-            {
-                return;
-            }
-            
-            parser.ParseContent(crawledPage, sitePage);
+            parser?.ParseContent(crawledPage, sitePage);
         }
     }
 }

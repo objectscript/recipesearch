@@ -15,6 +15,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
             DescriptionSelector = null;
             CommentsCountSelector = ".recipe_info_stat .article-info_stat-i:nth-child(2) > span";
             RatingSelector = ".recipe_info_stat .article-info_stat-i:nth-child(4) > span";
+            RecipeCategorySelector = ".prl-panel.prl-breadcrumb nav span";
         }
     }
 }

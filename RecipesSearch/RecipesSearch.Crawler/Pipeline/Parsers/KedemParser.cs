@@ -11,7 +11,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
 
         public KedemParser()
         {
-            RecipeCategorySelector = ".page_path a:nth-last-child(2)";
+            RecipeCategorySelector = ".page_path a";
             RatingSelector = "[itemprop=ratingValue]";
         }
     }

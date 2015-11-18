@@ -13,7 +13,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Parsers
         {
             IngredientsSelector = ".rec-ingredients .b-page_block__outside > p, .rec-ingredients .b-page_block__outside [itemprop=ingredients]";
             RecipeInstructionsSelector = "[itemprop=recipeInstructions] .b-page_block__content .b-list__clause__text";
-            RecipeCategorySelector = ".l-centercol.utk-recipe .b-breadcrumbs p a:last";
+            RecipeCategorySelector = ".l-centercol.utk-recipe .b-breadcrumbs p a";
             RatingSelector = "[itemprop=ratingValue]";
         }
     }
