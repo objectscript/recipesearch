@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-05-01 14:01:55">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2015-11-20 19:38:10">
 <Class name="Experimental.PageAnalyzer">
 <Super>%Persistent</Super>
-<TimeChanged>63673,50487.798328</TimeChanged>
+<TimeChanged>63876,61718</TimeChanged>
 <TimeCreated>63612,49594.660203</TimeCreated>
 
 <Method name="GetAllEntities">
@@ -365,12 +365,105 @@
 </Class>
 
 
-<Project name="Experimental" LastModified="2015-05-01 13:30:05.261051">
+<Project name="Experimental" LastModified="2015-11-20 19:38:05.636595">
   <Items>
     <ProjectItem name="Experimental.PageAnalyzer" type="CLS"></ProjectItem>
     <ProjectItem name="Experimental.TextAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="Experimental.QualityCounter" type="CLS"></ProjectItem>
   </Items>
 </Project>
+
+
+<Class name="Experimental.QualityCounter">
+<Super>%Persistent</Super>
+<TimeChanged>63876,66943.960137</TimeChanged>
+<TimeCreated>63876,62764.088827</TimeCreated>
+
+<Method name="GetCategory">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>id:%Numeric</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set result = ""
+	&sql(declare byid cursor for
+	      select Category from RecipeSearch_Data.SitePage where ID = :id)
+	      
+	&sql(open byid)
+    for {
+	   &sql(fetch byid into :myCategory)
+	   quit:(SQLCODE '= 0)
+	   set result = myCategory
+    }
+    &sql(close byid)
+    return result
+]]></Implementation>
+</Method>
+
+<Method name="GetDistance">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>CategoryOne:%String,CategoryTwo:%String</FormalSpec>
+<ReturnType>%Numeric</ReturnType>
+<Implementation><![CDATA[
+	set categoryListOne = $LISTFROMSTRING(CategoryOne, ".")
+	set categoryOneLength = $LISTLENGTH(categoryListOne) - 1
+	set categoryListTwo = $LISTFROMSTRING(CategoryTwo, ".")
+	set categoryTwoLength = $LISTLENGTH(categoryListTwo) - 1
+	set minLength = categoryOneLength + categoryTwoLength
+	set index = 1
+	for {
+		quit:(index > categoryOneLength)
+		quit:(index > categoryTwoLength)
+		set currentCategoryOne = $LIST(categoryListOne, index)
+		set currentCategoryTwo = $LIST(categoryListTwo, index)
+		quit:(currentCategoryOne '= currentCategoryTwo)
+		set minLength = minLength - 2
+		set index = index + 1
+	}
+	
+	return minLength
+]]></Implementation>
+</Method>
+
+<Method name="CountQuality">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Numeric</ReturnType>
+<Implementation><![CDATA[
+	set result = 0
+	&sql(declare bynearest cursor for
+	      select RecipeId, SimilarRecipeId
+          from RecipeSearch_Data_RecipeData.NearestResult)
+    &sql(open bynearest)
+    for {
+	   &sql(fetch bynearest into :firstRecipeID,:secondRecipeID)
+	   quit:(SQLCODE '= 0)
+	   set categoryOne = ##class(Experimental.QualityCounter).GetCategory(firstRecipeID)
+	   set categoryTwo = ##class(Experimental.QualityCounter).GetCategory(secondRecipeID)
+	   set curDistance = ##class(Experimental.QualityCounter).GetDistance(categoryOne, categoryTwo)
+	   if (curDistance < 0) {
+		   set curDistance = 0
+	   }
+	   set result = result + curDistance
+    }
+    &sql(close bynearest)
+    
+    return result
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Experimental.QualityCounterD</DataLocation>
+<DefaultData>QualityCounterDefaultData</DefaultData>
+<IdLocation>^Experimental.QualityCounterD</IdLocation>
+<IndexLocation>^Experimental.QualityCounterI</IndexLocation>
+<StreamLocation>^Experimental.QualityCounterS</StreamLocation>
+<Data name="QualityCounterDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
 
 
 <Class name="Experimental.TextAnalyzer">
