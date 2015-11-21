@@ -10,7 +10,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline
         {
             var parser = ParsersResolver.GetParserById(site.ParserId);
 
-            parser?.ParseContent(crawledPage, sitePage);
+            parser.ParseContent(crawledPage, sitePage);
         }
     }
 }
