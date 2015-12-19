@@ -23,6 +23,7 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <NuGetPackageImportStamp>4ea5d9f9</NuGetPackageImportStamp>
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -340,6 +341,10 @@
     <ProjectReference Include="..\RecipesSearch.BusinessServices\RecipesSearch.BusinessServices.csproj">
       <Project>{3075b2de-512a-4bfa-96c9-b49d11a6dc3c}</Project>
       <Name>RecipesSearch.BusinessServices</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RecipesSearch.Crawler\RecipesSearch.SitePagesImporter.csproj">
+      <Project>{7ef77b59-1700-4ffb-87eb-4048dc21dfe0}</Project>
+      <Name>RecipesSearch.SitePagesImporter</Name>
     </ProjectReference>
     <ProjectReference Include="..\RecipesSearch.Data\RecipesSearch.Data.csproj">
       <Project>{f4257151-8806-4a0e-8e8b-9fe49ff98b47}</Project>

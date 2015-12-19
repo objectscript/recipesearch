@@ -44,6 +44,7 @@
     <Compile Include="Framework\Constants.cs" />
     <Compile Include="Models\Base\Entity.cs" />
     <Compile Include="Models\Base\IEntity.cs" />
+    <Compile Include="Models\NearestResult.cs" />
     <Compile Include="Models\TfIdfConfig.cs" />
     <Compile Include="Models\SearchSettings.cs" />
     <Compile Include="Models\CrawlingHistoryItem.cs" />

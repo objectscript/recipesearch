@@ -26,6 +26,12 @@ namespace RecipesSearch.WebApplication.BuilderService {
         private bool AllTasksBuildInProgressField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private bool ClustersBuildFailedField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private bool ClustersBuildInProgressField;
+        
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
         private bool IdfBuildFailedField;
         
         [System.Runtime.Serialization.OptionalFieldAttribute()]
@@ -79,6 +85,32 @@ namespace RecipesSearch.WebApplication.BuilderService {
                 if ((this.AllTasksBuildInProgressField.Equals(value) != true)) {
                     this.AllTasksBuildInProgressField = value;
                     this.RaisePropertyChanged("AllTasksBuildInProgress");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public bool ClustersBuildFailed {
+            get {
+                return this.ClustersBuildFailedField;
+            }
+            set {
+                if ((this.ClustersBuildFailedField.Equals(value) != true)) {
+                    this.ClustersBuildFailedField = value;
+                    this.RaisePropertyChanged("ClustersBuildFailed");
+                }
+            }
+        }
+        
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public bool ClustersBuildInProgress {
+            get {
+                return this.ClustersBuildInProgressField;
+            }
+            set {
+                if ((this.ClustersBuildInProgressField.Equals(value) != true)) {
+                    this.ClustersBuildInProgressField = value;
+                    this.RaisePropertyChanged("ClustersBuildInProgress");
                 }
             }
         }
@@ -295,6 +327,18 @@ namespace RecipesSearch.WebApplication.BuilderService {
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/StopSimilarResultsBuild", ReplyAction="http://tempuri.org/IBuilderService/StopSimilarResultsBuildResponse")]
         System.Threading.Tasks.Task StopSimilarResultsBuildAsync();
         
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/BuildClusters", ReplyAction="http://tempuri.org/IBuilderService/BuildClustersResponse")]
+        void BuildClusters();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/BuildClusters", ReplyAction="http://tempuri.org/IBuilderService/BuildClustersResponse")]
+        System.Threading.Tasks.Task BuildClustersAsync();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/StopClustersBuild", ReplyAction="http://tempuri.org/IBuilderService/StopClustersBuildResponse")]
+        void StopClustersBuild();
+        
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/StopClustersBuild", ReplyAction="http://tempuri.org/IBuilderService/StopClustersBuildResponse")]
+        System.Threading.Tasks.Task StopClustersBuildAsync();
+        
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/BuildAllTasks", ReplyAction="http://tempuri.org/IBuilderService/BuildAllTasksResponse")]
         void BuildAllTasks();
         
@@ -395,6 +439,22 @@ namespace RecipesSearch.WebApplication.BuilderService {
         
         public System.Threading.Tasks.Task StopSimilarResultsBuildAsync() {
             return base.Channel.StopSimilarResultsBuildAsync();
+        }
+        
+        public void BuildClusters() {
+            base.Channel.BuildClusters();
+        }
+        
+        public System.Threading.Tasks.Task BuildClustersAsync() {
+            return base.Channel.BuildClustersAsync();
+        }
+        
+        public void StopClustersBuild() {
+            base.Channel.StopClustersBuild();
+        }
+        
+        public System.Threading.Tasks.Task StopClustersBuildAsync() {
+            return base.Channel.StopClustersBuildAsync();
         }
         
         public void BuildAllTasks() {

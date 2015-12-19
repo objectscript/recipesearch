@@ -13,6 +13,7 @@ namespace RecipesSearch.ImporterService
         private readonly TfIdfBuilder _tfIdfBuilder = TfIdfBuilder.GetInstance();
         private readonly AllTasksBuilder _allTasksBuilder = AllTasksBuilder.GetInstance();
         private readonly SimilarResultsBuilder _similarResultsBuilder = SimilarResultsBuilder.GetInstance();
+        private readonly ClustersBuilder _clustersBuilder = ClustersBuilder.GetInstance();
 
         public void BuildTf()
         {
@@ -49,6 +50,16 @@ namespace RecipesSearch.ImporterService
             _similarResultsBuilder.StopUpdating();
         }
 
+        public void BuildClusters()
+        {
+            _clustersBuilder.FindClusters();
+        }
+
+        public void StopClustersBuild()
+        {
+            _clustersBuilder.StopUpdating();
+        }
+
         public void BuildAllTasks()
         {
             _allTasksBuilder.RunAllTasks();
@@ -75,7 +86,9 @@ namespace RecipesSearch.ImporterService
                 IdfBuildFailed = _idfBuilder.PreviousBuildFailed,
                 TfIdfBuildFailed = _tfIdfBuilder.PreviousBuildFailed,
                 SimilarResultsBuildFailed = _similarResultsBuilder.PreviousBuildFailed,
-                SimilarResultsPercentage = _similarResultsBuilder.Percentage
+                SimilarResultsPercentage = _similarResultsBuilder.Percentage,
+                ClustersBuildInProgress = _clustersBuilder.UpdateInProgress,
+                ClustersBuildFailed = _clustersBuilder.PreviousBuildFailed
             };
         }
     }

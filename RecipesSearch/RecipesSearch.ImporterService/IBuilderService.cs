@@ -28,6 +28,12 @@ namespace RecipesSearch.ImporterService
         void StopSimilarResultsBuild();
 
         [OperationContract]
+        void BuildClusters();
+
+        [OperationContract]
+        void StopClustersBuild();
+
+        [OperationContract]
         void BuildAllTasks();
 
         [OperationContract]

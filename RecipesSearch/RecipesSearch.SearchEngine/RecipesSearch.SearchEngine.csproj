@@ -51,6 +51,7 @@
     <Compile Include="SimilarResults\CacheBuilders\TfBuilder.cs" />
     <Compile Include="SimilarResults\CacheBuilders\TfIdfBuilder.cs" />
     <Compile Include="SimilarResults\AllTasksBuilder.cs" />
+    <Compile Include="SimilarResults\ClustersBuilder.cs" />
     <Compile Include="SimilarResults\SimilarResultsBuilder.cs" />
     <Compile Include="Suggestion\SuggestionProvider.cs" />
   </ItemGroup>

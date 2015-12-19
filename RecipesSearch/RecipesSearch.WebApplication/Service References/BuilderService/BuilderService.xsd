@@ -73,6 +73,26 @@
       <xs:sequence />
     </xs:complexType>
   </xs:element>
+  <xs:element name="BuildClusters">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="BuildClustersResponse">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="StopClustersBuild">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="StopClustersBuildResponse">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
   <xs:element name="BuildAllTasks">
     <xs:complexType>
       <xs:sequence />

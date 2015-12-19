@@ -4,11 +4,11 @@
 @using RecipesSearch.WebApplication.ViewModels
 @model TasksViewModel
 
-<div class="row">   
+<div class="row">
     <div class="col-md-6 tasks">
         <div>
             @if (Model.TfUpdatingInProgress)
-            {              
+            {
                 <div class="alert alert-success " role="alert">Tf update in progress.</div>
                 <label class="page-stat active">Empty tf results: @Model.EmptyTfCount. Progress: @Math.Round(Model.TfProgress)%</label>
                 @Html.Partial("_PostButton", new PostButtonModel
@@ -21,7 +21,7 @@
             }
             else
             {
-                var alertClass = Model.TfBuildFailed ? "failed" : String.Empty;
+                var alertClass = Model.TfBuildFailed ? "failed" : string.Empty;
                 <div class="alert alert-warning @alertClass" role="alert">Tf update idle</div>
                 <label class="page-stat">Empty tf results: @Model.EmptyTfCount</label>
                 @Html.Partial("_PostButton", new PostButtonModel
@@ -41,7 +41,7 @@
             }
             else
             {
-                var alertClass = Model.IdfBuildFailed ? "failed" : String.Empty;
+                var alertClass = Model.IdfBuildFailed ? "failed" : string.Empty;
                 <div class="alert alert-warning @alertClass" role="alert">Idf update idle</div>
                 <label class="page-stat">Idf global exists: @Model.IdfGlobalExists</label>
                 @Html.Partial("_PostButton", new PostButtonModel
@@ -68,7 +68,7 @@
             }
             else
             {
-                var alertClass = Model.TfIdfBuildFailed ? "failed" : String.Empty;
+                var alertClass = Model.TfIdfBuildFailed ? "failed" : string.Empty;
                 <div class="alert alert-warning @alertClass" role="alert">Tf/Idf update idle</div>
                 @*<label class="page-stat">Empty tf/idf results: @Model.EmptyTfIdfCount</label>*@
                 @Html.Partial("_PostButton", new PostButtonModel
@@ -102,7 +102,7 @@
             }
             else
             {
-                var alertClass = Model.SimilarResultsBuildFailed ? "failed" : String.Empty;
+                var alertClass = Model.SimilarResultsBuildFailed ? "failed" : string.Empty;
                 <div class="alert alert-warning @alertClass" role="alert">Nearest results update idle</div>
                 <label class="page-stat">Empty nearest results: @Model.EmptyNearestResultsCount</label>
                 @Html.Partial("_PostButton", new PostButtonModel
@@ -114,6 +114,34 @@
                 })
             }
         </div>
+        <div>
+            @if (Model.ClustersBuildInProgress)
+            {
+                <div class="alert alert-success" role="alert">Clusters build in progress.</div>
+                <label class="page-stat">Recipes with empty cluster: @Model.RecipesWithEmptyClusters</label>
+                @Html.Partial("_PostButton", new PostButtonModel
+                {
+                    Action = "StopClustersBuild",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Stop updating"
+                })
+            }
+            else
+            {
+                var alertClass = Model.ClustersBuildInProgress ? "failed" : string.Empty;
+                <div class="alert alert-warning @alertClass" role="alert">Clusters build idle</div>
+                <label class="page-stat">Recipes with empty cluster: @Model.RecipesWithEmptyClusters</label>
+                @Html.Partial("_PostButton", new PostButtonModel
+                {
+                    Action = "StartClustersBuild",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Update clusters"
+                })
+            }
+        </div>
+
         <hr/>
         <div>
             @if (!Model.AllTasksBuildInProgress)
@@ -136,12 +164,12 @@
             else
             {
                 @Html.Partial("_PostButton", new PostButtonModel
-                    {
-                        Action = "StopAllTasksUpdating",
-                        Controller = "Admin",
-                        ButtonClass = "btn-link",
-                        Text = "Stop all tasks"
-                    })
+                {
+                    Action = "StopAllTasksUpdating",
+                    Controller = "Admin",
+                    ButtonClass = "btn-link",
+                    Text = "Stop all tasks"
+                })
             }
         </div>
     </div>

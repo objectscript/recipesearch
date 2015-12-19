@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using RecipesSearch.Data.Framework;
+﻿using RecipesSearch.Data.Framework;
 using RecipesSearch.Data.Models.Base;
 
 namespace RecipesSearch.Data.Models
@@ -20,6 +19,8 @@ namespace RecipesSearch.Data.Models
         public bool EnableSpellcheckingForSuggest { get; set; }
 
         public bool OnlineTfIdfEnabled { get; set; }
+
+        public bool UseClusters { get; set; }
 
         public int MaxOnlineIdfRecipesCount { get; set; }
 

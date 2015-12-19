@@ -289,7 +289,10 @@ namespace RecipesSearch.WebApplication.Controllers
                 IdfBuildFailed = builderState.IdfBuildFailed,
                 TfIdfBuildFailed = builderState.TfIdfBuildFailed,
                 SimilarResultsBuildFailed = builderState.SimilarResultsBuildFailed,
-                SimilarResultsPercentage = builderState.SimilarResultsPercentage
+                SimilarResultsPercentage = builderState.SimilarResultsPercentage,
+                ClustersBuildFailed = builderState.ClustersBuildFailed,
+                ClustersBuildInProgress = builderState.ClustersBuildInProgress,
+                RecipesWithEmptyClusters = pageStatsRepository.GetCountOfRecipesWithEmptyClusters()
             });
         }
 
@@ -372,6 +375,22 @@ namespace RecipesSearch.WebApplication.Controllers
         public ActionResult StartIdfUpdating()
         {
             _builder.BuildIdf();
+
+            return RedirectToAction("Tasks");
+        }
+
+        [HttpPost]
+        public ActionResult StopClustersBuild()
+        {
+            _builder.StopClustersBuild();
+
+            return RedirectToAction("Tasks");
+        }
+
+        [HttpPost]
+        public ActionResult StartClustersBuild()
+        {
+            _builder.BuildClusters();
 
             return RedirectToAction("Tasks");
         }

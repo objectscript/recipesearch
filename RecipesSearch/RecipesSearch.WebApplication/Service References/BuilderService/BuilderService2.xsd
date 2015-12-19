@@ -9,6 +9,8 @@
     </xs:annotation>
     <xs:sequence>
       <xs:element minOccurs="0" name="AllTasksBuildInProgress" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ClustersBuildFailed" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ClustersBuildInProgress" type="xs:boolean" />
       <xs:element minOccurs="0" name="IdfBuildFailed" type="xs:boolean" />
       <xs:element minOccurs="0" name="IdfBuildInProgress" type="xs:boolean" />
       <xs:element minOccurs="0" name="SimilarResultsBuildFailed" type="xs:boolean" />

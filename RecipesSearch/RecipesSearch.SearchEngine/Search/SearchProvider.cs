@@ -30,6 +30,7 @@ namespace RecipesSearch.SearchEngine.Search
                     searchSettings.EnableSpellchecking,
                     exactMatch, 
                     searchSettings.OnlineTfIdfEnabled,
+                    searchSettings.UseClusters,
                     searchSettings.MaxOnlineIdfRecipesCount,
                     searchSettings.OnlineTfIdfBuilderName,
                     out totalCount, 

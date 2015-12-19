@@ -27,5 +27,9 @@
         public bool TfIdfBuildFailed { get; set; }
 
         public bool SimilarResultsBuildFailed { get; set; }
+
+        public bool ClustersBuildInProgress { get; set; }
+
+        public bool ClustersBuildFailed { get; set; }
     }
 }

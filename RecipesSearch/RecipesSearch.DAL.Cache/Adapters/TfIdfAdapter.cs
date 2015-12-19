@@ -24,9 +24,15 @@ namespace RecipesSearch.DAL.Cache.Adapters
         {
             return GetStatistic("SitePage_GetTfStatistic", Constants.DefaultCachePackage);
         }
+
         public int GetIdfStatistic()
         {
             return GetStatistic("SitePage_GetIdfStatistic", Constants.DefaultCachePackage);
+        }
+
+        public int GetCountOfRecipesWithEmptyCLusters()
+        {
+            return GetStatistic("SitePage_GetClustersStatistic", Constants.DefaultCachePackage);
         }
 
         public void UpdateTfIdf(CancellationToken cancellationToken, Action<decimal> progressCallback = null)

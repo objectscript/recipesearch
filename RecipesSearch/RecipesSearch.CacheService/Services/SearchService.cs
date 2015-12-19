@@ -19,6 +19,7 @@ namespace RecipesSearch.CacheService.Services
             bool spellcheck, 
             bool exactMatch, 
             bool onlineTfIdf,
+            bool useClusters,
             int maxIdfRecipesCount,
             string onlineTfIdfBuilderName,
             out int totalCount,
@@ -34,7 +35,8 @@ namespace RecipesSearch.CacheService.Services
                 {"exactMatch", (exactMatch ? 1 : 0).ToString()},
                 {"onlineTfIdf", (onlineTfIdf ? 1 : 0).ToString()},
                 {"maxIdfRecipesCount", maxIdfRecipesCount.ToString()},
-                {"onlineTfIdfBuilderName", onlineTfIdfBuilderName}
+                {"onlineTfIdfBuilderName", onlineTfIdfBuilderName},
+                {"useClusters", (useClusters ? 1 : 0).ToString()}
             };
 
             var respose = RestHelper.MakeRequest<SearchResponse>(url, RestHelper.HttpVerb.GET, parameters, null);

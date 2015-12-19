@@ -10,6 +10,8 @@ namespace RecipesSearch.Data.Framework
     {
         public const string DefaultCachePackage = "RecipeSearch_Data";
 
+        public const string RecipeDataCachePackage = "RecipeSearch_Data_RecipeData";
+
         public const string LoggingCachePackage = "RecipeSearch_Logging";
 
         public const string TfBuilderCachePackage = "RecipeSearch_RecipeAnalyze_TfBuild";

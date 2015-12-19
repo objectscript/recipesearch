@@ -35,5 +35,11 @@
         public bool SimilarResultsBuildFailed { get; set; }
 
         public decimal SimilarResultsPercentage { get; set; }
+
+        public bool ClustersBuildInProgress { get; set; }
+
+        public bool ClustersBuildFailed { get; set; }
+
+        public int RecipesWithEmptyClusters { get; set; }
     }
 }

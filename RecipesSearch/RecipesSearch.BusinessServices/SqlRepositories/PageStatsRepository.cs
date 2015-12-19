@@ -59,6 +59,22 @@ namespace RecipesSearch.BusinessServices.SqlRepositories
             }
         }
 
+        public int GetCountOfRecipesWithEmptyClusters()
+        {
+            try
+            {
+                using (var cacheAdapter = new TfIdfAdapter())
+                {
+                    return cacheAdapter.GetCountOfRecipesWithEmptyCLusters();
+                }
+            }
+            catch (Exception exception)
+            {
+                LoggerWrapper.LogError("PageStatsRepository.GetCountOfRecipesWithEmptyClusters() failed", exception);
+                return -1;
+            }
+        }
+
         public int GetNearestResultsStatistic()
         {
             try
