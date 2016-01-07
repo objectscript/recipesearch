@@ -27,6 +27,8 @@ namespace RecipesSearch.SitePagesImporter.Crawler
 
         public RecipesCrawler(string url, PageSaver pageSaver, Configuration configuration)
         {
+            Random r = new Random(DateTime.Now.Millisecond);
+
             _url = url;
             _configuration = configuration;
             _crawler = new PoliteWebCrawler(configuration);
@@ -37,6 +39,13 @@ namespace RecipesSearch.SitePagesImporter.Crawler
             _crawler.PageCrawlStartingAsync += ProcessPageCrawlStarting;
             _crawler.PageCrawlDisallowedAsync += PageCrawlDisallowed;
             _crawler.PageLinksCrawlDisallowedAsync += PageLinksCrawlDisallowed;
+
+            _crawler.ShouldCrawlPage((pageToCrawl, crawlContext) =>
+            {
+                CrawlDecision decision = new CrawlDecision { Allow = r.Next(100) <= 20 };
+
+                return decision;
+            });
         }
 
         public void Crawl(CancellationTokenSource cancellationTokenSource)
