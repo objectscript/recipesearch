@@ -50,9 +50,9 @@ namespace RecipesSearch.ImporterService
             _similarResultsBuilder.StopUpdating();
         }
 
-        public void BuildClusters()
+        public void BuildClusters(int threshold)
         {
-            _clustersBuilder.FindClusters();
+            _clustersBuilder.FindClusters(threshold);
         }
 
         public void StopClustersBuild()

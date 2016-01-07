@@ -28,6 +28,11 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Count of nearest results to find")]
         public int SimilarResultsCount { get; set; }
 
+        [Required(ErrorMessage = "Field is required")]
+        [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
+        [Display(Name = "Clustarization: Maximum allowed edge weight")]
+        public int ClusterThreshold { get; set; }
+
         public List<string> AvailableTfBuilders { get; set; }
 
         public List<string> AvailableIdfBuilders { get; set; } 
@@ -41,7 +46,8 @@ namespace RecipesSearch.WebApplication.ViewModels
                 IdfBuilderName = viewModel.IdfBuilderName,
                 LastUsedIdfBuilder = viewModel.LastUsedIdfBuilder,
                 LastUsedTfBuilder = viewModel.LastUsedTfBuilder,
-                SimilarResultsCount = viewModel.SimilarResultsCount
+                SimilarResultsCount = viewModel.SimilarResultsCount,
+                ClusterThreshold = viewModel.ClusterThreshold
             };
         }
 
@@ -56,7 +62,8 @@ namespace RecipesSearch.WebApplication.ViewModels
                 LastUsedTfBuilder = entity.LastUsedTfBuilder,
                 AvailableTfBuilders = availableTfBuilders,
                 AvailableIdfBuilders = availableIdfBuilders,
-                SimilarResultsCount = entity.SimilarResultsCount
+                SimilarResultsCount = entity.SimilarResultsCount,
+                ClusterThreshold = entity.ClusterThreshold
             };
         }
     }

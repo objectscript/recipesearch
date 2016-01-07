@@ -39,10 +39,15 @@
     </div>
     <div class="form-group">
         @Html.LabelFor(model => model.SimilarResultsCount)
-        @Html.TextBoxFor(model => model.SimilarResultsCount, new { @class = "form-control" })
+        @Html.TextBoxFor(model => model.SimilarResultsCount, new {@class = "form-control"})
         @Html.ValidationMessageFor(model => model.SimilarResultsCount)
     </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.ClusterThreshold)
+        @Html.TextBoxFor(model => model.ClusterThreshold, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.ClusterThreshold)
+    </div>
     <div class="right">
-        <input type="submit" class="btn btn-link" value="Update TF/IDF config" />
+        <input type="submit" class="btn btn-link" value="Update builders config" />
     </div>
 }

@@ -328,10 +328,10 @@ namespace RecipesSearch.WebApplication.BuilderService {
         System.Threading.Tasks.Task StopSimilarResultsBuildAsync();
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/BuildClusters", ReplyAction="http://tempuri.org/IBuilderService/BuildClustersResponse")]
-        void BuildClusters();
+        void BuildClusters(int threshold);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/BuildClusters", ReplyAction="http://tempuri.org/IBuilderService/BuildClustersResponse")]
-        System.Threading.Tasks.Task BuildClustersAsync();
+        System.Threading.Tasks.Task BuildClustersAsync(int threshold);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/StopClustersBuild", ReplyAction="http://tempuri.org/IBuilderService/StopClustersBuildResponse")]
         void StopClustersBuild();
@@ -441,12 +441,12 @@ namespace RecipesSearch.WebApplication.BuilderService {
             return base.Channel.StopSimilarResultsBuildAsync();
         }
         
-        public void BuildClusters() {
-            base.Channel.BuildClusters();
+        public void BuildClusters(int threshold) {
+            base.Channel.BuildClusters(threshold);
         }
         
-        public System.Threading.Tasks.Task BuildClustersAsync() {
-            return base.Channel.BuildClustersAsync();
+        public System.Threading.Tasks.Task BuildClustersAsync(int threshold) {
+            return base.Channel.BuildClustersAsync(threshold);
         }
         
         public void StopClustersBuild() {

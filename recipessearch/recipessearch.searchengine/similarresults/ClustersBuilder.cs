@@ -43,7 +43,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             return _instance;
         }
 
-        public Task FindClusters(CancellationTokenSource cancellationTokenSource = null)
+        public Task FindClusters(int threshold, CancellationTokenSource cancellationTokenSource = null)
         {
             return Task.Factory.StartNew(() =>
             {
@@ -61,7 +61,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                     var nearestResults = GetNearestResult();
                     LoggerWrapper.LogInfo("Clusters build: GetInfo finished");
 
-                    ComputeClusters(nearestResults);
+                    ComputeClusters(nearestResults, threshold);
 
                     UpdateInProgress = false;
 
@@ -85,7 +85,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             }
         }
 
-        private void ComputeClusters(List<NearestResult> results)
+        private void ComputeClusters(List<NearestResult> results, int threshold)
         {
             var edges = GetEdges(results);
 
@@ -132,7 +132,6 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             {
                 int a = edges[i].FromSurrogateId;
                 int b = edges[i].ToSurrogateId;
-                double weight = edges[i].Weight;
 
                 if (FindSet(a) != FindSet(b))
                 {
@@ -144,7 +143,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             {
                 for (int i = 0; i < recipesCount; ++i)
                 {
-                    similarResults.UpdateClusterId(surrogateIdToIdMap[i], _parents[i]);
+                    similarResults.UpdateClusterId(surrogateIdToIdMap[i], FindSet(i));
                 }
             }
         } 

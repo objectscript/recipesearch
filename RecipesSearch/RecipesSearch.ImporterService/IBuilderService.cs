@@ -28,7 +28,7 @@ namespace RecipesSearch.ImporterService
         void StopSimilarResultsBuild();
 
         [OperationContract]
-        void BuildClusters();
+        void BuildClusters(int threshold);
 
         [OperationContract]
         void StopClustersBuild();

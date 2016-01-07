@@ -17,5 +17,7 @@ namespace RecipesSearch.Data.Models
         public string LastUsedIdfBuilder { get; set; }
 
         public int SimilarResultsCount { get; set; }
+
+        public int ClusterThreshold { get; set; }
     }
 }

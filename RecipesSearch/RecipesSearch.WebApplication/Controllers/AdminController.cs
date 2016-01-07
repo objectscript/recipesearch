@@ -390,7 +390,10 @@ namespace RecipesSearch.WebApplication.Controllers
         [HttpPost]
         public ActionResult StartClustersBuild()
         {
-            _builder.BuildClusters();
+            var tfIdfConfigRepository = new TfIdfConfigRepository();
+
+            var tfIdfConfig = tfIdfConfigRepository.GetConfig();
+            _builder.BuildClusters(tfIdfConfig.ClusterThreshold);
 
             return RedirectToAction("Tasks");
         }
