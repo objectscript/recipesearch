@@ -22,11 +22,12 @@
     <MetadataSource Address="http://localhost:10310/BuilderService.svc" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="BuilderService.wsdl" MetadataType="Wsdl" ID="b5d4d5bd-720f-4190-a10d-4cf11b706a15" SourceId="1" SourceUrl="http://localhost:10310/BuilderService.svc?wsdl" />
     <MetadataFile FileName="BuilderService.disco" MetadataType="Disco" ID="432e9c53-5c4b-4f5e-a7d6-99c4dbbede0f" SourceId="1" SourceUrl="http://localhost:10310/BuilderService.svc?disco" />
+    <MetadataFile FileName="BuilderService2.xsd" MetadataType="Schema" ID="069dca9e-6f06-4476-8256-93bcddd0275b" SourceId="1" SourceUrl="http://localhost:10310/BuilderService.svc?xsd=xsd2" />
+    <MetadataFile FileName="BuilderService3.xsd" MetadataType="Schema" ID="ec02829e-1ac1-40ea-9630-d55acdf8796c" SourceId="1" SourceUrl="http://localhost:10310/BuilderService.svc?xsd=xsd3" />
     <MetadataFile FileName="BuilderService.xsd" MetadataType="Schema" ID="296e4761-c1cc-4af9-8a4e-345ffea81be5" SourceId="1" SourceUrl="http://localhost:10310/BuilderService.svc?xsd=xsd0" />
     <MetadataFile FileName="BuilderService1.xsd" MetadataType="Schema" ID="92f97b13-366a-48b4-909a-0109608a3c99" SourceId="1" SourceUrl="http://localhost:10310/BuilderService.svc?xsd=xsd1" />
-    <MetadataFile FileName="BuilderService2.xsd" MetadataType="Schema" ID="069dca9e-6f06-4476-8256-93bcddd0275b" SourceId="1" SourceUrl="http://localhost:10310/BuilderService.svc?xsd=xsd2" />
+    <MetadataFile FileName="BuilderService.wsdl" MetadataType="Wsdl" ID="b5d4d5bd-720f-4190-a10d-4cf11b706a15" SourceId="1" SourceUrl="http://localhost:10310/BuilderService.svc?wsdl" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />

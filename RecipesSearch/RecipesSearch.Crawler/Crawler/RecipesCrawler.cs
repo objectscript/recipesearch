@@ -42,7 +42,7 @@ namespace RecipesSearch.SitePagesImporter.Crawler
 
             _crawler.ShouldCrawlPage((pageToCrawl, crawlContext) =>
             {
-                CrawlDecision decision = new CrawlDecision { Allow = r.Next(100) <= 20 };
+                CrawlDecision decision = new CrawlDecision { Allow = r.Next(100) <= 100 };
 
                 return decision;
             });

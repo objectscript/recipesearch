@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using RecipesSearch.Data.Models;
+using RecipesSearch.SearchEngine.Clusters.Base;
+using System;
 
 namespace RecipesSearch.WebApplication.ViewModels
 {
@@ -29,13 +31,17 @@ namespace RecipesSearch.WebApplication.ViewModels
         public int SimilarResultsCount { get; set; }
 
         [Required(ErrorMessage = "Field is required")]
-        [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
-        [Display(Name = "Clustarization: Maximum allowed edge weight")]
-        public int ClusterThreshold { get; set; }
+        [Display(Name = "Clustering method")]
+        public string ClustersBuilder { get; set; }
+
+        [Display(Name = "Clustering options (<key>: <value>)")]
+        public string ClusteringParameters { get; set; }
 
         public List<string> AvailableTfBuilders { get; set; }
 
-        public List<string> AvailableIdfBuilders { get; set; } 
+        public List<string> AvailableIdfBuilders { get; set; }
+
+        public List<string> AvailableClustersBuilders { get; set; }
 
         public static TfIdfConfig GetEntity(TfIdfConfigViewModel viewModel)
         {
@@ -47,11 +53,16 @@ namespace RecipesSearch.WebApplication.ViewModels
                 LastUsedIdfBuilder = viewModel.LastUsedIdfBuilder,
                 LastUsedTfBuilder = viewModel.LastUsedTfBuilder,
                 SimilarResultsCount = viewModel.SimilarResultsCount,
-                ClusterThreshold = viewModel.ClusterThreshold
+                ClustersBuilder = (int)Enum.Parse(typeof(ClusterBuilders), viewModel.ClustersBuilder),
+                ClusteringParameters = viewModel.ClusteringParameters
             };
         }
 
-        public static TfIdfConfigViewModel GetViewModel(TfIdfConfig entity, List<string> availableTfBuilders, List<string> availableIdfBuilders)
+        public static TfIdfConfigViewModel GetViewModel(
+            TfIdfConfig entity, 
+            List<string> availableTfBuilders,
+            List<string> availableIdfBuilders,
+            List<string> availableClustersBuilder)
         {
             return new TfIdfConfigViewModel
             {
@@ -63,7 +74,9 @@ namespace RecipesSearch.WebApplication.ViewModels
                 AvailableTfBuilders = availableTfBuilders,
                 AvailableIdfBuilders = availableIdfBuilders,
                 SimilarResultsCount = entity.SimilarResultsCount,
-                ClusterThreshold = entity.ClusterThreshold
+                ClustersBuilder = ((ClusterBuilders)entity.ClustersBuilder).ToString(),
+                ClusteringParameters = entity.ClusteringParameters,
+                AvailableClustersBuilders = availableClustersBuilder
             };
         }
     }

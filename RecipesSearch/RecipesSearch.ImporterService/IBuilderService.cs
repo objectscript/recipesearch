@@ -1,5 +1,6 @@
 ﻿using System.ServiceModel;
 using RecipesSearch.Data.Views;
+using RecipesSearch.SearchEngine.Clusters.Base;
 
 namespace RecipesSearch.ImporterService
 {
@@ -28,7 +29,7 @@ namespace RecipesSearch.ImporterService
         void StopSimilarResultsBuild();
 
         [OperationContract]
-        void BuildClusters(int threshold);
+        void BuildClusters(ClusterBuilders builder);
 
         [OperationContract]
         void StopClustersBuild();

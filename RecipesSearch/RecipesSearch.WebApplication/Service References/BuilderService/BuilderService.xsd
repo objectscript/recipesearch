@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:tns="http://tempuri.org/" elementFormDefault="qualified" targetNamespace="http://tempuri.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:import schemaLocation="http://localhost:10310/BuilderService.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Views" />
+  <xs:import schemaLocation="http://localhost:10310/BuilderService.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/RecipesSearch.SearchEngine.Clusters.Base" />
+  <xs:import schemaLocation="http://localhost:10310/BuilderService.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Views" />
   <xs:element name="BuildTf">
     <xs:complexType>
       <xs:sequence />
@@ -76,7 +77,7 @@
   <xs:element name="BuildClusters">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" name="threshold" type="xs:int" />
+        <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/RecipesSearch.SearchEngine.Clusters.Base" minOccurs="0" name="builder" type="q1:ClusterBuilders" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -123,7 +124,7 @@
   <xs:element name="GetBuildersStateResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Views" minOccurs="0" name="GetBuildersStateResult" type="q1:BuildersState" />
+        <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Views" minOccurs="0" name="GetBuildersStateResult" type="q2:BuildersState" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

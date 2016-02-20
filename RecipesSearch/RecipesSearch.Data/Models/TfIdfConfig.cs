@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using RecipesSearch.Data.Framework;
+﻿using RecipesSearch.Data.Framework;
 using RecipesSearch.Data.Models.Base;
 
 namespace RecipesSearch.Data.Models
@@ -18,6 +16,8 @@ namespace RecipesSearch.Data.Models
 
         public int SimilarResultsCount { get; set; }
 
-        public int ClusterThreshold { get; set; }
+        public int ClustersBuilder { get; set; }
+
+        public string ClusteringParameters { get; set; }
     }
 }

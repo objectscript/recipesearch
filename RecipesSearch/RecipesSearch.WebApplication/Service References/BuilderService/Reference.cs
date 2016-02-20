@@ -13,6 +13,17 @@ namespace RecipesSearch.WebApplication.BuilderService {
     using System;
     
     
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="ClusterBuilders", Namespace="http://schemas.datacontract.org/2004/07/RecipesSearch.SearchEngine.Clusters.Base")]
+    public enum ClusterBuilders : int {
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        SpanningTree = 1,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        PageRank = 2,
+    }
+    
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="BuildersState", Namespace="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Views")]
@@ -328,10 +339,10 @@ namespace RecipesSearch.WebApplication.BuilderService {
         System.Threading.Tasks.Task StopSimilarResultsBuildAsync();
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/BuildClusters", ReplyAction="http://tempuri.org/IBuilderService/BuildClustersResponse")]
-        void BuildClusters(int threshold);
+        void BuildClusters(RecipesSearch.WebApplication.BuilderService.ClusterBuilders builder);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/BuildClusters", ReplyAction="http://tempuri.org/IBuilderService/BuildClustersResponse")]
-        System.Threading.Tasks.Task BuildClustersAsync(int threshold);
+        System.Threading.Tasks.Task BuildClustersAsync(RecipesSearch.WebApplication.BuilderService.ClusterBuilders builder);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/StopClustersBuild", ReplyAction="http://tempuri.org/IBuilderService/StopClustersBuildResponse")]
         void StopClustersBuild();
@@ -441,12 +452,12 @@ namespace RecipesSearch.WebApplication.BuilderService {
             return base.Channel.StopSimilarResultsBuildAsync();
         }
         
-        public void BuildClusters(int threshold) {
-            base.Channel.BuildClusters(threshold);
+        public void BuildClusters(RecipesSearch.WebApplication.BuilderService.ClusterBuilders builder) {
+            base.Channel.BuildClusters(builder);
         }
         
-        public System.Threading.Tasks.Task BuildClustersAsync(int threshold) {
-            return base.Channel.BuildClustersAsync(threshold);
+        public System.Threading.Tasks.Task BuildClustersAsync(RecipesSearch.WebApplication.BuilderService.ClusterBuilders builder) {
+            return base.Channel.BuildClustersAsync(builder);
         }
         
         public void StopClustersBuild() {

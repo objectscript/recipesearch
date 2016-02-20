@@ -37,6 +37,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,6 +45,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Clusters\Base\BaseClustersBuilder.cs" />
+    <Compile Include="Clusters\Base\ClusterBuilders.cs" />
+    <Compile Include="Clusters\Base\ClustersBulderFactory.cs" />
+    <Compile Include="Clusters\PageRankBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Search\SearchProvider.cs" />
     <Compile Include="SimilarResults\CacheBuilders\Base\BaseCacheBuilder.cs" />
@@ -51,7 +56,7 @@
     <Compile Include="SimilarResults\CacheBuilders\TfBuilder.cs" />
     <Compile Include="SimilarResults\CacheBuilders\TfIdfBuilder.cs" />
     <Compile Include="SimilarResults\AllTasksBuilder.cs" />
-    <Compile Include="SimilarResults\ClustersBuilder.cs" />
+    <Compile Include="Clusters\SpanningTreeBuilder.cs" />
     <Compile Include="SimilarResults\SimilarResultsBuilder.cs" />
     <Compile Include="Suggestion\SuggestionProvider.cs" />
   </ItemGroup>

@@ -274,6 +274,9 @@
     <Content Include="Service References\BuilderService\RecipesSearch.WebApplication.BuilderService.BuildersState.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Content>
+    <None Include="Service References\BuilderService\BuilderService3.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Service References\ImporterService\ImporterService.disco" />
     <None Include="Service References\ImporterService\configuration91.svcinfo" />
     <None Include="Service References\ImporterService\configuration.svcinfo" />

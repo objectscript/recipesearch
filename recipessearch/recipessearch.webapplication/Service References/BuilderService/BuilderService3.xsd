@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Views" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/RecipesSearch.Data.Views" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://localhost:10310/BuilderService.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:complexType name="BuildersState">
+    <xs:annotation>
+      <xs:appinfo>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AllTasksBuildInProgress" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ClustersBuildFailed" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ClustersBuildInProgress" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IdfBuildFailed" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IdfBuildInProgress" type="xs:boolean" />
+      <xs:element minOccurs="0" name="SimilarResultsBuildFailed" type="xs:boolean" />
+      <xs:element minOccurs="0" name="SimilarResultsPercentage" type="xs:decimal" />
+      <xs:element minOccurs="0" name="SimilarResultsUpdateInProgress" type="xs:boolean" />
+      <xs:element minOccurs="0" name="SimilarResultsUpdatedCount" type="xs:int" />
+      <xs:element minOccurs="0" name="TfBuildFailed" type="xs:boolean" />
+      <xs:element minOccurs="0" name="TfBuildInProgress" type="xs:boolean" />
+      <xs:element minOccurs="0" name="TfBuildProgress" type="xs:decimal" />
+      <xs:element minOccurs="0" name="TfIdfBuildFailed" type="xs:boolean" />
+      <xs:element minOccurs="0" name="TfIdfBuildInProgress" type="xs:boolean" />
+      <xs:element minOccurs="0" name="TfIdfBuildProgress" type="xs:decimal" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="BuildersState" nillable="true" type="tns:BuildersState" />
+</xs:schema>

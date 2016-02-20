@@ -30,7 +30,7 @@ Demo URL - [recipes.somee.com](http://recipes.somee.com) (no guarantees it will 
 #### Setup the Cache REST service:
 1. Go to System Administration -> Security -> Applications -> Web Applications
 2. Create a new Web Application
-3. Enter "\recipes" as a name (slash at the beginning is important)
+3. Enter "/recipes" as a name (slash at the beginning is important)
 4. Choose correct namespace
 5. Enable iKnow for this application
 6. Add password to Allowed Authentication Methods

@@ -147,7 +147,8 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             var dists = new OrderedBag<Tuple<double, int>>();
             double maxDist = double.MaxValue;
             int distsSize = 0;
-
+            int wordsCount = 0;
+            int wordsN = 0;
             for (int j = 0; j < pages.Length; ++j)
             {
                 if (idx == j)
@@ -155,12 +156,15 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                     continue;
                 }
 
-                var dist = FindDistance(pages[idx].WordsTfIdf, pages[j].WordsTfIdf, maxDist);
+                int unique;
+                var dist = FindDistance(pages[idx].WordsTfIdf, pages[j].WordsTfIdf, maxDist, out unique);
                 if (dist > maxDist)
                 {
                     continue;
                 }
 
+                wordsCount += unique;
+                wordsN++;
                 dists.Add(new Tuple<double, int>(dist, pages[j].Id));
 
                 if (distsSize == countToFind)
@@ -175,15 +179,17 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 }
             }
 
+            double avgWordsCount = wordsCount * 1.0 / wordsN;
+
             callback(pages[idx].Id,
                 dists.Select(item => item.Item2).ToList(),
                 dists.Select(item => (int) item.Item1).ToList());
         }
 
-        public static double FindDistance(Dictionary<string, double> first, Dictionary<string, double> second, double maxAllowedDist)
+        public static double FindDistance(Dictionary<string, double> first, Dictionary<string, double> second, double maxAllowedDist, out int unique)
         {
             double dist = 0;
-
+            unique = 0;
             foreach (var key in first.Keys)
             {
                 double firstVal = first[key];
@@ -193,8 +199,8 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 {
                     secondVal = second[key];
                 }
-
-                dist += (firstVal - secondVal)*(firstVal - secondVal);
+                unique++;
+                dist += (firstVal - secondVal);
 
                 if (dist > maxAllowedDist)
                 {
@@ -208,7 +214,8 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
                 if (!first.ContainsKey(key))
                 {
-                    dist += secondVal*secondVal;
+                    unique++;
+                    dist += secondVal;
                 }
 
                 if (dist > maxAllowedDist)

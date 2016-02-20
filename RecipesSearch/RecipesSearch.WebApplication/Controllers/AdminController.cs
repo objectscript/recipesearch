@@ -11,6 +11,7 @@ using RecipesSearch.WebApplication.BuilderService;
 using RecipesSearch.WebApplication.ImporterService;
 using RecipesSearch.WebApplication.Enums;
 using RecipesSearch.WebApplication.ViewModels;
+using RecipesSearch.SearchEngine.Clusters.Base;
 
 namespace RecipesSearch.WebApplication.Controllers
 {
@@ -393,7 +394,7 @@ namespace RecipesSearch.WebApplication.Controllers
             var tfIdfConfigRepository = new TfIdfConfigRepository();
 
             var tfIdfConfig = tfIdfConfigRepository.GetConfig();
-            _builder.BuildClusters(tfIdfConfig.ClusterThreshold);
+            _builder.BuildClusters((BuilderService.ClusterBuilders)tfIdfConfig.ClustersBuilder);
 
             return RedirectToAction("Tasks");
         }
@@ -406,7 +407,13 @@ namespace RecipesSearch.WebApplication.Controllers
 
             var tfIdfConfig = tfIdfConfigRepository.GetConfig();
 
-            return PartialView("_TfIdfConfig", TfIdfConfigViewModel.GetViewModel(tfIdfConfig, tfBuilder.GetTfBuilders(), idfBuilder.GetIdfBuilders()));
+            return PartialView(
+                "_TfIdfConfig", 
+                TfIdfConfigViewModel.GetViewModel(
+                    tfIdfConfig, 
+                    tfBuilder.GetTfBuilders(), 
+                    idfBuilder.GetIdfBuilders(),
+                    ClustersBulderFactory.GetClustersBuilders().Select(x => x.ToString()).ToList()));
         }
 
         [HttpPost]

@@ -2,6 +2,7 @@
 using RecipesSearch.Data.Views;
 using RecipesSearch.SearchEngine.SimilarResults;
 using RecipesSearch.SearchEngine.SimilarResults.CacheBuilders;
+using RecipesSearch.SearchEngine.Clusters.Base;
 
 namespace RecipesSearch.ImporterService
 {
@@ -13,7 +14,8 @@ namespace RecipesSearch.ImporterService
         private readonly TfIdfBuilder _tfIdfBuilder = TfIdfBuilder.GetInstance();
         private readonly AllTasksBuilder _allTasksBuilder = AllTasksBuilder.GetInstance();
         private readonly SimilarResultsBuilder _similarResultsBuilder = SimilarResultsBuilder.GetInstance();
-        private readonly ClustersBuilder _clustersBuilder = ClustersBuilder.GetInstance();
+
+        private BaseClustersBuilder _builderInstance;
 
         public void BuildTf()
         {
@@ -50,14 +52,20 @@ namespace RecipesSearch.ImporterService
             _similarResultsBuilder.StopUpdating();
         }
 
-        public void BuildClusters(int threshold)
+        public void BuildClusters(ClusterBuilders builder)
         {
-            _clustersBuilder.FindClusters(threshold);
+            if(_builderInstance != null)
+            {
+                _builderInstance.StopUpdating();
+            }
+
+            _builderInstance = ClustersBulderFactory.GetBuilder(builder);
+            _builderInstance.FindClusters();
         }
 
         public void StopClustersBuild()
         {
-            _clustersBuilder.StopUpdating();
+            _builderInstance.StopUpdating();
         }
 
         public void BuildAllTasks()
@@ -87,8 +95,8 @@ namespace RecipesSearch.ImporterService
                 TfIdfBuildFailed = _tfIdfBuilder.PreviousBuildFailed,
                 SimilarResultsBuildFailed = _similarResultsBuilder.PreviousBuildFailed,
                 SimilarResultsPercentage = _similarResultsBuilder.Percentage,
-                ClustersBuildInProgress = _clustersBuilder.UpdateInProgress,
-                ClustersBuildFailed = _clustersBuilder.PreviousBuildFailed
+                ClustersBuildInProgress = _builderInstance == null ? false : _builderInstance.UpdateInProgress,
+                ClustersBuildFailed = _builderInstance == null ? false : _builderInstance.PreviousBuildFailed
             };
         }
     }

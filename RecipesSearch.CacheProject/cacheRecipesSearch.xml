@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2015-12-19 16:24:28">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-02-20 14:28:29">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -564,7 +564,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Project name="Project1" LastModified="2015-12-19 13:31:33.126038" HttpServer="http://localhost:57772">
+<Project name="Project1" LastModified="2016-02-20 12:09:04.996824" HttpServer="http://localhost:57772">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
@@ -1565,7 +1565,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.TfIdfConfig">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63905,57754.405989</TimeChanged>
+<TimeChanged>63968,50924.087376</TimeChanged>
 <TimeCreated>63610,79444.886551</TimeCreated>
 
 <Property name="TfBuilderName">
@@ -1591,9 +1591,13 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Required>1</Required>
 </Property>
 
-<Property name="ClusterThreshold">
+<Property name="ClustersBuilder">
 <Type>%Integer</Type>
 <Required>1</Required>
+</Property>
+
+<Property name="ClusteringParameters">
+<Type>%String</Type>
 </Property>
 
 <Storage name="Default">
@@ -1619,6 +1623,15 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Value name="8">
 <Value>ClusterThreshold</Value>
 </Value>
+<Value name="9">
+<Value>ClustersBuilder</Value>
+</Value>
+<Value name="10">
+<Value>ClusteringParametersJSON</Value>
+</Value>
+<Value name="11">
+<Value>ClusteringParameters</Value>
+</Value>
 </Data>
 </Storage>
 </Class>
@@ -1626,7 +1639,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63905,58273.219045</TimeChanged>
+<TimeChanged>63968,50968.695274</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1672,16 +1685,24 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			MaxOnlineIdfRecipesCount,
 			OnlineTfIdfBuilderName,
 			OnlineTfIdfSimilarResultsCount,
+			UseClusters,
 			IsActive,
 			CreatedDate,
 			ModifiedDate) 
-		VALUES(1, 25, 50, 10, 1, 1, 0, 200, 'DefaultOnlineTfIdfBuilder', 10, 1, GETUTCDATE(), GETUTCDATE());
+		VALUES(1, 25, 50, 10, 1, 1, 0, 200, 'DefaultOnlineTfIdfBuilder', 10, 0, 1, GETUTCDATE(), GETUTCDATE());
 	END
 	
 	// Seed tfIdf config
 	IF NOT EXISTS(SELECT * FROM RecipeSearch_Data.TfIdfConfig) THEN BEGIN
-		INSERT INTO RecipeSearch_Data.TfIdfConfig(TfBuilderName, IdfBuilderName, SimilarResultsCount, ClusterThreshold, IsActive, CreatedDate, ModifiedDate) 
-		VALUES('Default', 'Default', 10, 10, 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO RecipeSearch_Data.TfIdfConfig(
+		TfBuilderName, 
+		IdfBuilderName, 
+		SimilarResultsCount, 
+		ClustersBuilder, 
+		IsActive, 
+		CreatedDate, 
+		ModifiedDate) 
+		VALUES('Default', 'Default', 10, 1, 1, GETUTCDATE(), GETUTCDATE());
 	END
 ]]></Implementation>
 </Method>
@@ -2701,7 +2722,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.RESTBroker">
 <Super>%CSP.REST</Super>
-<TimeChanged>63905,51539.122619</TimeChanged>
+<TimeChanged>63968,45147.81124</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
 
 <XData name="UrlMap">
