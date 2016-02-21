@@ -32,8 +32,6 @@ namespace RecipesSearch.SearchEngine.Clusters
 
         protected override void ComputeClusters(List<NearestResult> results, TfIdfConfig config)
         {
-            bool useFullGraph = true;
-
             var threshold = GetSetting<int>(config, "threshold") ?? 0;
             var edges = GetEdges(results);
 
@@ -76,87 +74,45 @@ namespace RecipesSearch.SearchEngine.Clusters
             int[] clusters = new int[recipesCount];
             int[] edgesCount = new int[recipesCount];
 
-            if (!useFullGraph)
+            Array.Sort(edges, (IComparer)null);
+
+            _parents = new int[recipesCount];
+            _ranks = new int[recipesCount];
+            for (int i = 0; i < recipesCount; ++i)
             {
-                Array.Sort(edges, (IComparer)null);
-
-                _parents = new int[recipesCount];
-                _ranks = new int[recipesCount];
-                for (int i = 0; i < recipesCount; ++i)
-                {
-                    MakeSet(i);
-                }
-
-                List<Edge> minTreeEdges = new List<Edge>();
-
-                for (int i = 0; i < edges.Length; ++i)
-                {
-                    int a = edges[i].FromSurrogateId;
-                    int b = edges[i].ToSurrogateId;
-
-                    if (FindSet(a) != FindSet(b))
-                    {
-                        minTreeEdges.Add(edges[i]);
-                        UnionSets(a, b);
-                    }
-                }
-
-                Dictionary<int, int> values = new Dictionary<int, int>();
-                int step = 5;
-                foreach(var edge in minTreeEdges)
-                {
-                    int weight = ((int)edge.Weight) / step * step;
-                    if (!values.ContainsKey(weight))
-                    {
-                        values.Add(weight, 0);
-                    }
-                    values[weight]++;
-                }
-                string hist = String.Join("\n", values.Select(x => String.Format("{0},{1}", x.Key, x.Value)));
-
-                for (int i = 0; i < minTreeEdges.Count; ++i)
-                {
-                    int from = minTreeEdges[i].FromSurrogateId;
-                    int to = minTreeEdges[i].ToSurrogateId;
-                    double weight = minTreeEdges[i].Weight;
-                    //if(minTreeEdges[i].Weight <= threshold)
-                    //{
-                    graph[from].Add(new Tuple<int, double>(to, weight));
-                    graph[to].Add(new Tuple<int, double>(from, weight));
-                    //}
-                    edgesCount[from]++;
-                    edgesCount[to]++;
-                }
+                MakeSet(i);
             }
-            else
+
+            List<Edge> minTreeEdges = new List<Edge>();
+
+            for (int i = 0; i < edges.Length; ++i)
             {
-                for (int i = 0; i < edges.Length; ++i)
+                int a = edges[i].FromSurrogateId;
+                int b = edges[i].ToSurrogateId;
+
+                if (FindSet(a) != FindSet(b))
                 {
-                    int from = edges[i].FromSurrogateId;
-                    int to = edges[i].ToSurrogateId;
-                    double weight = edges[i].Weight;
-                    graph[from].Add(new Tuple<int, double>(to, weight));
-                    graph[to].Add(new Tuple<int, double>(from, weight));
-                    edgesCount[from]++;
-                    edgesCount[to]++;
+                    minTreeEdges.Add(edges[i]);
+                    UnionSets(a, b);
                 }
             }
 
-            List<Tuple<int, int>> recipeEdges = edgesCount
-                .Select((c, idx) => new Tuple<int, int>(c, idx))
-                .OrderByDescending(x => x.Item1)
-                .ToList();
+            for (int i = 0; i < minTreeEdges.Count; ++i)
+            {
+                int from = minTreeEdges[i].FromSurrogateId;
+                int to = minTreeEdges[i].ToSurrogateId;
+                double weight = minTreeEdges[i].Weight;
+                if(minTreeEdges[i].Weight <= threshold)
+                {
+                    graph[from].Add(new Tuple<int, double>(to, weight));
+                    graph[to].Add(new Tuple<int, double>(from, weight));
+                }
+            }
 
             int clusterId = 1;
-            for (int i = 0; i < recipeEdges.Count; ++i)
+            for (int i = 0; i < recipesCount; ++i)
             {
-                int recipeId = recipeEdges[i].Item2;
-                if (clusters[recipeId] != 0)
-                {
-                    continue;
-                }
-
-                Dfs(recipeId, graph, clusters, clusterId++, threshold, 0.5);
+                Dfs(i, graph, clusters, clusterId++);
             }
 
             using (var similarResults = new SimilarResultsAdapter()) 
@@ -203,7 +159,7 @@ namespace RecipesSearch.SearchEngine.Clusters
             }
         }
 
-        private void Dfs(int v, List<Tuple<int, double>>[] graph, int[] clusters, int clusterId, double threshold, double k)
+        private void Dfs(int v, List<Tuple<int, double>>[] graph, int[] clusters, int clusterId)
         {
             if (clusters[v] != 0)
             {
@@ -214,12 +170,8 @@ namespace RecipesSearch.SearchEngine.Clusters
 
             for (int i = 0; i < graph[v].Count; ++i)
             {
-                double weight = graph[v][i].Item2;
                 int to = graph[v][i].Item1;
-                if(weight < threshold)
-                {
-                    Dfs(to, graph, clusters, clusterId, threshold * k, k);
-                }
+                Dfs(to, graph, clusters, clusterId);
             }
         }
     }

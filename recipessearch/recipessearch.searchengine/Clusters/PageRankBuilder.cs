@@ -32,8 +32,9 @@ namespace RecipesSearch.SearchEngine.Clusters
 
         protected override void ComputeClusters(List<NearestResult> results, TfIdfConfig config)
         {
-            bool useFullGraph = true;
+            bool useFullGraph = GetSetting<bool>(config, "fullGraph") ?? true;
             var threshold = GetSetting<int>(config, "threshold") ?? 0;
+            var k = GetSetting<double>(config, "л") ?? 0.5;
 
             var edges = GetEdges(results);
 
@@ -101,29 +102,13 @@ namespace RecipesSearch.SearchEngine.Clusters
                     }
                 }
 
-                Dictionary<int, int> values = new Dictionary<int, int>();
-                int step = 5;
-                foreach(var edge in minTreeEdges)
-                {
-                    int weight = ((int)edge.Weight) / step * step;
-                    if (!values.ContainsKey(weight))
-                    {
-                        values.Add(weight, 0);
-                    }
-                    values[weight]++;
-                }
-                string hist = String.Join("\n", values.Select(x => String.Format("{0},{1}", x.Key, x.Value)));
-
                 for (int i = 0; i < minTreeEdges.Count; ++i)
                 {
                     int from = minTreeEdges[i].FromSurrogateId;
                     int to = minTreeEdges[i].ToSurrogateId;
                     double weight = minTreeEdges[i].Weight;
-                    //if(minTreeEdges[i].Weight <= threshold)
-                    //{
                     graph[from].Add(new Tuple<int, double>(to, weight));
                     graph[to].Add(new Tuple<int, double>(from, weight));
-                    //}
                     edgesCount[from]++;
                     edgesCount[to]++;
                 }
@@ -156,7 +141,7 @@ namespace RecipesSearch.SearchEngine.Clusters
                     continue;
                 }
 
-                Dfs(recipeId, graph, clusters, clusterId++, threshold, 0.5);
+                Dfs(recipeId, graph, clusters, clusterId++, threshold, k);
             }
 
             using (var similarResults = new SimilarResultsAdapter()) 
