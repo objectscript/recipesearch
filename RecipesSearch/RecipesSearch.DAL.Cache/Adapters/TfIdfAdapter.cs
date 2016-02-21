@@ -85,6 +85,11 @@ namespace RecipesSearch.DAL.Cache.Adapters
 
             var result = command.ExecuteScalar();
 
+            if(result is Decimal)
+            {
+                return (int)(decimal)result;
+            }
+
             return (int)result;
         }
 

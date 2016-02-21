@@ -477,6 +477,10 @@ form.post-button {
     margin-bottom: 30px;
 }
 
+.admin .tasks #updateConfigForm textarea{
+    min-height: 130px;
+}
+
 /* Crawling history */
 .admin .crawling-history .table th {
     text-align: center;

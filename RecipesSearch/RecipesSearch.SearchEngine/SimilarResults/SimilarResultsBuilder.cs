@@ -200,7 +200,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                     secondVal = second[key];
                 }
                 unique++;
-                dist += (firstVal - secondVal);
+                dist += (firstVal - secondVal) * (firstVal - secondVal);
 
                 if (dist > maxAllowedDist)
                 {
@@ -215,7 +215,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 if (!first.ContainsKey(key))
                 {
                     unique++;
-                    dist += secondVal;
+                    dist += secondVal * secondVal;
                 }
 
                 if (dist > maxAllowedDist)

@@ -38,7 +38,7 @@ namespace RecipesSearch.DAL.Cache.Adapters
             return nearestResults;
         }
 
-        public void UpdateClusterId(int recipeId, int clusterId)
+        public void UpdateClusterId(int recipeId, List<int> clusterIds)
         {
             EnsureConnectionOpened();
 
@@ -46,7 +46,10 @@ namespace RecipesSearch.DAL.Cache.Adapters
             command.CommandType = CommandType.StoredProcedure;
 
             command.Parameters.Add("PageId", recipeId);
-            command.Parameters.Add("ClusterId", clusterId);
+
+            // Serialize to string to reduce the number of DB requests
+            // TODO: Revisit
+            command.Parameters.Add("ClusterIdsString", String.Join(" ", clusterIds));
 
             command.ExecuteNonQuery();
         }

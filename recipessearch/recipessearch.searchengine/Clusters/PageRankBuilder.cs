@@ -33,8 +33,9 @@ namespace RecipesSearch.SearchEngine.Clusters
         protected override void ComputeClusters(List<NearestResult> results, TfIdfConfig config)
         {
             bool useFullGraph = GetSetting<bool>(config, "fullGraph") ?? true;
+            bool intersectCluster = GetSetting<bool>(config, "allowIntersect") ?? false;
             var threshold = GetSetting<int>(config, "threshold") ?? 0;
-            var k = GetSetting<double>(config, "л") ?? 0.5;
+            var k = GetSetting<double>(config, "k") ?? 0.5;
 
             var edges = GetEdges(results);
 
@@ -69,12 +70,13 @@ namespace RecipesSearch.SearchEngine.Clusters
             }
 
             List<Tuple<int, double>>[] graph = new List<Tuple<int, double>>[recipesCount];
+            List<int>[] clusters = new List<int>[recipesCount];
             for (int i = 0; i < recipesCount; ++i)
             {
                 graph[i] = new List<Tuple<int, double>>();
+                clusters[i] = new List<int>();
             }
-
-            int[] clusters = new int[recipesCount];
+           
             int[] edgesCount = new int[recipesCount];
 
             if (!useFullGraph)
@@ -136,12 +138,8 @@ namespace RecipesSearch.SearchEngine.Clusters
             for (int i = 0; i < recipeEdges.Count; ++i)
             {
                 int recipeId = recipeEdges[i].Item2;
-                if (clusters[recipeId] != 0)
-                {
-                    continue;
-                }
 
-                Dfs(recipeId, graph, clusters, clusterId++, threshold, k);
+                Dfs(recipeId, graph, clusters, clusterId++, threshold, k, intersectCluster);
             }
 
             using (var similarResults = new SimilarResultsAdapter()) 
@@ -188,14 +186,19 @@ namespace RecipesSearch.SearchEngine.Clusters
             }
         }
 
-        private void Dfs(int v, List<Tuple<int, double>>[] graph, int[] clusters, int clusterId, double threshold, double k)
+        private void Dfs(int v, List<Tuple<int, double>>[] graph, List<int>[] clusters, int clusterId, double threshold, double k, bool intersectCluster)
         {
-            if (clusters[v] != 0)
+            if (clusters[v].Any() && !intersectCluster)
             {
                 return;
             }
 
-            clusters[v] = clusterId;
+            if(clusters[v].Any(id => id == clusterId))
+            {
+                return;
+            }
+
+            clusters[v].Add(clusterId);
 
             for (int i = 0; i < graph[v].Count; ++i)
             {
@@ -203,7 +206,7 @@ namespace RecipesSearch.SearchEngine.Clusters
                 int to = graph[v][i].Item1;
                 if(weight < threshold)
                 {
-                    Dfs(to, graph, clusters, clusterId, threshold * k, k);
+                    Dfs(to, graph, clusters, clusterId, threshold * k, k, intersectCluster);
                 }
             }
         }

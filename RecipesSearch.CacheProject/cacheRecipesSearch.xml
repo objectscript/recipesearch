@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-02-20 14:28:29">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-02-21 14:34:04">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -564,7 +564,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
-<Project name="Project1" LastModified="2016-02-20 12:09:04.996824" HttpServer="http://localhost:57772">
+<Project name="Project1" LastModified="2016-02-21 14:34:04.245621" HttpServer="http://localhost:57772">
   <Items>
     <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
@@ -602,6 +602,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
     <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.RecipeData.RecipeCluster" type="CLS"></ProjectItem>
   </Items>
 </Project>
 
@@ -880,6 +881,53 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Class>
 
 
+<Class name="RecipeSearch.Data.RecipeData.RecipeCluster">
+<Super>%Persistent</Super>
+<TimeChanged>63969,51748.046097</TimeChanged>
+<TimeCreated>63969,47787.49702</TimeCreated>
+
+<Property name="RecipeId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="ClusterId">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<ForeignKey name="SitePage">
+<Properties>RecipeId</Properties>
+<ReferencedClass>RecipeSearch.Data.SitePage</ReferencedClass>
+</ForeignKey>
+
+<Index name="MainIDX">
+<PrimaryKey>1</PrimaryKey>
+<Properties>RecipeId,ClusterId</Properties>
+</Index>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^RecipeSearch769D.RecipeClusterD</DataLocation>
+<DefaultData>RecipeClusterDefaultData</DefaultData>
+<IdLocation>^RecipeSearch769D.RecipeClusterD</IdLocation>
+<IndexLocation>^RecipeSearch769D.RecipeClusterI</IndexLocation>
+<StreamLocation>^RecipeSearch769D.RecipeClusterS</StreamLocation>
+<Data name="RecipeClusterDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>RecipeId</Value>
+</Value>
+<Value name="3">
+<Value>ClusterId</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
 <Class name="RecipeSearch.Data.RecipeData.WordsTF">
 <Super>%Persistent</Super>
 <TimeChanged>63724,69343.414141</TimeChanged>
@@ -1075,7 +1123,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63905,53409.167637</TimeChanged>
+<TimeChanged>63969,51767.991049</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1158,10 +1206,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Type>%Boolean</Type>
 <InitialExpression>1</InitialExpression>
 <Required>1</Required>
-</Property>
-
-<Property name="ClusterId">
-<Type>%Integer</Type>
 </Property>
 
 <ForeignKey name="SiteToCrawl">
@@ -1320,6 +1364,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Implementation><![CDATA[
 	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.NearestResult 
 		WHERE RecipeId IN (SELECT Id FROM RecipeSearch_data.SitePage WHERE SiteID = :SiteId))
+	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.RecipeCluster 
+		WHERE RecipeId IN (SELECT Id FROM RecipeSearch_data.SitePage WHERE SiteID = :SiteId))	
 	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.WordsTF 
 		WHERE RecipeId IN (SELECT Id FROM RecipeSearch_data.SitePage WHERE SiteID = :SiteId))
 	&sql(DELETE %NOLOCK FROM RecipeSearch_Data.SitePage WHERE SiteID = :SiteId)
@@ -1331,6 +1377,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.NearestResult)
+	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.RecipeCluster)
 	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.WordsTF)
 	&sql(DELETE %NOLOCK FROM RecipeSearch_Data.SitePage)
 ]]></Implementation>
@@ -1378,9 +1425,20 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="UpdateClusterId">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>PageId:%Integer,ClusterId:%Integer</FormalSpec>
+<FormalSpec>PageId:%Integer,ClusterIdsString:%String(MAXLEN=2000)</FormalSpec>
 <SqlProc>1</SqlProc>
-<Implementation><![CDATA[	&sql(UPDATE RecipeSearch_Data.SitePage SET ClusterId = :ClusterId WHERE Id = :PageId)
+<Implementation><![CDATA[
+	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.RecipeCluster WHERE RecipeId = :PageId)
+	
+	set clusterIds = $LISTFROMSTRING(ClusterIdsString," ")
+	
+	for i=1:1:$LISTLENGTH(clusterIds){
+		set clusterId = $LIST(clusterIds, i)
+		
+		&sql(INSERT %NOLOCK INTO RecipeSearch_Data_RecipeData.RecipeCluster
+			(RecipeId, ClusterId) 
+			VALUES(:PageId, CAST(:clusterId AS INT)))
+	}
 ]]></Implementation>
 </Method>
 
@@ -1413,7 +1471,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Query name="GetClustersStatistic">
 <Type>%SQLQuery</Type>
 <SqlProc>1</SqlProc>
-<SqlQuery>	select COUNT(Id) FROM RecipeSearch_Data.SitePage WHERE ClusterId IS NULL</SqlQuery>
+<SqlQuery>	select ((select CAST(COUNT(Id) AS INT) FROM RecipeSearch_Data.SitePage) - (select CAST(COUNT(DISTINCT RecipeId) AS INT) FROM RecipeSearch_Data_RecipeData.RecipeCluster)) AS Clusters</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1565,7 +1623,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.TfIdfConfig">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63968,50924.087376</TimeChanged>
+<TimeChanged>63969,49617.461711</TimeChanged>
 <TimeCreated>63610,79444.886551</TimeCreated>
 
 <Property name="TfBuilderName">
@@ -1598,6 +1656,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Property name="ClusteringParameters">
 <Type>%String</Type>
+<Parameter name="MAXLEN" value="20000"/>
 </Property>
 
 <Storage name="Default">
@@ -2939,7 +2998,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63905,57493.013059</TimeChanged>
+<TimeChanged>63969,50387.752377</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
@@ -3074,7 +3133,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <ReturnType>%ListOfObjects</ReturnType>
 <Implementation><![CDATA[
 	set similarResultsObjects = ##class(%ListOfObjects).%New()
-	set sqlQuery = "SELECT %NOLOCK" 
+	set sqlQuery = 
+		"SELECT %NOLOCK" 
 			_" sp.ID,"
 			_" Description,"
 			_" Ingredients,"
@@ -3092,7 +3152,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			_" ModifiedDate,"
 			_" 10 AS SimilarRecipeWeight"
 		_" FROM  RecipeSearch_Data.SitePage sp"
-		_" WHERE ClusterId IN (SELECT ClusterId FROM RecipeSearch_Data.SitePage WHERE Id = "_RecipeId_")"
+		_" WHERE EXISTS(SELECT 1 FROM RecipeSearch_Data_RecipeData.RecipeCluster rc1"
+		_" INNER JOIN RecipeSearch_Data_RecipeData.RecipeCluster rc2"
+		_"		ON rc2.RecipeId = "_RecipeId_" AND rc2.ClusterId = rc1.ClusterId AND rc1.RecipeId = sp.Id AND rc1.RecipeId <> rc2.RecipeId)"
 		_" ORDER BY sp.ID"
     
     set result = ##class(%Library.ResultSet).%New() 

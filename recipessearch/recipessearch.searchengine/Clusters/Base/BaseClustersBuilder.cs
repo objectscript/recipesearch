@@ -108,7 +108,7 @@ namespace RecipesSearch.SearchEngine.Clusters.Base
 
                 if (String.Equals(key, name, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    return (T)Convert.ChangeType(value, typeof(T));
+                    return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
                 }
             }
 

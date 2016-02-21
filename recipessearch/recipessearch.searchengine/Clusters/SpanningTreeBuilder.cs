@@ -66,12 +66,13 @@ namespace RecipesSearch.SearchEngine.Clusters
             }
 
             List<Tuple<int, double>>[] graph = new List<Tuple<int, double>>[recipesCount];
+            List<int>[] clusters = new List<int>[recipesCount];
             for (int i = 0; i < recipesCount; ++i)
             {
                 graph[i] = new List<Tuple<int, double>>();
+                clusters[i] = new List<int>();
             }
 
-            int[] clusters = new int[recipesCount];
             int[] edgesCount = new int[recipesCount];
 
             Array.Sort(edges, (IComparer)null);
@@ -159,14 +160,14 @@ namespace RecipesSearch.SearchEngine.Clusters
             }
         }
 
-        private void Dfs(int v, List<Tuple<int, double>>[] graph, int[] clusters, int clusterId)
+        private void Dfs(int v, List<Tuple<int, double>>[] graph, List<int>[] clusters, int clusterId)
         {
-            if (clusters[v] != 0)
+            if (clusters[v].Any())
             {
                 return;
             }
 
-            clusters[v] = clusterId;
+            clusters[v].Add(clusterId);
 
             for (int i = 0; i < graph[v].Count; ++i)
             {
