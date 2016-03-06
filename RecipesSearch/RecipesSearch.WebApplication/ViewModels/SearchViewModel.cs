@@ -29,6 +29,8 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public bool ExactMatch { get; set; }
 
+        public bool UseClustering { get; set; }
+
         public ResultsViews DefaultResultView { get; set; }
     }
 }

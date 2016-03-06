@@ -306,6 +306,19 @@ th, b {
     margin-top: 5px;
     display: block;
 }
+.recipe-expanded-modal .clusters-control-item{
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    margin-left: 3px;
+    border-radius: 1px;
+    opacity: 0.20;
+    margin-top: 2px;
+    cursor: pointer;
+}
+.recipe-expanded-modal .clusters-control-item.selected{
+    opacity: 1;
+}
 #graph .vis-button {
     background-image: none;
     font-family: 'Glyphicons Halflings';
@@ -352,6 +365,34 @@ th, b {
 }
 #graph .vis-button.showAllEdges:before {
   content: "\2a";
+}
+
+#graphContainer{
+    position: relative;
+}
+
+.clusters-control{
+    position: absolute;
+    border: 1px solid #dfd7ca;
+    border-radius: 3px;
+    padding: 5px 10px 2px 10px;
+    background-color: #fff
+}
+.clusters-control .clusters-control-title {
+    float: left;
+}
+.clusters-control .clusters-control-item{
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+    margin-left: 5px;
+    border-radius: 3px;
+    opacity: 0.20;
+    margin-top: 2px;
+    cursor: pointer;
+}
+.clusters-control .clusters-control-item.selected {
+    opacity: 1;
 }
 
 /*Recipe item view*/

@@ -41,6 +41,8 @@ namespace RecipesSearch.WebApplication.ViewModels
 
         public List<SearchResultItemViewModel> SimilarResults { get; set; } 
 
+        public List<int> ClusterIds { get; set; }
+
         public SearchResultItemViewModel(SitePage entity)
         {
             Id = entity.Id;
@@ -60,7 +62,9 @@ namespace RecipesSearch.WebApplication.ViewModels
             if (entity.SimilarResults != null)
             {
                 SimilarResults = entity.SimilarResults.Select(sitePage => new SearchResultItemViewModel(sitePage)).ToList();
-            }           
+            }
+
+            ClusterIds = entity.ClusterIds.Split(',').Select(clusterId => Int32.Parse(clusterId)).ToList();
         }
     }
 }

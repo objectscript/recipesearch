@@ -48,7 +48,8 @@ namespace RecipesSearch.WebApplication.Controllers
                     SpellcheckingEnabled = searchSettings.EnableSpellchecking,
                     SpellcheckedQuery = spellcheckedQuery,
                     ExactMatch = exactMatch,
-                    DefaultResultView = (ResultsViews)searchSettings.DefaultResultsView
+                    DefaultResultView = (ResultsViews)searchSettings.DefaultResultsView,
+                    UseClustering = searchSettings.UseClusters
                 };
 
                 return View(searchViewModel);
@@ -87,7 +88,7 @@ namespace RecipesSearch.WebApplication.Controllers
                     .ToList();               
             }
 
-            return Json(results, JsonRequestBehavior.AllowGet);
+            return Json(new { Recipes = results, UseClusters = searchSettings.UseClusters }, JsonRequestBehavior.AllowGet);
         }
 
         [Compress]

@@ -80,6 +80,10 @@
 
         _showAllEdges: false,
 
+        _useClusters: false,
+        _clusters: null,
+        _selectedClusterId: null,
+
         showGraph: function (query, exactMatch) {
             var self = this;
 
@@ -96,8 +100,14 @@
             self._setProgressText('Fetching data...');
             this._fetchData(query, exactMatch, function () {                
                 self._prepareGraphData();
+
                 self._setProgressText('Preparing graph...');
                 self._initNetwork();
+
+                if (self._useClusters) {
+                    self._createClustersInfo();
+                    self._showClustersControl();
+                }
             });
         },
 
@@ -116,8 +126,9 @@
             $.ajax({
                 method: "GET",
                 url: "/Home/GetGraphData?query=" + window.encodeURIComponent(query) + '&exactMatch=' + exactMatch,
-            }).done(function (recipes) {
-                self._recipes = recipes;
+            }).done(function (response) {
+                self._recipes = response.Recipes;
+                self._useClusters = response.UseClusters;
                 callback();
             });
         },
@@ -139,7 +150,7 @@
 
             var edgeCount = {};
             var nodes = [];
-            var edges = [];
+            var edges = new vis.DataSet();
 
             for (var i = 0; i < this._recipes.length; ++i) {
                 ensureRecipeAdded(this._recipes[i], true);
@@ -155,7 +166,7 @@
                     edgeCount[recipe.Id] = !edgeCount[recipe.Id] ? 1 : edgeCount[recipe.Id] + 1;
                     edgeCount[similarRecipe.Id] = !edgeCount[similarRecipe.Id] ? 1 : edgeCount[similarRecipe.Id] + 1;
 
-                    edges.push({
+                    edges.add({
                         from: recipe.Id,
                         to: similarRecipe.Id,
                         length: 100 + Math.sqrt(similarRecipe.SimilarRecipeWeight) * 100
@@ -209,6 +220,78 @@
                         tooltip: recipeToAdd.Name
                     });
                 }
+            }
+        },
+
+        _createClustersInfo: function(){
+            var clustersMap = {};
+            var distinctClusterIds = [];
+
+            for (var i = 0; i < this._recipes.length; ++i) {
+                var clusters = this._recipes[i].ClusterIds;
+                for (var j = 0; j < clusters.length; ++j) {
+                    var clusterId = clusters[j];
+
+                    if (!clustersMap[clusterId]) {
+                        distinctClusterIds.push(clusterId);
+                        clustersMap[clusterId] = true;
+                    }
+                }
+            }
+
+            var colors = this._distinctColors(distinctClusterIds.length);
+
+            this._clusters = {};
+            for (var i = 0; i < distinctClusterIds.length; ++i) {
+                var clusterId = distinctClusterIds[i];
+                this._clusters[clusterId] = {
+                    color: 'rgb(' + colors[i][0] + ',' + colors[i][1] + ',' + colors[i][2] + ')'
+                }
+            }
+        },
+
+        _showClustersControl: function () {
+            var self = this;
+
+            var controlHtml = '<div class="clusters-control"><span class="clusters-control-title">Clusters: </span>';
+            for (var key in this._clusters) {
+                var clusterId = +key;
+                var color = this._clusters[key].color;
+                controlHtml += '<span data-cluster-id="' + clusterId + '" class="clusters-control-item" style="background-color:' + color + '" title="' + clusterId + '"></span>';
+            }
+
+            controlHtml += '</div>';
+
+            var control = $(controlHtml);
+
+            control.css({
+                position: 'absolute',
+                top: 10,
+                right: 10,
+            });
+
+            control.find('.clusters-control-item').on('click', function () {
+                var clusterId = $(this).data('clusterId');
+
+                control.find('.clusters-control-item').removeClass('selected');
+
+                if (self._selectedClusterId === +clusterId) {
+                    self._hideClusters();
+                } else {
+                    self._showCluster(+clusterId);
+                    $(this).addClass('selected');
+                }                            
+            });
+
+            $('#graphContainer').append(control);
+        },
+
+        _updateClustersControlState: function(){
+            var control = $('#graphContainer').find('.clusters-control');
+
+            control.find('.clusters-control-item').removeClass('selected');
+            if (!!this._selectedClusterId) {
+                control.find('.clusters-control-item[data-cluster-id=' + this._selectedClusterId + ']').addClass('selected');
             }
         },
 
@@ -371,9 +454,19 @@
 
             var elementHtml = '<div class="recipe-expanded-modal" data-id="' + nodeId + '">';
 
+            var clustersHeaderHtml = '';
+            if (this._useClusters) {
+                clustersHeaderHtml = '<span> Clusters: </span>';
+                for (var i = 0; i < recipe.ClusterIds.length; ++i) {
+                    var clusterId = recipe.ClusterIds[i];
+                    clustersHeaderHtml += '<span data-cluster-id="' + clusterId + '" class="clusters-control-item" style="background-color:' + this._clusters[clusterId].color + '" + title="' + clusterId + '"></span>'
+                }
+            }
+            
             elementHtml +=
                 '<div class="header">' +
                     recipe.Name +
+                    clustersHeaderHtml +
                     '<i class="glyphicon glyphicon-remove close-icon" title="Close modal"></i>' +
                     '<i class="glyphicon glyphicon-pushpin pin-icon" title="Pin recipe"></i>' +
                 '</div>';
@@ -426,6 +519,21 @@
                 self._resultsView.pinRecipe(nodeId);
                 self._removeExpandedModal(nodeId);
                 self._expandNode(nodeId);
+            });
+
+            element.find('.clusters-control-item').on('click', function () {
+                var clusterId = $(this).data('clusterId');
+
+                element.find('.clusters-control-item').removeClass('selected');
+
+                if (self._selectedClusterId === +clusterId) {
+                    self._hideClusters();
+                } else {
+                    self._showCluster(+clusterId);
+                    $(this).addClass('selected');
+                }
+
+                self._updateClustersControlState();
             });
 
             window.setTimeout(function () {
@@ -489,6 +597,130 @@
             }
 
             this._showAllEdges = !this._showAllEdges;
+        },
+
+        _showCluster: function (clusterId) {
+            this._selectedClusterId = clusterId;
+            var color = this._clusters[clusterId].color;
+
+            var edges = this._graphData.edges.get();
+            for (var i = 0; i < edges.length; ++i) {
+                var edge = edges[i];
+                var fromRecipe = this._idToRecipeMap[edge.from];
+                var toRecipe = this._idToRecipeMap[edge.to];
+
+                if (hasCluster(fromRecipe) && hasCluster(toRecipe)) {
+                    edge.color = color;
+                } else {
+                    edge.color = null;
+                }
+                this._graphData.edges.update(edge);
+            }
+
+            this._network.stopSimulation();
+            this._deselectEdges();
+
+            function hasCluster(recipe) {
+                for (var i = 0; i < recipe.ClusterIds.length; ++i) {
+                    if (recipe.ClusterIds[i] === +clusterId) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        },
+
+        _hideClusters: function () {
+            this._selectedClusterId = null;
+
+            var edges = this._graphData.edges.get();
+            for (var i = 0; i < edges.length; ++i) {
+                var edge = edges[i];
+                edge.color = null;
+                this._graphData.edges.update(edge);
+            }
+
+            this._network.stopSimulation();
+            this._deselectEdges();
+        },
+
+        _distinctColors: function(count) {
+            var colors = [];
+            for(hue = 0; hue < 360; hue += 360 / count) {
+                colors.push(this._hsvToRgb(hue, 100, 100));
+            }
+            return colors;
+        },
+
+        _hsvToRgb: function(h, s, v) {
+	        var r, g, b;
+            var i;
+            var f, p, q, t;
+ 
+            // Make sure our arguments stay in-range
+            h = Math.max(0, Math.min(360, h));
+            s = Math.max(0, Math.min(100, s));
+            v = Math.max(0, Math.min(100, v));
+ 
+            // We accept saturation and value arguments from 0 to 100 because that's
+            // how Photoshop represents those values. Internally, however, the
+            // saturation and value are calculated from a range of 0 to 1. We make
+            // That conversion here.
+            s /= 100;
+            v /= 100;
+ 
+            if(s == 0) {
+                // Achromatic (grey)
+                r = g = b = v;
+                return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+            }
+ 
+            h /= 60; // sector 0 to 5
+            i = Math.floor(h);
+            f = h - i; // factorial part of h
+            p = v * (1 - s);
+            q = v * (1 - s * f);
+            t = v * (1 - s * (1 - f));
+ 
+            switch(i) {
+                case 0:
+                    r = v;
+                    g = t;
+                    b = p;
+                    break;
+ 
+                case 1:
+                    r = q;
+                    g = v;
+                    b = p;
+                    break;
+ 
+                case 2:
+                    r = p;
+                    g = v;
+                    b = t;
+                    break;
+ 
+                case 3:
+                    r = p;
+                    g = q;
+                    b = v;
+                    break;
+ 
+                case 4:
+                    r = t;
+                    g = p;
+                    b = v;
+                    break;
+ 
+                default: // case 5:
+                    r = v;
+                    g = p;
+                    b = q;
+            }
+ 
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         },
 
         dispose: function () {
