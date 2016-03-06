@@ -233,8 +233,21 @@
                     var clusterId = clusters[j];
 
                     if (!clustersMap[clusterId]) {
-                        distinctClusterIds.push(clusterId);
-                        clustersMap[clusterId] = true;
+
+                        for (var k = 0; k < this._recipes[i].SimilarResults.length; ++j) {
+                            var similarRecipe = this._recipes[i].SimilarResults[k];
+
+                            var hasCluster = similarRecipe.ClusterIds.some(function (similarClusterId) {
+                                return +similarClusterId === +clusterId;
+                            });
+
+                            if (hasCluster) {
+                                distinctClusterIds.push(clusterId);
+                                clustersMap[clusterId] = true;
+                                break;
+                            }
+                        }
+                        
                     }
                 }
             }
