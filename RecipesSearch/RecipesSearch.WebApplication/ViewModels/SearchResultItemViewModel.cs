@@ -64,7 +64,7 @@ namespace RecipesSearch.WebApplication.ViewModels
                 SimilarResults = entity.SimilarResults.Select(sitePage => new SearchResultItemViewModel(sitePage)).ToList();
             }
 
-            ClusterIds = entity.ClusterIds.Split(',').Select(clusterId => Int32.Parse(clusterId)).ToList();
+            ClusterIds = entity.ClusterIds.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(clusterId => Int32.Parse(clusterId)).ToList();
         }
     }
 }
