@@ -44,6 +44,12 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Online TF/IDF calculation is enabled")]
         public bool OnlineTfIdfEnabled { get; set; }
 
+        [Display(Name = "Exclude search results with zero relevancy")]
+        public bool SkipIrrelevantResults { get; set; }
+
+        [Display(Name = "Filter search query words by dictionary")]
+        public bool FilterSearchQuery { get; set; }
+
         [Display(Name = "Show clusters instead of similar results")]
         public bool UseClusters { get; set; }
 
@@ -78,7 +84,9 @@ namespace RecipesSearch.WebApplication.ViewModels
                 MaxOnlineIdfRecipesCount = viewModel.MaxOnlineIdfRecipesCount,
                 OnlineTfIdfBuilderName = viewModel.OnlineTfIdfBuilderName,
                 OnlineTfIdfSimilarResultsCount = viewModel.OnlineTfIdfSimilarResultsCount,
-                UseClusters = viewModel.UseClusters
+                UseClusters = viewModel.UseClusters,
+                SkipIrrelevantResults = viewModel.SkipIrrelevantResults,
+                FilterSearchQuery = viewModel.FilterSearchQuery
             };
         }
 
@@ -98,7 +106,9 @@ namespace RecipesSearch.WebApplication.ViewModels
                 MaxOnlineIdfRecipesCount = entity.MaxOnlineIdfRecipesCount,
                 OnlineTfIdfBuilderName = entity.OnlineTfIdfBuilderName,
                 OnlineTfIdfSimilarResultsCount = entity.OnlineTfIdfSimilarResultsCount,
-                UseClusters = entity.UseClusters
+                UseClusters = entity.UseClusters,
+                SkipIrrelevantResults = entity.SkipIrrelevantResults,
+                FilterSearchQuery = entity.FilterSearchQuery
             };
         }
     }

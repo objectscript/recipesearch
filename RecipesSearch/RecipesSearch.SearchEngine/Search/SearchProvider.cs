@@ -31,6 +31,8 @@ namespace RecipesSearch.SearchEngine.Search
                     exactMatch, 
                     searchSettings.OnlineTfIdfEnabled,
                     searchSettings.UseClusters,
+                    searchSettings.SkipIrrelevantResults,
+                    searchSettings.FilterSearchQuery,
                     searchSettings.MaxOnlineIdfRecipesCount,
                     searchSettings.OnlineTfIdfBuilderName,
                     out totalCount, 

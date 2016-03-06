@@ -60,7 +60,15 @@
             <div class="form-group">
                 @Html.LabelFor(model => model.UseClusters)
                 @Html.CheckBoxFor(model => model.UseClusters)
-            </div>    
+            </div>   
+            <div class="form-group">
+                @Html.LabelFor(model => model.SkipIrrelevantResults)
+                @Html.CheckBoxFor(model => model.SkipIrrelevantResults)
+            </div>   
+            <div class="form-group">
+                @Html.LabelFor(model => model.FilterSearchQuery)
+                @Html.CheckBoxFor(model => model.FilterSearchQuery)
+            </div>   
             <div class="right">
                 <input type="submit" class="btn btn-link" value="Update settings" />
             </div>        

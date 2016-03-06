@@ -21,15 +21,27 @@ namespace RecipesSearch.SitePagesImporter.Importer
         private readonly bool _buildTf;
         private readonly string _tfBuilderName;
 
+        private readonly int _extendedKeywordsMinWordCount;
+        private readonly bool _extendedKeywordsUseFilter;
+
         private readonly List<IPageProcessor> _pageProcessors = new List<IPageProcessor>();
 
-        public PageSaver(SiteToCrawl siteToCrawl, bool keywordsProcessingEnabled, bool updateSpellcheckDict, bool buildTf, string tfBuilderName)
+        public PageSaver(
+            SiteToCrawl siteToCrawl,
+            bool keywordsProcessingEnabled,
+            int extendedKeywordsMinWordCount,
+            bool extendedKeywordsUseFilter,
+            bool updateSpellcheckDict,
+            bool buildTf,
+            string tfBuilderName)
         {
             _siteToCrawl = siteToCrawl;
             _keywordsProcessingEnabled = keywordsProcessingEnabled;
             _updateSpellcheckDict = updateSpellcheckDict;
             _tfBuilderName = tfBuilderName;
             _buildTf = buildTf;
+            _extendedKeywordsMinWordCount = extendedKeywordsMinWordCount;
+            _extendedKeywordsUseFilter = extendedKeywordsUseFilter;
 
             _pageProcessors.AddRange(new IPageProcessor[]
             {
@@ -61,7 +73,7 @@ namespace RecipesSearch.SitePagesImporter.Importer
                     if (!String.IsNullOrEmpty(sitePage.Description) || !String.IsNullOrEmpty(sitePage.Ingredients) ||
                         !String.IsNullOrEmpty(sitePage.RecipeInstructions))
                     {
-                        pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled, _updateSpellcheckDict, _buildTf,
+                        pageStorage.SaveSitePage(sitePage, _keywordsProcessingEnabled, _extendedKeywordsMinWordCount, _extendedKeywordsUseFilter, _updateSpellcheckDict, _buildTf,
                             _tfBuilderName);
                     }
                 }

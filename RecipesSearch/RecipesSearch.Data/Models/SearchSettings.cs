@@ -22,6 +22,10 @@ namespace RecipesSearch.Data.Models
 
         public bool UseClusters { get; set; }
 
+        public bool SkipIrrelevantResults { get; set; }
+
+        public bool FilterSearchQuery { get; set; }
+
         public int MaxOnlineIdfRecipesCount { get; set; }
 
         public string OnlineTfIdfBuilderName { get; set; }

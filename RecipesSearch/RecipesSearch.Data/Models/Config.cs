@@ -24,6 +24,10 @@ namespace RecipesSearch.Data.Models
 
         public int CrawlTimeoutSeconds { get; set; }
 
+        public int ExtendedKeywordsMinWordCount { get; set; }
+
+        public bool ExtendedKeywordsUseFilter { get; set; }
+
         public string TfBuilderName { get; set; }
 
         [NotMapped]

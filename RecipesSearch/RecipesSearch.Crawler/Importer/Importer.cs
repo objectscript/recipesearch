@@ -173,7 +173,9 @@ namespace RecipesSearch.SitePagesImporter.Importer
 
                     using (var pageSaver = new PageSaver(
                         _currentCrawledSite, 
-                        crawlerConfig.EnhancedKeywordProcessing, 
+                        crawlerConfig.EnhancedKeywordProcessing,
+                        crawlerConfig.ExtendedKeywordsMinWordCount,
+                        crawlerConfig.ExtendedKeywordsUseFilter, 
                         crawlerConfig.EnableSpellcheckDictionaryUpdate,
                         crawlerConfig.BuildTf,
                         crawlerConfig.TfBuilderName))

@@ -459,6 +459,9 @@
                 clustersHeaderHtml = '<span> Clusters: </span>';
                 for (var i = 0; i < recipe.ClusterIds.length; ++i) {
                     var clusterId = recipe.ClusterIds[i];
+                    if (!this._clusters[clusterId]) {
+                        continue;
+                    }
                     clustersHeaderHtml += '<span data-cluster-id="' + clusterId + '" class="clusters-control-item" style="background-color:' + this._clusters[clusterId].color + '" + title="' + clusterId + '"></span>'
                 }
             }

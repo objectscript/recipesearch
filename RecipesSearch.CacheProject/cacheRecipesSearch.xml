@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-03-06 19:05:07">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-03-06 20:03:40">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -656,7 +656,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Config">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63688,56281.282077</TimeChanged>
+<TimeChanged>63983,71208.276908</TimeChanged>
 <TimeCreated>63610,79444.886551</TimeCreated>
 
 <Property name="LoggingEnabled">
@@ -686,6 +686,16 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Property name="CrawlTimeoutSeconds">
 <Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="ExtendedKeywordsMinWordCount">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="ExtendedKeywordsUseFilter">
+<Type>%Boolean</Type>
 <Required>1</Required>
 </Property>
 
@@ -735,6 +745,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Value>
 <Value name="9">
 <Value>BuildTf</Value>
+</Value>
+<Value name="10">
+<Value>ExtendedKeywordsMinWordCount</Value>
+</Value>
+<Value name="11">
+<Value>ExtendedKeywordsUseFilter</Value>
 </Value>
 </Data>
 </Storage>
@@ -1009,7 +1025,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SearchSettings">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63905,51141.82779</TimeChanged>
+<TimeChanged>63983,69888.116939</TimeChanged>
 <TimeCreated>63610,79681.607063</TimeCreated>
 
 <Property name="ResultsOnPage">
@@ -1048,6 +1064,16 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Property>
 
 <Property name="UseClusters">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="SkipIrrelevantResults">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="FilterSearchQuery">
 <Type>%Boolean</Type>
 <Required>1</Required>
 </Property>
@@ -1116,6 +1142,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Value name="12">
 <Value>UseClusters</Value>
 </Value>
+<Value name="13">
+<Value>SkipIrrelevantResults</Value>
+</Value>
+<Value name="14">
+<Value>FilterSearchQuery</Value>
+</Value>
 </Data>
 </Storage>
 </Class>
@@ -1123,7 +1155,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63969,51767.991049</TimeChanged>
+<TimeChanged>63983,71078.053538</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1229,7 +1261,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="Upsert">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),ImageUrl:%String(MAXLEN=2000),Category:%String(MAXLEN=300),Rating:%Integer,CommentsCount:%Integer,SiteId:%Integer,ProcessKeywords:%Boolean,UpdateSpellcheckDict:%Boolean,BuildTf:%Boolean,TfBuilderName:%String</FormalSpec>
+<FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),ImageUrl:%String(MAXLEN=2000),Category:%String(MAXLEN=300),Rating:%Integer,CommentsCount:%Integer,SiteId:%Integer,ProcessKeywords:%Boolean,UpdateSpellcheckDict:%Boolean,BuildTf:%Boolean,TfBuilderName:%String,ExtendedKeywordsMinWordCount:%Integer,ExtendedKeywordsUseFilter:%Boolean</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
 	IF ProcessKeywords{
@@ -1698,7 +1730,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63968,50968.695274</TimeChanged>
+<TimeChanged>63983,71182.272019</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1708,8 +1740,22 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Implementation><![CDATA[
 	// Seed crawler config
 	IF NOT EXISTS(SELECT * FROM RecipeSearch_Data.Config) THEN BEGIN
-		INSERT INTO RecipeSearch_Data.Config(LoggingEnabled, BuildTf, EnhancedKeywordProcessing, EnableSpellcheckDictionaryUpdate, MaxPagesToCrawl, TfBuilderName, MaxConcurrentThreads, MaxCrawlDepth, CrawlTimeoutSeconds, IsActive, CreatedDate, ModifiedDate) 
-		VALUES(0, 0, 1, 1, 100000, 'DefaultTfBuilder', 10, 100000, 0, 1, GETUTCDATE(), GETUTCDATE());
+		INSERT INTO RecipeSearch_Data.Config(
+		LoggingEnabled,
+		 BuildTf,
+		 EnhancedKeywordProcessing,
+		 EnableSpellcheckDictionaryUpdate,
+		 MaxPagesToCrawl,
+		 TfBuilderName,
+		 MaxConcurrentThreads,
+		 MaxCrawlDepth,
+		 CrawlTimeoutSeconds,
+		 ExtendedKeywordsMinWordCount,
+		 ExtendedKeywordsUseFilter,
+		 IsActive,
+		 CreatedDate,
+		 ModifiedDate) 
+		VALUES(0, 0, 1, 1, 100000, 'DefaultTfBuilder', 10, 100000, 0, 0, 0, 1, GETUTCDATE(), GETUTCDATE());
 		
 		DECLARE @ConfigId AS INT;
 		SELECT TOP 1 @ConfigId = Id FROM RecipeSearch_Data.Config;
@@ -1745,10 +1791,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			OnlineTfIdfBuilderName,
 			OnlineTfIdfSimilarResultsCount,
 			UseClusters,
+			SkipIrrelevantResults,
+			FilterSearchQuery,
 			IsActive,
 			CreatedDate,
 			ModifiedDate) 
-		VALUES(1, 25, 50, 10, 1, 1, 0, 200, 'DefaultOnlineTfIdfBuilder', 10, 0, 1, GETUTCDATE(), GETUTCDATE());
+		VALUES(1, 25, 50, 10, 1, 1, 0, 200, 'DefaultOnlineTfIdfBuilder', 10, 0, 0, 0, 1, GETUTCDATE(), GETUTCDATE());
 	END
 	
 	// Seed tfIdf config
@@ -2708,7 +2756,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.PredicateBuilder">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63688,50450.815037</TimeChanged>
+<TimeChanged>63983,69665.535179</TimeChanged>
 <TimeCreated>63640,44416.350546</TimeCreated>
 
 <Method name="BuildPredicate">
@@ -2749,7 +2797,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	
 	set queryParts = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(query)
 	
-	set subquery = "0 AS Relevancy"
+	set subquery = "0"
 	set i = 1
 	set listLength = $LISTLENGTH(queryParts)
 	
@@ -2771,7 +2819,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 		set subquery = subquery_"(SELECT SUM(TF)* "_^globalIdf(word)_" from RecipeSearch_Data_RecipeData.WordsTF WHERE RecipeId = sp.Id AND word = '"_word_"')"
 	}
 	
-	set subquery = subquery_") AS Relevancy"
+	set subquery = subquery_")"
 	
 	return subquery
 ]]></Implementation>
@@ -2781,7 +2829,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.RESTBroker">
 <Super>%CSP.REST</Super>
-<TimeChanged>63968,45147.81124</TimeChanged>
+<TimeChanged>63983,70066.421742</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
 
 <XData name="UrlMap">
@@ -2806,6 +2854,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	
 	set onlineTfIdf = %request.Get("onlineTfIdf", 0)
 	set useClusters = %request.Get("useClusters", 0)
+	set skipIrrelevantResults = %request.Get("skipIrrelevantResults", 0)
+	set filterSearchQuery = %request.Get("filterSearchQuery", 0)
 	set maxIdfRecipesCount = %request.Get("maxIdfRecipesCount", 200)
 	set onlineTfIdfBuilderName = %request.Get("onlineTfIdfBuilderName", "DefaultOnlineTfIdfBuilder")
 	
@@ -2818,6 +2868,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     	pageSize,
     	onlineTfIdf,
     	useClusters,
+    	skipIrrelevantResults,
     	maxIdfRecipesCount,
     	onlineTfIdfBuilderName)
 	} catch err {
@@ -2935,12 +2986,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63983,56129.320039</TimeChanged>
+<TimeChanged>63983,69695.853009</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer,onlineTfIdf:%Boolean,useClusters:%Boolean,maxIdfRecipesCount:%Integer,onlineTfIdfBuilderName:%String</FormalSpec>
+<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer,onlineTfIdf:%Boolean,useClusters:%Boolean,skipIrrelevantResults:%Boolean,maxIdfRecipesCount:%Integer,onlineTfIdfBuilderName:%String</FormalSpec>
 <Implementation><![CDATA[
 	if spellcheck {
 		set spellcheckedQuery = ##class(RecipeSearch.Spellcheck.Spellchecker).SpellcheckText(query)
@@ -2949,6 +3000,8 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			set query = spellcheckedQuery
 		}
 	}
+	
+	set relevancyQuery = ##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildRelevancySubQuery(query)
 	
 	set sqlQuery = "SELECT %NOLOCK" 
 			_" ID,"
@@ -2964,13 +3017,17 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			_" Category, "
 			_" Rating, "
 			_" CommentsCOunt, "
-			_##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildRelevancySubQuery(query)_","
+			_relevancyQuery_" AS Relevancy,"
 			_" CreatedDate," 
 			_" ModifiedDate,"
 			_" (SELECT CAST(LIST(ClusterId) AS NVARCHAR(200)) from RecipeSearch_Data_RecipeData.RecipeCluster WHERE RecipeId = sp.Id) AS ClusterIds"
 		_" FROM RecipeSearch_Data.SitePage sp"
 	
-	set predicate = ##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildPredicate(query)
+	set predicate = "("_##class(RecipeSearch.SearchAPI.PredicateBuilder).BuildPredicate(query)_")"
+	
+	if skipIrrelevantResults{
+		set predicate = predicate_" AND "_relevancyQuery_" <> 0"
+	}
 	
 	set sqlQuery = sqlQuery_" WHERE "_predicate_" ORDER BY Relevancy DESC, URL, SiteId"	
 	
