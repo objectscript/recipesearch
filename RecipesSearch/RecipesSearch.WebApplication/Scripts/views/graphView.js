@@ -21,7 +21,7 @@
                 color: 'rgba(0, 0, 0, 0)',
                 hover: 'rgba(0, 0, 0, 0)',
                 highlight: 'rgba(147, 197, 75, 0.75)',
-                inherit: false               
+                inherit: false
             },
             width: 0.1
         },
@@ -54,14 +54,6 @@
                 fit: true
             }
         }
-        //layout: {
-        //    hierarchical: {
-        //        enabled: true,
-        //        levelSeparation: 150,
-        //        direction: 'LR',   // UD, DU, LR, RL
-        //        sortMethod: 'hubsize' // hubsize, directed
-        //    }
-        //}
     };
 
     GraphView.prototype = {
@@ -81,10 +73,11 @@
         _showAllEdges: false,
 
         _useClusters: false,
+        _separateClusters: true,
         _clusters: null,
         _selectedClusterId: null,
 
-        showGraph: function (query, exactMatch) {
+        showGraph: function (query, exactMatch, separateClusters) {
             var self = this;
 
             if (!!this.network) {
@@ -98,7 +91,15 @@
             this._toggleProgress(true);
 
             self._setProgressText('Fetching data...');
-            this._fetchData(query, exactMatch, function () {                
+            this._fetchData(query, exactMatch, function () {
+
+                if (self._useClusters && self._separateClusters) {
+                    graphOptions.physics.barnesHut.centralGravity = 0;
+                    graphOptions.physics.barnesHut.springConstant = 1;
+                    graphOptions.physics.barnesHut.avoidOverlap = 1;
+                    graphOptions.physics.stabilization.iterations = 1000;
+                }
+
                 self._prepareGraphData();
 
                 self._setProgressText('Preparing graph...');
@@ -111,7 +112,7 @@
             });
         },
 
-        hasRecipe: function(recipeId) {
+        hasRecipe: function (recipeId) {
             return !!this._idToRecipeMap[+recipeId];
         },
 
@@ -129,6 +130,7 @@
             }).done(function (response) {
                 self._recipes = response.Recipes;
                 self._useClusters = response.UseClusters;
+                self._separateClusters = true;
                 callback();
             });
         },
@@ -142,7 +144,7 @@
         },
 
         _setProgressText: function (text) {
-            this._container.find('.loading-holder .note').text(text);          
+            this._container.find('.loading-holder .note').text(text);
         },
 
         _prepareGraphData: function () {
@@ -151,9 +153,31 @@
             var edgeCount = {};
             var nodes = [];
             var edges = new vis.DataSet();
+            var clusterLeads = {};
 
             for (var i = 0; i < this._recipes.length; ++i) {
-                ensureRecipeAdded(this._recipes[i], true);
+                var node = ensureRecipeAdded(this._recipes[i], true);
+
+                if (this._useClusters) {
+                    var nodeFound = false;
+                    for (var key in clusterLeads) {
+                        if (clusterLeads[key] === node) {
+                            nodeFound = true;
+                            break;
+                        }
+                    }
+
+                    if (nodeFound) {
+                        continue;
+                    }
+
+                    for (var j = 0; j < this._recipes[i].ClusterIds.length; ++j) {
+                        if (!clusterLeads[this._recipes[i].ClusterIds[j]]) {
+                            clusterLeads[this._recipes[i].ClusterIds[j]] = node;
+                            break;
+                        }
+                    }
+                }
             }
 
             for (var i = 0; i < this._recipes.length; ++i) {
@@ -171,6 +195,20 @@
                         to: similarRecipe.Id,
                         length: 100 + Math.sqrt(similarRecipe.SimilarRecipeWeight) * 100
                     });
+                }
+            }
+
+            if (this._useClusters) {
+                for (var i = 0; i < this._recipes.length; ++i) {
+                    for (var j = i + 1; j < this._recipes.length; ++j) {
+                        if (hasCommonCluster(this._recipes[i], this._recipes[j])) {
+                            edges.add({
+                                from: this._recipes[i].Id,
+                                to: this._recipes[j].Id,
+                                length: 100 + 1000
+                            });
+                        }
+                    }
                 }
             }
 
@@ -194,6 +232,30 @@
                 }
             }
 
+            if (this._useClusters && this._separateClusters) {
+                var clustersLeadsArray = [];
+
+                for (var key in clusterLeads) {
+                    clustersLeadsArray.push(clusterLeads[key]);
+                }
+
+                var d = 360 / clustersLeadsArray.length * Math.PI / 180;
+
+                var x = 0, y = clustersLeadsArray.length * 100;
+                for (var i = 0; i < clustersLeadsArray.length; ++i) {
+                    var node = clustersLeadsArray[i];
+                    node.x = x;
+                    node.y = y;
+
+                    node.fixed = true;
+
+                    var x1 = x * Math.cos(d) - y * Math.sin(d);
+                    var y1 = x * Math.sin(d) + y * Math.cos(d);
+                    x = x1;
+                    y = y1;
+                }
+            }
+
             this._centralRecipeId = maxEdgeCountRecipeId;
             this._graphData = {
                 nodes: nodes,
@@ -206,7 +268,7 @@
                     self._idToRecipeMap[recipeToAdd.Id] = recipeToAdd;
 
                     var nodeColor = !!isMain ? 'rgba(147, 197, 75, 0.75)' : 'rgba(194, 194, 192, 0.75)';
-                    nodes.push({
+                    var node = {
                         id: recipeToAdd.Id,
                         label: recipeToAdd.Name,
                         color: {
@@ -218,12 +280,31 @@
                             }
                         },
                         tooltip: recipeToAdd.Name
-                    });
+                    };
+                    nodes.push(node);
+
+                    return node;
+                } else {
+                    return nodes.filter(function (node) {
+                        return node.id === recipeToAdd.id;
+                    })[0];
                 }
+            }
+
+            function hasCommonCluster(firstRecipe, secondRecipe) {
+                for (var i = 0; i < firstRecipe.ClusterIds.length; ++i) {
+                    for (var j = 0; j < secondRecipe.ClusterIds.length; ++j) {
+                        if (firstRecipe.ClusterIds[i] === secondRecipe.ClusterIds[j]) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
         },
 
-        _createClustersInfo: function(){
+        _createClustersInfo: function () {
             var clustersMap = {};
             var distinctClusterIds = [];
 
@@ -234,7 +315,7 @@
 
                     if (!clustersMap[clusterId]) {
 
-                        for (var k = 0; k < this._recipes[i].SimilarResults.length; ++j) {
+                        for (var k = 0; k < this._recipes[i].SimilarResults.length; ++k) {
                             var similarRecipe = this._recipes[i].SimilarResults[k];
 
                             var hasCluster = similarRecipe.ClusterIds.some(function (similarClusterId) {
@@ -247,7 +328,7 @@
                                 break;
                             }
                         }
-                        
+
                     }
                 }
             }
@@ -273,6 +354,8 @@
                 controlHtml += '<span data-cluster-id="' + clusterId + '" class="clusters-control-item" style="background-color:' + color + '" title="' + clusterId + '"></span>';
             }
 
+            controlHtml += '<span data-cluster-id="-1" class="clusters-control-item all" title="All"></span>';
+
             controlHtml += '</div>';
 
             var control = $(controlHtml);
@@ -293,13 +376,13 @@
                 } else {
                     self._showCluster(+clusterId);
                     $(this).addClass('selected');
-                }                            
+                }
             });
 
             $('#graphContainer').append(control);
         },
 
-        _updateClustersControlState: function(){
+        _updateClustersControlState: function () {
             var control = $('#graphContainer').find('.clusters-control');
 
             control.find('.clusters-control-item').removeClass('selected');
@@ -309,7 +392,7 @@
         },
 
         _initNetwork: function () {
-            
+
             var container = this._container.find('#graphContainer').get(0);
 
             this.__newtorkStartTime = performance.now();
@@ -328,7 +411,7 @@
 
                 if (self._centralRecipeId !== -1) {
                     self._focusOnNode(self._centralRecipeId, 600);
-                }               
+                }
 
                 self._toggleProgress(false);
                 self._createShowAllEdgesButton();
@@ -374,11 +457,11 @@
 
                 if (clickPositon.x <= boundingBox.right && clickPositon.x >= boundingBox.right - tooltipWidth
                     && clickPositon.y <= boundingBox.bottom && clickPositon.y >= boundingBox.top) {
-                    openExpanded = true;                   
+                    openExpanded = true;
                 }
 
                 self._focusOnNode(nodeId, 250, openExpanded);
-            }           
+            }
         },
 
         _focusOnNode: function (nodeId, animationDuration, openExpanded) {
@@ -394,7 +477,7 @@
             }
 
             this._deselectEdges();
-            this._hideCustomElements();            
+            this._hideCustomElements();
 
             animationDuration = animationDuration || 1000;
             this._network.focus(nodeId, {
@@ -413,10 +496,10 @@
 
                 if (!!openExpanded) {
                     self._network.once('afterDrawing', function () {
-                        self._expandNode(nodeId);                       
+                        self._expandNode(nodeId);
                     });
                 }
-            });           
+            });
         },
 
         _deselectEdges: function () {
@@ -432,7 +515,7 @@
                 return;
             }
 
-            this._network.on('afterDrawing', function() {
+            this._network.on('afterDrawing', function () {
                 var nodePosition = self._network.getBoundingBox(nodeId);
                 var height = nodePosition.bottom - nodePosition.top;
                 var width = height;
@@ -442,11 +525,11 @@
 
                 self._canvasContext.font = (width - 4) + 'px \'Glyphicons Halflings\'';
                 self._canvasContext.fillStyle = 'black';
-                self._canvasContext.fillText(String.fromCharCode(0xe096), nodePosition.right - width + width/2, nodePosition.top + width/2);
+                self._canvasContext.fillText(String.fromCharCode(0xe096), nodePosition.right - width + width / 2, nodePosition.top + width / 2);
             });
         },
 
-        _removeNodeTooltip: function() {
+        _removeNodeTooltip: function () {
             this._network.off('afterDrawing');
         },
 
@@ -462,7 +545,7 @@
 
             var nodePosition = self._network.getBoundingBox(nodeId);
             var domPostionTopLeft = self._network.canvasToDOM({ y: nodePosition.top, x: nodePosition.left });
-            
+
             var recipe = this._idToRecipeMap[nodeId];
 
             var elementHtml = '<div class="recipe-expanded-modal" data-id="' + nodeId + '">';
@@ -478,7 +561,7 @@
                     clustersHeaderHtml += '<span data-cluster-id="' + clusterId + '" class="clusters-control-item" style="background-color:' + this._clusters[clusterId].color + '" + title="' + clusterId + '"></span>'
                 }
             }
-            
+
             elementHtml +=
                 '<div class="header">' +
                     recipe.Name +
@@ -507,7 +590,7 @@
                 elementHtml += '<div class="recipe-item">' + recipe.AdditionalData + '</div>';
             }
 
-            elementHtml += '<a class="recipe-url" target="_blank" href="' + recipe.URL + '">' + recipe.URL  + '</a>';
+            elementHtml += '<a class="recipe-url" target="_blank" href="' + recipe.URL + '">' + recipe.URL + '</a>';
 
             elementHtml += '</div></div>';
 
@@ -522,12 +605,12 @@
             $('body').append(element);
             self._recipeModalOpenedId = nodeId;
 
-            element.on('mousemove', function() {
+            element.on('mousemove', function () {
                 self._removeNodeTooltip();
                 self._network.redraw();
             });
 
-            element.find('.close-icon').on('click', function() {
+            element.find('.close-icon').on('click', function () {
                 self._removeExpandedModal();
             });
 
@@ -555,7 +638,7 @@
             window.setTimeout(function () {
                 $('body').on('click.modalOutsideClick', self._handleClickOutsideModal.bind(self));
             }, 0);
-            
+
         },
 
         _removeExpandedModal: function () {
@@ -565,7 +648,7 @@
             $('.recipe-expanded-modal').remove();
         },
 
-        _handleClickOutsideModal: function(event) {
+        _handleClickOutsideModal: function (event) {
             var target = $(event.target);
             if (target.parents('.recipe-expanded-modal').length > 0 || target.is('.recipe-expanded-modal')) {
                 return;
@@ -593,7 +676,7 @@
             allEdgesButton.on('click', this._toggleShowAllEdges.bind(this));
         },
 
-        _toggleShowAllEdges: function() {
+        _toggleShowAllEdges: function () {
             if (!this._showAllEdges) {
                 this._network.setOptions({
                     edges: {
@@ -617,13 +700,23 @@
 
         _showCluster: function (clusterId) {
             this._selectedClusterId = clusterId;
-            var color = this._clusters[clusterId].color;
+            var color;
+
+            if (clusterId !== -1) {
+                color = this._clusters[clusterId].color;
+            }
 
             var edges = this._graphData.edges.get();
             for (var i = 0; i < edges.length; ++i) {
                 var edge = edges[i];
                 var fromRecipe = this._idToRecipeMap[edge.from];
                 var toRecipe = this._idToRecipeMap[edge.to];
+
+                if (clusterId === -1) {
+                    edge.color = this._clusters[fromRecipe.ClusterIds[0]].color;
+                    this._graphData.edges.update(edge);
+                    continue;
+                }
 
                 if (hasCluster(fromRecipe) && hasCluster(toRecipe)) {
                     edge.color = color;
@@ -661,81 +754,81 @@
             this._deselectEdges();
         },
 
-        _distinctColors: function(count) {
+        _distinctColors: function (count) {
             var colors = [];
-            for(hue = 0; hue < 360; hue += 360 / count) {
+            for (hue = 0; hue < 360; hue += 360 / count) {
                 colors.push(this._hsvToRgb(hue, 100, 100));
             }
             return colors;
         },
 
-        _hsvToRgb: function(h, s, v) {
-	        var r, g, b;
+        _hsvToRgb: function (h, s, v) {
+            var r, g, b;
             var i;
             var f, p, q, t;
- 
+
             // Make sure our arguments stay in-range
             h = Math.max(0, Math.min(360, h));
             s = Math.max(0, Math.min(100, s));
             v = Math.max(0, Math.min(100, v));
- 
+
             // We accept saturation and value arguments from 0 to 100 because that's
             // how Photoshop represents those values. Internally, however, the
             // saturation and value are calculated from a range of 0 to 1. We make
             // That conversion here.
             s /= 100;
             v /= 100;
- 
-            if(s == 0) {
+
+            if (s == 0) {
                 // Achromatic (grey)
                 r = g = b = v;
                 return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
             }
- 
+
             h /= 60; // sector 0 to 5
             i = Math.floor(h);
             f = h - i; // factorial part of h
             p = v * (1 - s);
             q = v * (1 - s * f);
             t = v * (1 - s * (1 - f));
- 
-            switch(i) {
+
+            switch (i) {
                 case 0:
                     r = v;
                     g = t;
                     b = p;
                     break;
- 
+
                 case 1:
                     r = q;
                     g = v;
                     b = p;
                     break;
- 
+
                 case 2:
                     r = p;
                     g = v;
                     b = t;
                     break;
- 
+
                 case 3:
                     r = p;
                     g = q;
                     b = v;
                     break;
- 
+
                 case 4:
                     r = t;
                     g = p;
                     b = v;
                     break;
- 
+
                 default: // case 5:
                     r = v;
                     g = p;
                     b = q;
             }
- 
+
             return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         },
 

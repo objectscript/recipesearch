@@ -391,6 +391,16 @@ th, b {
     margin-top: 2px;
     cursor: pointer;
 }
+.clusters-control .clusters-control-item.all{
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+}
+.clusters-control .clusters-control-item.all:after{
+    content: "\2a"
+}
+    
 .clusters-control .clusters-control-item.selected {
     opacity: 1;
 }
