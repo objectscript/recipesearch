@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-03-08 16:00:54">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-03-06 20:03:40">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -562,49 +562,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 ]]></Implementation>
 </Method>
 </Class>
-
-
-<Project name="Project1" LastModified="2016-02-21 14:34:04.244887" HttpServer="http://localhost:57772">
-  <Items>
-    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.Config" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.CrawlingHistoryItem" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.RecipeData.NearestResult" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.RecipeData.RecipeCluster" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.RecipeData.WordsTF" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.SearchSettings" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.SitePage" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.SiteToCrawl" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.TfIdfConfig" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.Utils.Seed" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Logging.LogRecord" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Builder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.Default" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredMax" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredOrdinary" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredSmooth" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.OkapiBM25" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.StringAnalyzer" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Builder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.Default" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.FilteredDouble05" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.FilteredLog" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.OkapiBM25" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfIdfBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.PredicateBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.RESTBroker" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.DefaultOnlineTfIdfBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResult" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResultItem" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.SitePageResult" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
-  </Items>
-</Project>
 
 
 <Class name="RecipeSearch.Data.Base.Entity">
@@ -1171,7 +1128,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>63983,71078.053538</TimeChanged>
+<TimeChanged>63983,80527.81743</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1280,6 +1237,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <FormalSpec>URL:%String(MAXLEN=255),Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),ImageUrl:%String(MAXLEN=2000),Category:%String(MAXLEN=300),Rating:%Integer,CommentsCount:%Integer,SiteId:%Integer,ProcessKeywords:%Boolean,UpdateSpellcheckDict:%Boolean,BuildTf:%Boolean,TfBuilderName:%String,ExtendedKeywordsMinWordCount:%Integer,ExtendedKeywordsUseFilter:%Boolean</FormalSpec>
 <SqlProc>1</SqlProc>
 <Implementation><![CDATA[
+	set keywordsAnalyzed = Keywords
 	IF ProcessKeywords{
 		set keywordsAnalyzed = ##class(RecipeSearch.Data.SitePage).BuildExtendedKeywords(
 			Keywords,
@@ -1287,10 +1245,13 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			Description,
 			Ingredients,
 			RecipeInstructions,
-			AdditionalData)
-	}	
-	ELSE {
-		set keywordsAnalyzed = Keywords
+			AdditionalData,
+			ExtendedKeywordsMinWordCount,
+			ExtendedKeywordsUseFilter)
+	}
+	
+	if keywordsAnalyzed = "" {
+		return
 	}
 	
 	IF UpdateSpellcheckDict{
@@ -1302,9 +1263,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			AdditionalData,
 			Description)
 	}
-	
+		
 	&sql(select id into :recipeId from RecipeSearch_Data.SitePage WHERE url = :URL AND SiteId = :SiteId)
-	
+		
 	if recipeId '= ""{
 		&sql(UPDATE SitePage SET 
 			AdditionalData = :AdditionalData,
@@ -1356,7 +1317,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			GETUTCDATE(),
 			1))
 	}
-	
+
 	if BuildTf{
 		&sql(select id into :recipeId from RecipeSearch_Data.SitePage WHERE url = :URL AND SiteId = :SiteId)
 		do $classmethod("RecipeSearch.RecipeAnalyze.TfBuild.Implementations."_TfBuilderName, "BuildTF",
@@ -1373,14 +1334,14 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="BuildExtendedKeywords">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000)</FormalSpec>
+<FormalSpec>Keywords:%String(MAXLEN=1000),RecipeName:%String(MAXLEN=100),Description:%String(MAXLEN=100000),Ingredients:%String(MAXLEN=100000),RecipeInstructions:%String(MAXLEN=100000),AdditionalData:%String(MAXLEN=100000),ExtendedKeywordsMinWordCount:%Integer,ExtendedKeywordsUseFilter:%Boolean</FormalSpec>
 <ReturnType>%String</ReturnType>
 <ReturnTypeParams>MAXLEN=10000</ReturnTypeParams>
 <Implementation><![CDATA[
 	set extendedKeywords = 
-		RecipeName_";"_Description_";"_Ingredients
+		Keywords_";"_RecipeName_";"_Description_";"_Ingredients
 		_";"_RecipeInstructions_";"_AdditionalData
-		
+	
 	set extendedKeywordsList = ##class(RecipeSearch.RecipeAnalyze.StringAnalyzer).GetEntitiesInText(extendedKeywords)
 	set length = $LISTLENGTH(extendedKeywordsList)
 	set extendedKeywords = ""
@@ -1392,13 +1353,22 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			continue
 		}
 		
+		if (ExtendedKeywordsUseFilter) && ($GET(^allDict(word)) '= 1) {
+			continue
+		}
+		
+		set count = 1
 		for j=i+1:1:length{
 			if $LIST(extendedKeywordsList, j) = word{
 				set $LIST(extendedKeywordsList, j) = ""
+				set count = count + 1
 			}
 		}
 		
-		set extendedKeywords = extendedKeywords_" "_word	
+		if count >= ExtendedKeywordsMinWordCount {
+			set extendedKeywords = extendedKeywords_" "_word
+			
+		}	
 	}
 	
 	return extendedKeywords
@@ -3462,7 +3432,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63681,81044.462611</TimeChanged>
+<TimeChanged>63983,72970.604096</TimeChanged>
 <TimeCreated>63681,75479.498522</TimeCreated>
 
 <Method name="LoadSpellcheckDictionaryFromFile">
@@ -3516,12 +3486,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <FormalSpec>keywords:%String,ingredients:%String,instructions:%String,name:%String,additionalData:%String,description:%String</FormalSpec>
 <Implementation><![CDATA[
 	    
-	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(keywords)	           
-	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(ingredients)	          
-	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(instructions)	    	      
+	 //do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(keywords)	           
+	 //do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(ingredients)	          
+	 //do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(instructions)	    	      
 	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(name)        
-	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(additionalData)	    	      
-	 do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(description)
+	 //do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(additionalData)	    	      
+	 //do ##class(RecipeSearch.Spellcheck.SpellcheckDictionaryCreator).AddDataFromText(description)
 ]]></Implementation>
 </Method>
 
@@ -3738,4 +3708,47 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 ]]></Implementation>
 </Method>
 </Class>
+
+
+<Project name="RecipesSearch" LastModified="2016-03-06 20:16:11.886525">
+  <Items>
+    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.Config" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.CrawlingHistoryItem" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.RecipeData.NearestResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.RecipeData.RecipeCluster" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.RecipeData.WordsTF" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.SearchSettings" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.SitePage" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.SiteToCrawl" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.TfIdfConfig" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.Utils.Seed" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Logging.LogRecord" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Builder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.Default" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredMax" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredOrdinary" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredSmooth" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.OkapiBM25" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.StringAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Builder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.Default" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.FilteredDouble05" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.FilteredLog" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.OkapiBM25" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfIdfBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.PredicateBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.RESTBroker" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.DefaultOnlineTfIdfBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResultItem" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SitePageResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
+  </Items>
+</Project>
 </Export>
