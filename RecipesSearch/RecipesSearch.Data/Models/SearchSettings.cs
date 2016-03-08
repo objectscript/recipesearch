@@ -31,5 +31,9 @@ namespace RecipesSearch.Data.Models
         public string OnlineTfIdfBuilderName { get; set; }
 
         public int OnlineTfIdfSimilarResultsCount { get; set; }
+
+        public bool SeparateClustersOnGraphView { get; set; }
+
+        public bool OnlySearchResultsWhenUsingClusters { get; set; }
     }
 }

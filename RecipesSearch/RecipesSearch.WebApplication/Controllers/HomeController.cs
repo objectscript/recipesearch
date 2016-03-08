@@ -88,7 +88,14 @@ namespace RecipesSearch.WebApplication.Controllers
                     .ToList();               
             }
 
-            return Json(new { Recipes = results, UseClusters = searchSettings.UseClusters }, JsonRequestBehavior.AllowGet);
+            return Json(
+                new
+                {
+                    Recipes = results,
+                    UseClusters = searchSettings.UseClusters,
+                    SeparateClusters = searchSettings.SeparateClustersOnGraphView
+                }, 
+                JsonRequestBehavior.AllowGet);
         }
 
         [Compress]

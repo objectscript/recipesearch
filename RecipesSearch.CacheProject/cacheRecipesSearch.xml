@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-03-06 20:03:40">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-03-08 16:00:54">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -1025,7 +1025,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SearchSettings">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63983,69888.116939</TimeChanged>
+<TimeChanged>63985,56023.398394</TimeChanged>
 <TimeCreated>63610,79681.607063</TimeCreated>
 
 <Property name="ResultsOnPage">
@@ -1069,6 +1069,16 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Property>
 
 <Property name="SkipIrrelevantResults">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="SeparateClustersOnGraphView">
+<Type>%Boolean</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="OnlySearchResultsWhenUsingClusters">
 <Type>%Boolean</Type>
 <Required>1</Required>
 </Property>
@@ -1147,6 +1157,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 </Value>
 <Value name="14">
 <Value>FilterSearchQuery</Value>
+</Value>
+<Value name="15">
+<Value>SeparateClustersOnGraphView</Value>
+</Value>
+<Value name="16">
+<Value>OnlySearchResultsWhenUsingClusters</Value>
 </Value>
 </Data>
 </Storage>
@@ -1730,7 +1746,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63983,71182.272019</TimeChanged>
+<TimeChanged>63985,56085.41639</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1793,10 +1809,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 			UseClusters,
 			SkipIrrelevantResults,
 			FilterSearchQuery,
+			SeparateClustersOnGraphView,
+			OnlySearchResultsWhenUsingClusters,
 			IsActive,
 			CreatedDate,
 			ModifiedDate) 
-		VALUES(1, 25, 50, 10, 1, 1, 0, 200, 'DefaultOnlineTfIdfBuilder', 10, 0, 0, 0, 1, GETUTCDATE(), GETUTCDATE());
+		VALUES(1, 25, 50, 10, 1, 1, 0, 200, 'DefaultOnlineTfIdfBuilder', 10, 0, 0, 0, 1, 0, 1, GETUTCDATE(), GETUTCDATE());
 	END
 	
 	// Seed tfIdf config
@@ -2829,7 +2847,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.RESTBroker">
 <Super>%CSP.REST</Super>
-<TimeChanged>63983,70066.421742</TimeChanged>
+<TimeChanged>63985,56635.478665</TimeChanged>
 <TimeCreated>63584,64787.957361</TimeCreated>
 
 <XData name="UrlMap">
@@ -2854,9 +2872,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	
 	set onlineTfIdf = %request.Get("onlineTfIdf", 0)
 	set useClusters = %request.Get("useClusters", 0)
+	set onlySearchResultsWhenUsingClusters = %request.Get("onlySearchResultsWhenUsingClusters", 0)
 	set skipIrrelevantResults = %request.Get("skipIrrelevantResults", 0)
 	set filterSearchQuery = %request.Get("filterSearchQuery", 0)
 	set maxIdfRecipesCount = %request.Get("maxIdfRecipesCount", 200)
+	
 	set onlineTfIdfBuilderName = %request.Get("onlineTfIdfBuilderName", "DefaultOnlineTfIdfBuilder")
 	
 	try {
@@ -2868,6 +2888,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     	pageSize,
     	onlineTfIdf,
     	useClusters,
+    	onlySearchResultsWhenUsingClusters,
     	skipIrrelevantResults,
     	maxIdfRecipesCount,
     	onlineTfIdfBuilderName)
@@ -2986,12 +3007,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchEngine">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63983,69695.853009</TimeChanged>
+<TimeChanged>63985,56723.565695</TimeChanged>
 <TimeCreated>63598,70157.596857</TimeCreated>
 
 <Method name="SearchPages">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer,onlineTfIdf:%Boolean,useClusters:%Boolean,skipIrrelevantResults:%Boolean,maxIdfRecipesCount:%Integer,onlineTfIdfBuilderName:%String</FormalSpec>
+<FormalSpec>query:%String,spellcheck:%Boolean,exactMatch:%Boolean,pageNumber:%Integer,pageSize:%Integer,onlineTfIdf:%Boolean,useClusters:%Boolean,onlySearchResultsWhenUsingClusters:%Boolean,skipIrrelevantResults:%Boolean,maxIdfRecipesCount:%Integer,onlineTfIdfBuilderName:%String</FormalSpec>
 <Implementation><![CDATA[
 	if spellcheck {
 		set spellcheckedQuery = ##class(RecipeSearch.Spellcheck.Spellchecker).SpellcheckText(query)
@@ -3041,6 +3062,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
     	pageSize,
     	onlineTfIdf,
     	useClusters,
+    	onlySearchResultsWhenUsingClusters,
     	maxIdfRecipesCount,
     	onlineTfIdfBuilderName)           
 	
@@ -3056,7 +3078,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.SearchAPI.Search.SearchResult">
 <Super>%RegisteredObject</Super>
-<TimeChanged>63983,56568.054581</TimeChanged>
+<TimeChanged>63985,56788.138622</TimeChanged>
 <TimeCreated>63627,74813.171587</TimeCreated>
 
 <Property name="Items">
@@ -3078,7 +3100,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Method name="PopulateFromResultSet">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>result:%Library.ResultSet,pageNumber:%Integer,pageSize:%Integer,onlineTfIdf:%Boolean,useClusters:%Boolean,maxIdfRecipesCount:%Integer,onlineTfIdfBuilderName:%String</FormalSpec>
+<FormalSpec>result:%Library.ResultSet,pageNumber:%Integer,pageSize:%Integer,onlineTfIdf:%Boolean,useClusters:%Boolean,onlySearchResultsWhenUsingClusters:%Boolean,maxIdfRecipesCount:%Integer,onlineTfIdfBuilderName:%String</FormalSpec>
 <ReturnType>%Library.ResultSet</ReturnType>
 <Implementation><![CDATA[
 	// TODO: make it more performant
@@ -3118,7 +3140,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 		for i=1:1:searchResults.Items.Count() {		
 			set searchResultItem = searchResults.Items.GetAt(i)
 			set id = searchResultItem.Result.ID
-	        set searchResultItem.SimilarResults = ##class(RecipeSearch.SearchAPI.Search.SearchResult).GetClusters(id)
+			
+			if 'onlySearchResultsWhenUsingClusters {
+				set searchResultItem.SimilarResults = ##class(RecipeSearch.SearchAPI.Search.SearchResult).GetClusters(id)
+			} else{
+				set searchResultItem.SimilarResults = ##class(%ListOfObjects).%New()
+			}	        
 		}
 	}	
 	elseif onlineTfIdf {

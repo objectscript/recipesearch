@@ -53,6 +53,12 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Show clusters instead of similar results")]
         public bool UseClusters { get; set; }
 
+        [Display(Name = "Separate clusters on graph view")]
+        public bool SeparateClustersOnGraphView { get; set; }
+
+        [Display(Name = "Display only search results for clusters")]
+        public bool OnlySearchResultsWhenUsingClusters { get; set; }
+
         [Required(ErrorMessage = "Field is required")]
         [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
         [Display(Name = "Count of recipes to compute TF/IDF")]
@@ -86,7 +92,9 @@ namespace RecipesSearch.WebApplication.ViewModels
                 OnlineTfIdfSimilarResultsCount = viewModel.OnlineTfIdfSimilarResultsCount,
                 UseClusters = viewModel.UseClusters,
                 SkipIrrelevantResults = viewModel.SkipIrrelevantResults,
-                FilterSearchQuery = viewModel.FilterSearchQuery
+                FilterSearchQuery = viewModel.FilterSearchQuery,
+                SeparateClustersOnGraphView = viewModel.SeparateClustersOnGraphView,
+                OnlySearchResultsWhenUsingClusters = viewModel.OnlySearchResultsWhenUsingClusters
             };
         }
 
@@ -108,7 +116,9 @@ namespace RecipesSearch.WebApplication.ViewModels
                 OnlineTfIdfSimilarResultsCount = entity.OnlineTfIdfSimilarResultsCount,
                 UseClusters = entity.UseClusters,
                 SkipIrrelevantResults = entity.SkipIrrelevantResults,
-                FilterSearchQuery = entity.FilterSearchQuery
+                FilterSearchQuery = entity.FilterSearchQuery,
+                SeparateClustersOnGraphView = entity.SeparateClustersOnGraphView,
+                OnlySearchResultsWhenUsingClusters = entity.OnlySearchResultsWhenUsingClusters
             };
         }
     }

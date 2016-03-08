@@ -130,7 +130,7 @@
             }).done(function (response) {
                 self._recipes = response.Recipes;
                 self._useClusters = response.UseClusters;
-                self._separateClusters = true;
+                self._separateClusters = response.SeparateClusters;
                 callback();
             });
         },
@@ -155,10 +155,14 @@
             var edges = new vis.DataSet();
             var clusterLeads = {};
 
+            // Create nodes for primary recipes
             for (var i = 0; i < this._recipes.length; ++i) {
                 var node = ensureRecipeAdded(this._recipes[i], true);
 
+                // If we are using clustering we may need to designate a recipe as a clusters leader
                 if (this._useClusters) {
+
+                    // Do not add recipe more than 1
                     var nodeFound = false;
                     for (var key in clusterLeads) {
                         if (clusterLeads[key] === node) {
@@ -180,6 +184,7 @@
                 }
             }
 
+            // Add edges between primary and similar results
             for (var i = 0; i < this._recipes.length; ++i) {
                 var recipe = this._recipes[i];
 
@@ -198,6 +203,7 @@
                 }
             }
 
+            // If we are using clustering we need to add edeges between primary results if they are belong to the same cluster
             if (this._useClusters) {
                 for (var i = 0; i < this._recipes.length; ++i) {
                     for (var j = i + 1; j < this._recipes.length; ++j) {
@@ -212,6 +218,7 @@
                 }
             }
 
+            // Find recipe with max edges count to focus by default
             var maxEdgeCount = -1;
             var maxEdgeCountRecipeId = -1;
 
@@ -232,13 +239,14 @@
                 }
             }
 
+            // Place clusters lead on fixed positions
             if (this._useClusters && this._separateClusters) {
                 var clustersLeadsArray = [];
 
                 for (var key in clusterLeads) {
                     clustersLeadsArray.push(clusterLeads[key]);
                 }
-
+                this._shuffleClusterLeads(clustersLeadsArray);
                 var d = 360 / clustersLeadsArray.length * Math.PI / 180;
 
                 var x = 0, y = clustersLeadsArray.length * 100;
@@ -304,6 +312,15 @@
             }
         },
 
+        _shuffleClusterLeads: function (leads) {
+            for (var i = leads.length - 1; i >= 1; --i) {
+                var j = Math.floor(Math.random() * i);
+                var t = leads[i];
+                leads[i] = leads[j];
+                leads[j] = t;
+            }
+        },
+
         _createClustersInfo: function () {
             var clustersMap = {};
             var distinctClusterIds = [];
@@ -313,10 +330,17 @@
                 for (var j = 0; j < clusters.length; ++j) {
                     var clusterId = clusters[j];
 
+                    // Exclude clusters with only one result
                     if (!clustersMap[clusterId]) {
 
-                        for (var k = 0; k < this._recipes[i].SimilarResults.length; ++k) {
-                            var similarRecipe = this._recipes[i].SimilarResults[k];
+                        var recipesToCheck = this._recipes[i].SimilarResults.concat(this._recipes);
+
+                        for (var k = 0; k < recipesToCheck.length; ++k) {
+                            var similarRecipe = recipesToCheck[k];
+
+                            if (similarRecipe.Id === this._recipes[i].Id) {
+                                continue;
+                            }
 
                             var hasCluster = similarRecipe.ClusterIds.some(function (similarClusterId) {
                                 return +similarClusterId === +clusterId;
@@ -328,7 +352,6 @@
                                 break;
                             }
                         }
-
                     }
                 }
             }

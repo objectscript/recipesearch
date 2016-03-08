@@ -20,6 +20,7 @@ namespace RecipesSearch.CacheService.Services
             bool exactMatch, 
             bool onlineTfIdf,
             bool useClusters,
+            bool onlySearchResultsWhenUsingClusters,
             bool skipIrrelevantResults,
             bool filterSearchQuery,
             int maxIdfRecipesCount,
@@ -40,7 +41,8 @@ namespace RecipesSearch.CacheService.Services
                 {"onlineTfIdfBuilderName", onlineTfIdfBuilderName},
                 {"useClusters", (useClusters ? 1 : 0).ToString()},
                 {"skipIrrelevantResults", (skipIrrelevantResults ? 1 : 0).ToString()},
-                {"filterSearchQuery", (filterSearchQuery ? 1 : 0).ToString()}
+                {"filterSearchQuery", (filterSearchQuery ? 1 : 0).ToString()},
+                {"onlySearchResultsWhenUsingClusters", (onlySearchResultsWhenUsingClusters ? 1 : 0).ToString()}
             };
 
             var respose = RestHelper.MakeRequest<SearchResponse>(url, RestHelper.HttpVerb.GET, parameters, null);
