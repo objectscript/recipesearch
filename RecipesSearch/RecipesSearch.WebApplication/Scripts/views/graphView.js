@@ -95,9 +95,9 @@
 
                 if (self._useClusters && self._separateClusters) {
                     graphOptions.physics.barnesHut.centralGravity = 0;
-                    graphOptions.physics.barnesHut.springConstant = 1;
-                    graphOptions.physics.barnesHut.avoidOverlap = 1;
-                    graphOptions.physics.stabilization.iterations = 1000;
+                    graphOptions.physics.barnesHut.springConstant = 0.5;
+                    graphOptions.physics.barnesHut.avoidOverlap = 0.9;
+                    graphOptions.physics.stabilization.iterations = 700;
                 }
 
                 self._prepareGraphData();
