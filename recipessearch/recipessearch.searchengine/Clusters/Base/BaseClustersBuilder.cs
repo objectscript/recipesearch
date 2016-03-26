@@ -115,6 +115,80 @@ namespace RecipesSearch.SearchEngine.Clusters.Base
             return null;
         }
 
+        protected GraphInfo BuildGraphInfo(List<NearestResult> results)
+        {
+            var graphInfo = new GraphInfo();
+
+            var edges = GetEdges(results);
+
+            graphInfo.Edges = edges;
+            graphInfo.IdToSurrogateIdMap = new Dictionary<int, int>();
+            graphInfo.SurrogateIdToIdMap = new Dictionary<int, int>();
+            graphInfo.RecipesCount = 0;
+            for (int i = 0; i < edges.Length; i++)
+            {
+                if (!graphInfo.IdToSurrogateIdMap.ContainsKey(edges[i].FromId))
+                {
+                    int surrogateId = graphInfo.RecipesCount++;
+                    edges[i].FromSurrogateId = surrogateId;
+                    graphInfo.IdToSurrogateIdMap[edges[i].FromId] = surrogateId;
+                    graphInfo.SurrogateIdToIdMap[surrogateId] = edges[i].FromId;
+                }
+                else
+                {
+                    edges[i].FromSurrogateId = graphInfo.IdToSurrogateIdMap[edges[i].FromId];
+                }
+
+                if (!graphInfo.IdToSurrogateIdMap.ContainsKey(edges[i].ToId))
+                {
+                    int surrogateId = graphInfo.RecipesCount++;
+                    edges[i].ToSurrogateId = surrogateId;
+                    graphInfo.IdToSurrogateIdMap[edges[i].ToId] = surrogateId;
+                    graphInfo.SurrogateIdToIdMap[surrogateId] = edges[i].ToId;
+                }
+                else
+                {
+                    edges[i].ToSurrogateId = graphInfo.IdToSurrogateIdMap[edges[i].ToId];
+                }
+            }
+
+            graphInfo.Graph = new List<Tuple<int, double>>[graphInfo.RecipesCount];
+            graphInfo.Clusters = new List<int>[graphInfo.RecipesCount];
+            for (int i = 0; i < graphInfo.RecipesCount; ++i)
+            {
+                graphInfo.Graph[i] = new List<Tuple<int, double>>();
+                graphInfo.Clusters[i] = new List<int>();
+            }
+
+            return graphInfo;
+        }
+
+        protected void SaveResults(GraphInfo graphInfo)
+        {
+            using (var similarResults = new SimilarResultsAdapter())
+            {
+                for (int i = 0; i < graphInfo.RecipesCount; ++i)
+                {
+                    similarResults.UpdateClusterId(graphInfo.SurrogateIdToIdMap[i], graphInfo.Clusters[i]);
+                }
+            }
+        }
+
+        protected class GraphInfo
+        {
+            public Dictionary<int, int> IdToSurrogateIdMap { get; set; }
+
+            public Dictionary<int, int> SurrogateIdToIdMap { get; set; }
+
+            public List<Tuple<int, double>>[] Graph { get; set; }
+
+            public List<int>[] Clusters { get; set; }
+
+            public int RecipesCount { get; set; }
+
+            public Edge[] Edges { get; set; }
+        }
+
         protected struct Edge : IComparable
         {
             public int FromId;

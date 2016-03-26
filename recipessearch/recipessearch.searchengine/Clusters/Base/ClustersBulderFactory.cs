@@ -6,14 +6,19 @@ namespace RecipesSearch.SearchEngine.Clusters.Base
     {
         public static BaseClustersBuilder GetBuilder(ClusterBuilders builder)
         {
-            if(builder == ClusterBuilders.PageRank)
+            if(builder == ClusterBuilders.SpanningTree2)
             {
-                return PageRankBuilder.GetInstance();
+                return SpanningTreeBuilder2.GetInstance();
             }
 
             if(builder == ClusterBuilders.SpanningTree)
             {
                 return SpanningTreeBuilder.GetInstance();
+            }
+
+            if (builder == ClusterBuilders.PageRank)
+            {
+                return PageRankBuilder.GetInstance();
             }
 
             return null;
@@ -24,7 +29,8 @@ namespace RecipesSearch.SearchEngine.Clusters.Base
             return new List<ClusterBuilders>
             {
                 ClusterBuilders.SpanningTree,
-                ClusterBuilders.PageRank
+                ClusterBuilders.PageRank,
+                ClusterBuilders.SpanningTree2
             };
         }
     }

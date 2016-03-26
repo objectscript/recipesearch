@@ -33,67 +33,30 @@ namespace RecipesSearch.SearchEngine.Clusters
         protected override void ComputeClusters(List<NearestResult> results, TfIdfConfig config)
         {
             var threshold = GetSetting<int>(config, "threshold") ?? 0;
-            var edges = GetEdges(results);
 
-            Dictionary<int, int> idToSurrogateIdMap = new Dictionary<int, int>();
-            Dictionary<int, int> surrogateIdToIdMap = new Dictionary<int, int>();
-            int recipesCount = 0;
-            for (int i = 0; i < edges.Length; i++)
-            {
-                if (!idToSurrogateIdMap.ContainsKey(edges[i].FromId))
-                {
-                    int surrogateId = recipesCount++;
-                    edges[i].FromSurrogateId = surrogateId;
-                    idToSurrogateIdMap[edges[i].FromId] = surrogateId;
-                    surrogateIdToIdMap[surrogateId] = edges[i].FromId;
-                }
-                else
-                {
-                    edges[i].FromSurrogateId = idToSurrogateIdMap[edges[i].FromId];
-                }
+            var graphInfo = BuildGraphInfo(results);
 
-                if (!idToSurrogateIdMap.ContainsKey(edges[i].ToId))
-                {
-                    int surrogateId = recipesCount++;
-                    edges[i].ToSurrogateId = surrogateId;
-                    idToSurrogateIdMap[edges[i].ToId] = surrogateId;
-                    surrogateIdToIdMap[surrogateId] = edges[i].ToId;
-                }
-                else
-                {
-                    edges[i].ToSurrogateId = idToSurrogateIdMap[edges[i].ToId];
-                }
-            }
+            int[] edgesCount = new int[graphInfo.RecipesCount];
 
-            List<Tuple<int, double>>[] graph = new List<Tuple<int, double>>[recipesCount];
-            List<int>[] clusters = new List<int>[recipesCount];
-            for (int i = 0; i < recipesCount; ++i)
-            {
-                graph[i] = new List<Tuple<int, double>>();
-                clusters[i] = new List<int>();
-            }
+            Array.Sort(graphInfo.Edges, (IComparer)null);
 
-            int[] edgesCount = new int[recipesCount];
-
-            Array.Sort(edges, (IComparer)null);
-
-            _parents = new int[recipesCount];
-            _ranks = new int[recipesCount];
-            for (int i = 0; i < recipesCount; ++i)
+            _parents = new int[graphInfo.RecipesCount];
+            _ranks = new int[graphInfo.RecipesCount];
+            for (int i = 0; i < graphInfo.RecipesCount; ++i)
             {
                 MakeSet(i);
             }
 
             List<Edge> minTreeEdges = new List<Edge>();
 
-            for (int i = 0; i < edges.Length; ++i)
+            for (int i = 0; i < graphInfo.Edges.Length; ++i)
             {
-                int a = edges[i].FromSurrogateId;
-                int b = edges[i].ToSurrogateId;
+                int a = graphInfo.Edges[i].FromSurrogateId;
+                int b = graphInfo.Edges[i].ToSurrogateId;
 
                 if (FindSet(a) != FindSet(b))
                 {
-                    minTreeEdges.Add(edges[i]);
+                    minTreeEdges.Add(graphInfo.Edges[i]);
                     UnionSets(a, b);
                 }
             }
@@ -105,24 +68,18 @@ namespace RecipesSearch.SearchEngine.Clusters
                 double weight = minTreeEdges[i].Weight;
                 if(minTreeEdges[i].Weight <= threshold)
                 {
-                    graph[from].Add(new Tuple<int, double>(to, weight));
-                    graph[to].Add(new Tuple<int, double>(from, weight));
+                    graphInfo.Graph[from].Add(new Tuple<int, double>(to, weight));
+                    graphInfo.Graph[to].Add(new Tuple<int, double>(from, weight));
                 }
             }
 
             int clusterId = 1;
-            for (int i = 0; i < recipesCount; ++i)
+            for (int i = 0; i < graphInfo.RecipesCount; ++i)
             {
-                Dfs(i, graph, clusters, clusterId++);
+                Dfs(i, graphInfo.Graph, graphInfo.Clusters, clusterId++);
             }
 
-            using (var similarResults = new SimilarResultsAdapter()) 
-            {
-                for (int i = 0; i < recipesCount; ++i)
-                {
-                    similarResults.UpdateClusterId(surrogateIdToIdMap[i], clusters[i]);
-                }
-            }
+            SaveResults(graphInfo);
         } 
 
         private void MakeSet(int v)

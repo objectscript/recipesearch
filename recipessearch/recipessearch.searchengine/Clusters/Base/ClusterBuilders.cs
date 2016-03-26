@@ -3,6 +3,7 @@
     public enum ClusterBuilders
     {
         SpanningTree = 1,
-        PageRank = 2
+        SpanningTree2 = 2,
+        PageRank = 3
     }
 }

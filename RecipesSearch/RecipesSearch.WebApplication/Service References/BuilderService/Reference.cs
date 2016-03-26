@@ -21,7 +21,10 @@ namespace RecipesSearch.WebApplication.BuilderService {
         SpanningTree = 1,
         
         [System.Runtime.Serialization.EnumMemberAttribute()]
-        PageRank = 2,
+        SpanningTree2 = 2,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        PageRank = 3,
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
