@@ -22,9 +22,9 @@ namespace RecipesSearch.SitePagesImporter.Crawler
             IsExternalPageCrawlingEnabled = false;
             IsExternalPageLinksCrawlingEnabled = false;
             IsHttpRequestAutoRedirectsEnabled = true;
-            IsRespectMetaRobotsNoFollowEnabled = true;
-            IsRespectAnchorRelNoFollowEnabled = true;
-            IsRespectRobotsDotTextEnabled = true;
+            IsRespectMetaRobotsNoFollowEnabled = false;
+            IsRespectAnchorRelNoFollowEnabled = false;
+            IsRespectRobotsDotTextEnabled = false;
             IsSendingCookiesEnabled = true;            
             IsUriRecrawlingEnabled = false;
 

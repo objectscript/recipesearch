@@ -88,7 +88,7 @@ namespace RecipesSearch.WebApplication.Controllers
                     .ToList();               
             }
 
-            return Json(
+            var jsonResult = Json(
                 new
                 {
                     Recipes = results,
@@ -96,6 +96,10 @@ namespace RecipesSearch.WebApplication.Controllers
                     SeparateClusters = searchSettings.SeparateClustersOnGraphView
                 }, 
                 JsonRequestBehavior.AllowGet);
+
+            jsonResult.MaxJsonLength = Int32.MaxValue;
+
+            return jsonResult;
         }
 
         [Compress]

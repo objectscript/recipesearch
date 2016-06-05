@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RecipesSearch.Data.Models;
+using System.Web;
 
 namespace RecipesSearch.WebApplication.ViewModels
 {
@@ -46,13 +47,12 @@ namespace RecipesSearch.WebApplication.ViewModels
         public SearchResultItemViewModel(SitePage entity)
         {
             Id = entity.Id;
-            URL = entity.URL;
             Description = entity.Description;
+            URL = entity.URL;
             Ingredients = entity.Ingredients;
             RecipeInstructions = entity.RecipeInstructions;
             AdditionalData = entity.AdditionalData;
             Name = String.IsNullOrEmpty(entity.RecipeName) ? entity.URL : entity.RecipeName;
-            ImageUrl = entity.ImageUrl;
             SiteId = entity.SiteID;
             SimilarRecipeWeight = entity.SimilarRecipeWeight;
             Category = entity.Category;
@@ -65,6 +65,20 @@ namespace RecipesSearch.WebApplication.ViewModels
             }
 
             ClusterIds = entity.ClusterIds.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(clusterId => Int32.Parse(clusterId)).ToList();
+
+            if (!String.IsNullOrEmpty(entity.ImageUrl))
+            {
+                Uri imageUri = new Uri(entity.ImageUrl);
+
+                if (imageUri.Host.Equals("gotovim-doma.ru", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    ImageUrl = String.Format("/proxy?url={0}", HttpUtility.UrlEncode(entity.ImageUrl));
+                }
+                else
+                {
+                    ImageUrl = entity.ImageUrl;
+                }
+            }          
         }
     }
 }

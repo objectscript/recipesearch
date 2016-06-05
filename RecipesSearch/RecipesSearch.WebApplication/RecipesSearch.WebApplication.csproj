@@ -184,6 +184,7 @@
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\Filters\CompressFilter.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ProxyController.cs" />
     <Compile Include="Enums\ResultsViews.cs" />
     <Compile Include="Enums\AdminPages.cs" />
     <Compile Include="Global.asax.cs">

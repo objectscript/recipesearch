@@ -123,8 +123,8 @@ th, b {
 .search-results .results-list .expander {
     float: right;
     margin-top: 2px;
-    font-size: 11px;
-    color: #bbb;
+    font-size: 15px;
+    color: #93c54b;
     text-decoration: underline;
     margin-left: 5px;
 }
