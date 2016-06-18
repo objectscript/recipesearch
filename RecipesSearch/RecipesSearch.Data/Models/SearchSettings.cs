@@ -35,5 +35,9 @@ namespace RecipesSearch.Data.Models
         public bool SeparateClustersOnGraphView { get; set; }
 
         public bool OnlySearchResultsWhenUsingClusters { get; set; }
+
+        public bool UseCache { get; set; }
+
+        public int CacheTimeout { get; set; }
     }
 }

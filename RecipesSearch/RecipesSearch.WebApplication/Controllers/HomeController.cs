@@ -10,6 +10,8 @@ using RecipesSearch.SearchEngine.Suggestion;
 using RecipesSearch.WebApplication.Controllers.Filters;
 using RecipesSearch.WebApplication.Enums;
 using RecipesSearch.WebApplication.ViewModels;
+using RecipesSearch.BusinessServices.Logging;
+using Newtonsoft.Json;
 
 namespace RecipesSearch.WebApplication.Controllers
 {
@@ -65,7 +67,7 @@ namespace RecipesSearch.WebApplication.Controllers
             return Json(items, JsonRequestBehavior.AllowGet);
         }
 
-        [Compress]
+        // [Compress]
         public ActionResult GetGraphData(string query, bool exactMatch)
         {
             var searchSettings = _searchSettingsRepository.GetSearchSettings();
@@ -82,24 +84,23 @@ namespace RecipesSearch.WebApplication.Controllers
                 int totalCount;
                 string spellcheckedQuery;
 
-                results = _searchProvider
-                    .SearchByQuery(query, 1, searchSettings.ResultsForGraphView, exactMatch, searchSettings, out totalCount, out spellcheckedQuery)
-                    .Select(result => new SearchResultItemViewModel(result))
-                    .ToList();               
+               List<SitePage> sitePages = LoggerWrapper.LogActionTime(
+                   () => _searchProvider.SearchByQuery(query, 1, searchSettings.ResultsForGraphView, exactMatch, searchSettings, out totalCount, out spellcheckedQuery),
+                    "Getting results from cache");
+
+                results = LoggerWrapper.LogActionTime(
+                    () => sitePages.Select(result => new SearchResultItemViewModel(result)).ToList(),
+                    "Creating view model");               
             }
 
-            var jsonResult = Json(
-                new
-                {
-                    Recipes = results,
-                    UseClusters = searchSettings.UseClusters,
-                    SeparateClusters = searchSettings.SeparateClustersOnGraphView
-                }, 
-                JsonRequestBehavior.AllowGet);
+            string json = LoggerWrapper.LogActionTime(() => JsonConvert.SerializeObject(new
+            {
+                Recipes = results,
+                UseClusters = searchSettings.UseClusters,
+                SeparateClusters = searchSettings.SeparateClustersOnGraphView
+            }), "Serializing using NewtonsoftJson");
 
-            jsonResult.MaxJsonLength = Int32.MaxValue;
-
-            return jsonResult;
+            return Content(json, "application/json");
         }
 
         [Compress]

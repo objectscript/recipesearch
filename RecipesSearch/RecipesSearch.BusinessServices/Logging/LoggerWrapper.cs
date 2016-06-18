@@ -2,6 +2,7 @@
 using NLog;
 using RecipesSearch.DAL.Cache.Adapters.Base;
 using RecipesSearch.Data.Models.Logging;
+using System.Diagnostics;
 
 namespace RecipesSearch.BusinessServices.Logging
 {
@@ -32,6 +33,32 @@ namespace RecipesSearch.BusinessServices.Logging
         {
             LogCacheRecord(info, null, LogRecordType.CrawlerInfo);
             _logger.Trace(info);
+        }
+
+        public static void LogActionTime(Action action, string actionName)
+        {
+            _logger.Trace(String.Format("{0}. Start.", actionName));
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            action();
+
+            sw.Stop();
+            _logger.Trace(String.Format("{0}. End. Elapsed milliseconds: {1}", actionName, sw.ElapsedMilliseconds));
+        }
+
+        public static T LogActionTime<T>(Func<T> action, string actionName)
+        {
+            _logger.Trace(String.Format("{0}. Start.", actionName));
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            T result = action();
+
+            sw.Stop();
+            _logger.Trace(String.Format("{0}. End. Elapsed milliseconds: {1}", actionName, sw.ElapsedMilliseconds));
+
+            return result;
         }
 
         private static void LogCacheRecord(string description, Exception exception, LogRecordType type)

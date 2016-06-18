@@ -5,6 +5,7 @@ using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.CacheService.Services;
 using RecipesSearch.Data.Models;
 using RecipesSearch.SearchEngine.SimilarResults;
+using System.Runtime.Caching;
 
 namespace RecipesSearch.SearchEngine.Search
 {
@@ -21,6 +22,36 @@ namespace RecipesSearch.SearchEngine.Search
             out int totalCount, 
             out string spellcheckQuery)
         {
+            ObjectCache cache = MemoryCache.Default;
+            string cacheKey = String.Format("{0}###{1}###{2}###{3}###{4}###{5}#{6}#{7}#{8}#{9}#{10}#{11}#{12}#{13}",
+                query,
+                pageNumber,
+                pageSize,
+                exactMatch,
+                searchSettings.OnlineTfIdfEnabled,
+                searchSettings.UseClusters,
+                searchSettings.OnlySearchResultsWhenUsingClusters,
+                searchSettings.SkipIrrelevantResults,
+                searchSettings.FilterSearchQuery,
+                searchSettings.MaxOnlineIdfRecipesCount,
+                searchSettings.OnlineTfIdfBuilderName,
+                searchSettings.OnlineTfIdfEnabled,
+                searchSettings.EnableSpellchecking,
+                searchSettings.OnlineTfIdfSimilarResultsCount);
+
+            if (searchSettings.UseCache)
+            {
+                CachedResult cachedResult = cache[cacheKey] as CachedResult;
+
+                if (cachedResult != null)
+                {
+                    totalCount = cachedResult.TotalCount;
+                    spellcheckQuery = cachedResult.SpellcheckedQuery;
+
+                    return cachedResult.SitePages;
+                }
+            }
+
             try
             {
                 var searchResults = _searchService.SearchByQuery(
@@ -66,6 +97,21 @@ namespace RecipesSearch.SearchEngine.Search
                     searchResults = resultsToUpdate;
                 }
 
+                if (searchSettings.UseCache)
+                {
+                    CacheItemPolicy policy = new CacheItemPolicy
+                    {
+                        AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(searchSettings.CacheTimeout)
+                    };
+
+                    cache.Add(new CacheItem(cacheKey, new CachedResult
+                    {
+                        TotalCount = totalCount,
+                        SpellcheckedQuery = spellcheckQuery,
+                        SitePages = searchResults
+                    }), policy);
+                }
+                
                 return searchResults;
             }
             catch (Exception exception)
@@ -99,6 +145,15 @@ namespace RecipesSearch.SearchEngine.Search
                 RecipeName = page.RecipeName,
                 URL = page.URL
             };
+        }
+
+        private class CachedResult
+        {
+            public List<SitePage> SitePages { get; set; }
+
+            public int TotalCount { get; set; }
+
+            public string SpellcheckedQuery { get; set; }
         }
     }
 }

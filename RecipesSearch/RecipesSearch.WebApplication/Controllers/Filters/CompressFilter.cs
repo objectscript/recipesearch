@@ -26,12 +26,12 @@ namespace RecipesSearch.WebApplication.Controllers.Filters
             if (acceptEncoding.Contains("GZIP"))
             {
                 response.AppendHeader("Content-encoding", "gzip");
-                response.Filter = new GZipStream(response.Filter, CompressionLevel.Optimal);
+                response.Filter = new GZipStream(response.Filter, CompressionLevel.Fastest);
             }
             else if (acceptEncoding.Contains("DEFLATE"))
             {
                 response.AppendHeader("Content-encoding", "deflate");
-                response.Filter = new DeflateStream(response.Filter, CompressionLevel.Optimal);
+                response.Filter = new DeflateStream(response.Filter, CompressionLevel.Fastest);
             }
         }
     }

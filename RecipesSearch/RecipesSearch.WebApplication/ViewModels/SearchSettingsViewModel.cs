@@ -73,6 +73,14 @@ namespace RecipesSearch.WebApplication.ViewModels
         [Display(Name = "Online TF/IDF builder to use")]
         public string OnlineTfIdfBuilderName { get; set; }
 
+        [Display(Name = "Cache search results")]
+        public bool UseCache { get; set; }
+
+        [Required(ErrorMessage = "Field is required")]
+        [RegularExpression("([1-9][0-9]*)", ErrorMessage = "Must be a natural number")]
+        [Display(Name = "Cache timeout (in minutes)")]
+        public int CacheTimeout { get; set; }
+
         public List<string> AvailableOnlineTfIdfBuilders { get; set; }
 
         public static SearchSettings GetEntity(SearchSettingsViewModel viewModel)
@@ -94,7 +102,9 @@ namespace RecipesSearch.WebApplication.ViewModels
                 SkipIrrelevantResults = viewModel.SkipIrrelevantResults,
                 FilterSearchQuery = viewModel.FilterSearchQuery,
                 SeparateClustersOnGraphView = viewModel.SeparateClustersOnGraphView,
-                OnlySearchResultsWhenUsingClusters = viewModel.OnlySearchResultsWhenUsingClusters
+                OnlySearchResultsWhenUsingClusters = viewModel.OnlySearchResultsWhenUsingClusters,
+                UseCache = viewModel.UseCache,
+                CacheTimeout = viewModel.CacheTimeout
             };
         }
 
@@ -118,7 +128,9 @@ namespace RecipesSearch.WebApplication.ViewModels
                 SkipIrrelevantResults = entity.SkipIrrelevantResults,
                 FilterSearchQuery = entity.FilterSearchQuery,
                 SeparateClustersOnGraphView = entity.SeparateClustersOnGraphView,
-                OnlySearchResultsWhenUsingClusters = entity.OnlySearchResultsWhenUsingClusters
+                OnlySearchResultsWhenUsingClusters = entity.OnlySearchResultsWhenUsingClusters,
+                UseCache = entity.UseCache,
+                CacheTimeout = entity.CacheTimeout
             };
         }
     }

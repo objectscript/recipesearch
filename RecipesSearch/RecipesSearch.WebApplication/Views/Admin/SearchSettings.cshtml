@@ -104,6 +104,15 @@
                 new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.OnlineTfIdfBuilderName)
             </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.UseCache)
+                @Html.CheckBoxFor(model => model.UseCache)
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.CacheTimeout)
+                @Html.TextBoxFor(model => model.CacheTimeout, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.CacheTimeout)
+            </div>
         </div>
     }
 

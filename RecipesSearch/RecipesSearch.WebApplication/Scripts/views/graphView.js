@@ -256,6 +256,18 @@
                     node.y = y;
 
                     node.fixed = true;
+                    node.borderWidth = 1;
+                    node.font = {
+                        size: 24
+                    }
+                    node.color = {
+                        background: 'rgba(147, 197, 75, 0.75)',
+                        border: '#3080ea',
+                        highlight: {
+                            border: '#3080ea',
+                            background: '#D2E5FF'
+                        }
+                    };
 
                     var x1 = x * Math.cos(d) - y * Math.sin(d);
                     var y1 = x * Math.sin(d) + y * Math.cos(d);
