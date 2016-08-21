@@ -79,19 +79,24 @@ namespace RecipesSearch.SearchEngine.Search
 
                     for (var i = 0; i < resultsToUpdate.Count; ++i)
                     {                      
-                        SimilarResultsBuilder.FindNearest(tfIdfInfo, i, searchSettings.OnlineTfIdfSimilarResultsCount, (id, nearestResults, weights) =>
-                        {
-                            resultsToUpdate[i].SimilarResults = new List<SitePage>();
-
-                            for(var j = 0; j < nearestResults.Count; ++j)
+                        SimilarResultsBuilder.FindNearest(
+                            tfIdfInfo,
+                            i,
+                            searchSettings.OnlineTfIdfSimilarResultsCount,
+                            false,
+                            (id, nearestResults, weights) =>
                             {
-                                var nearestPage = FindAndCopyPage(searchResults, nearestResults[j]);
-                                nearestPage.SimilarRecipeWeight = weights[j];
-                                resultsToUpdate[i].SimilarResults.Add(nearestPage);
-                            }
+                                resultsToUpdate[i].SimilarResults = new List<SitePage>();
 
-                            resultsToUpdate[i].SimilarResults.Reverse();
-                        });
+                                for(var j = 0; j < nearestResults.Count; ++j)
+                                {
+                                    var nearestPage = FindAndCopyPage(searchResults, nearestResults[j]);
+                                    nearestPage.SimilarRecipeWeight = weights[j];
+                                    resultsToUpdate[i].SimilarResults.Add(nearestPage);
+                                }
+
+                                resultsToUpdate[i].SimilarResults.Reverse();
+                            });
                     }
 
                     searchResults = resultsToUpdate;

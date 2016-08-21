@@ -23,7 +23,7 @@ namespace RecipesSearch.ImporterService
         void BuildIdf();
 
         [OperationContract]
-        void BuildSimilarResults(int resultsCount);
+        void BuildSimilarResults(int resultsCount, bool sameCategoryOnly);
 
         [OperationContract]
         void StopSimilarResultsBuild();

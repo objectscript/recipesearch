@@ -2,17 +2,11 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using InterSystems.Data.CacheClient;
 using RecipesSearch.DAL.Cache.Utilities;
 using RecipesSearch.Data.Framework;
-using RecipesSearch.Data.Models;
 using RecipesSearch.Data.Models.Base;
-using RecipesSearch.Data.Views;
 
 namespace RecipesSearch.DAL.Cache.Adapters.Base
 {
@@ -36,6 +30,8 @@ namespace RecipesSearch.DAL.Cache.Adapters.Base
         {
             if (CacheConnection.State == ConnectionState.Closed || CacheConnection.State == ConnectionState.Broken)
             {
+                Dispose();
+
                 CacheConnection = new CacheConnection();
                 OpenConnection();
             }
@@ -91,7 +87,11 @@ namespace RecipesSearch.DAL.Cache.Adapters.Base
 
         public void Dispose()
         {
-            CacheConnection.Close();
+            if(CacheConnection != null && CacheConnection.State != ConnectionState.Closed)
+            {
+                CacheConnection.Close();
+                CacheConnection.Dispose();
+            }       
         }
 
         protected void AddSqlParameters(CacheCommand command, IEnumerable<CacheParameter> parameters)

@@ -31,6 +31,10 @@ namespace RecipesSearch.WebApplication.ViewModels
         public int SimilarResultsCount { get; set; }
 
         [Required(ErrorMessage = "Field is required")]
+        [Display(Name = "Use recipes from the same category only.")]
+        public bool SimilarResultsSameCategoryOnly { get; set; }
+
+        [Required(ErrorMessage = "Field is required")]
         [Display(Name = "Clustering method")]
         public string ClustersBuilder { get; set; }
 
@@ -53,6 +57,7 @@ namespace RecipesSearch.WebApplication.ViewModels
                 LastUsedIdfBuilder = viewModel.LastUsedIdfBuilder,
                 LastUsedTfBuilder = viewModel.LastUsedTfBuilder,
                 SimilarResultsCount = viewModel.SimilarResultsCount,
+                SimilarResultsSameCategoryOnly = viewModel.SimilarResultsSameCategoryOnly,
                 ClustersBuilder = (int)Enum.Parse(typeof(ClusterBuilders), viewModel.ClustersBuilder),
                 ClusteringParameters = viewModel.ClusteringParameters
             };
@@ -74,6 +79,7 @@ namespace RecipesSearch.WebApplication.ViewModels
                 AvailableTfBuilders = availableTfBuilders,
                 AvailableIdfBuilders = availableIdfBuilders,
                 SimilarResultsCount = entity.SimilarResultsCount,
+                SimilarResultsSameCategoryOnly = entity.SimilarResultsSameCategoryOnly,
                 ClustersBuilder = ((ClusterBuilders)entity.ClustersBuilder).ToString(),
                 ClusteringParameters = entity.ClusteringParameters,
                 AvailableClustersBuilders = availableClustersBuilder

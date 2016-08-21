@@ -6,6 +6,8 @@
 
         public int RecipeId { get; set; }
 
+        public string RecipeCategory { get; set; }
+
         public string Word { get; set; }
 
         public double TFIDF { get; set; }

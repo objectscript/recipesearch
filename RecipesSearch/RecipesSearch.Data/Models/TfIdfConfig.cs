@@ -16,6 +16,8 @@ namespace RecipesSearch.Data.Models
 
         public int SimilarResultsCount { get; set; }
 
+        public bool SimilarResultsSameCategoryOnly { get; set; }
+
         public int ClustersBuilder { get; set; }
 
         public string ClusteringParameters { get; set; }

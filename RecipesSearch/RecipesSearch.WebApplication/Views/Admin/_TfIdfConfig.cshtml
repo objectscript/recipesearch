@@ -47,6 +47,10 @@
         @Html.ValidationMessageFor(model => model.SimilarResultsCount)
     </div>
     <div class="form-group">
+        @Html.LabelFor(model => model.SimilarResultsSameCategoryOnly)
+        @Html.CheckBoxFor(model => model.SimilarResultsSameCategoryOnly)
+    </div>
+    <div class="form-group">
         @Html.LabelFor(model => model.ClustersBuilder)
         @Html.DropDownListFor(
             model => model.ClustersBuilder,

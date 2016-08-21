@@ -6,6 +6,8 @@ namespace RecipesSearch.Data.Views
     {
         public int Id { get; set; }
 
+        public string Category { get; set; }
+
         public Dictionary<string, double> WordsTfIdf { get; set; }
     }
 }

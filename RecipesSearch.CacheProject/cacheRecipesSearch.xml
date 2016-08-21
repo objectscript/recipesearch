@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-08-21 14:52:46">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-08-21 17:16:01">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -1187,7 +1187,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.SitePage">
 <Super>%Persistent</Super>
-<TimeChanged>64151,52936.429597</TimeChanged>
+<TimeChanged>64151,61145.99307</TimeChanged>
 <TimeCreated>63581,84906.169887</TimeCreated>
 
 <Property name="URL">
@@ -1483,7 +1483,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Type>%SQLQuery</Type>
 <SqlName>SitePage_GetTFIDF</SqlName>
 <SqlProc>1</SqlProc>
-<SqlQuery>	SELECT ID, RecipeId, Word, TFIDF FROM RecipeSearch_Data_RecipeData.WordsTF</SqlQuery>
+<SqlQuery>	SELECT tf.Id, tf.RecipeId, sp.Category AS RecipeCategory, tf.Word, tf.TFIDF 
+	FROM RecipeSearch_Data_RecipeData.WordsTF tf
+	INNER JOIN RecipeSearch_Data.SitePage sp ON tf.RecipeId = sp.Id</SqlQuery>
 <Parameter name="CONTAINID" value="1"/>
 <Parameter name="SELECTMODE" value="RUNTIME"/>
 </Query>
@@ -1496,11 +1498,17 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 	&sql(DELETE %NOLOCK FROM RecipeSearch_Data_RecipeData.NearestResult WHERE RecipeId = :PageId)
 	
 	set similarResults = $LISTFROMSTRING(NearestResults," ")
+	
 	for i=1:1:$LISTLENGTH(similarResults){
 		set recipeData = $LISTFROMSTRING($LIST(similarResults,i),";")
+		
+		if $LISTLENGTH(recipeData) '= 2 {
+			return
+		}
+		
 		set recipeId = $LIST(recipeData, 1)
 		set recipeWeight = $LIST(recipeData, 2)
-		
+			
 		&sql(INSERT %NOLOCK INTO RecipeSearch_Data_RecipeData.NearestResult
 			(RecipeId, SimilarRecipeId, Order, Weight) 
 			VALUES(:PageId, CAST(:recipeId AS INT), :i, CAST(:recipeWeight AS INT)))
@@ -1708,7 +1716,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.TfIdfConfig">
 <Super>RecipeSearch.Data.Base.Entity</Super>
-<TimeChanged>63969,49617.461711</TimeChanged>
+<TimeChanged>64151,54794.966893</TimeChanged>
 <TimeCreated>63610,79444.886551</TimeCreated>
 
 <Property name="TfBuilderName">
@@ -1731,6 +1739,11 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Property name="SimilarResultsCount">
 <Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="SimilarResultsSameCategoryOnly">
+<Type>%Boolean</Type>
 <Required>1</Required>
 </Property>
 
@@ -1776,6 +1789,9 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 <Value name="11">
 <Value>ClusteringParameters</Value>
 </Value>
+<Value name="12">
+<Value>SimilarResultsSameCategoryOnly</Value>
+</Value>
 </Data>
 </Storage>
 </Class>
@@ -1783,7 +1799,7 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 
 <Class name="RecipeSearch.Data.Utils.Seed">
 <Super>%RegisteredObject</Super>
-<TimeChanged>64087,56668.527107</TimeChanged>
+<TimeChanged>64151,54845.292053</TimeChanged>
 <TimeCreated>63611,44219.144767</TimeCreated>
 
 <Method name="Run">
@@ -1862,11 +1878,12 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 		TfBuilderName, 
 		IdfBuilderName, 
 		SimilarResultsCount, 
+		SimilarResultsSameCategoryOnly,
 		ClustersBuilder, 
 		IsActive, 
 		CreatedDate, 
 		ModifiedDate) 
-		VALUES('Default', 'Default', 10, 1, 1, GETUTCDATE(), GETUTCDATE());
+		VALUES('Default', 'Default', 10, 0, 1, 1, GETUTCDATE(), GETUTCDATE());
 	END
 ]]></Implementation>
 </Method>

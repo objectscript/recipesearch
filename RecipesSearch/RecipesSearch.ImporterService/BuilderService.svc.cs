@@ -42,9 +42,9 @@ namespace RecipesSearch.ImporterService
             _idfBuilder.Build();
         }
 
-        public void BuildSimilarResults(int resultsCount)
+        public void BuildSimilarResults(int resultsCount, bool sameCategoryOnly)
         {
-            _similarResultsBuilder.FindNearestResults(resultsCount);
+            _similarResultsBuilder.FindNearestResults(resultsCount, sameCategoryOnly);
         }
 
         public void StopSimilarResultsBuild()

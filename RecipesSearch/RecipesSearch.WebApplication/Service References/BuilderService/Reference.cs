@@ -330,10 +330,10 @@ namespace RecipesSearch.WebApplication.BuilderService {
         System.Threading.Tasks.Task BuildIdfAsync();
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/BuildSimilarResults", ReplyAction="http://tempuri.org/IBuilderService/BuildSimilarResultsResponse")]
-        void BuildSimilarResults(int resultsCount);
+        void BuildSimilarResults(int resultsCount, bool sameCategoryOnly);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/BuildSimilarResults", ReplyAction="http://tempuri.org/IBuilderService/BuildSimilarResultsResponse")]
-        System.Threading.Tasks.Task BuildSimilarResultsAsync(int resultsCount);
+        System.Threading.Tasks.Task BuildSimilarResultsAsync(int resultsCount, bool sameCategoryOnly);
         
         [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IBuilderService/StopSimilarResultsBuild", ReplyAction="http://tempuri.org/IBuilderService/StopSimilarResultsBuildResponse")]
         void StopSimilarResultsBuild();
@@ -439,12 +439,12 @@ namespace RecipesSearch.WebApplication.BuilderService {
             return base.Channel.BuildIdfAsync();
         }
         
-        public void BuildSimilarResults(int resultsCount) {
-            base.Channel.BuildSimilarResults(resultsCount);
+        public void BuildSimilarResults(int resultsCount, bool sameCategoryOnly) {
+            base.Channel.BuildSimilarResults(resultsCount, sameCategoryOnly);
         }
         
-        public System.Threading.Tasks.Task BuildSimilarResultsAsync(int resultsCount) {
-            return base.Channel.BuildSimilarResultsAsync(resultsCount);
+        public System.Threading.Tasks.Task BuildSimilarResultsAsync(int resultsCount, bool sameCategoryOnly) {
+            return base.Channel.BuildSimilarResultsAsync(resultsCount, sameCategoryOnly);
         }
         
         public void StopSimilarResultsBuild() {

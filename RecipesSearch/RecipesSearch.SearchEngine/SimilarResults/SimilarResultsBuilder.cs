@@ -7,6 +7,7 @@ using RecipesSearch.BusinessServices.Logging;
 using RecipesSearch.DAL.Cache.Adapters;
 using RecipesSearch.Data.Views;
 using Wintellect.PowerCollections;
+using System.Collections.Concurrent;
 
 namespace RecipesSearch.SearchEngine.SimilarResults
 {
@@ -43,7 +44,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             return _instance;
         }
 
-        public Task FindNearestResults(int resultsCount, CancellationTokenSource cancellationTokenSource = null)
+        public Task FindNearestResults(int resultsCount, bool sameCategoryOnly, CancellationTokenSource cancellationTokenSource = null)
         {
             return Task.Factory.StartNew(() =>
             {
@@ -64,7 +65,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
 
                     _updatedPagesCount = 0;
 
-                    GetKNearest(tfIdfInfos, resultsCount);
+                    GetKNearest(tfIdfInfos, resultsCount, sameCategoryOnly);
 
                     UpdateInProgress = false;
 
@@ -104,7 +105,7 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                 .ToList()
                 .ForEach(group =>
                 {
-                    var tfIdfInfo = new TfIdfInfo {Id = group.Key};
+                    var tfIdfInfo = new TfIdfInfo {Id = group.Key, Category = group.First().RecipeCategory };
 
                     tfIdfInfo.WordsTfIdf = group.ToDictionary(
                         sitePageTfIdf => sitePageTfIdf.Word,
@@ -116,20 +117,26 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             return resultsList.ToArray();
         }
 
-        private void GetKNearest(TfIdfInfo[] pages, int k)
+        private void GetKNearest(TfIdfInfo[] pages, int k, bool sameCategoryOnly)
         {           
             var parallelOptions = new ParallelOptions
             {
                 CancellationToken = _cancellationTokenSource.Token
             };
 
-            Parallel.For(0, pages.Length, parallelOptions, i =>
-            {
-                using (var cacheAdapter = new SimilarResultsAdapter())
-                {                  
+            ConcurrentBag<Tuple<int, List<int>, List<int>>> bag = new ConcurrentBag<Tuple<int, List<int>, List<int>>>();
+
+            Parallel.For(0, pages.Length, parallelOptions, 
+                i =>
+                {              
                     try
                     {
-                        FindNearest(pages, i, k, cacheAdapter.UpdateSimilarResults);
+                        FindNearest(
+                            pages, 
+                            i, 
+                            k, 
+                            sameCategoryOnly, 
+                            (int pageId, List<int> results, List<int> weigths) => bag.Add(new Tuple<int, List<int>, List<int>>(pageId, results, weigths)));
                     }
                     catch (Exception exception)
                     {
@@ -137,12 +144,26 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                     }
 
                     Interlocked.Increment(ref _updatedPagesCount);
-                    Percentage = _updatedPagesCount * 1m /pages.Length * 100m;
-                }             
-            });         
+                    Percentage = _updatedPagesCount * 1m /pages.Length * 100m;          
+                });
+           
+            using(SimilarResultsAdapter cacheAdapter = new SimilarResultsAdapter())
+            {
+                foreach(var bagItem in bag)
+                {
+                    try
+                    {
+                        cacheAdapter.UpdateSimilarResults(bagItem.Item1, bagItem.Item2, bagItem.Item3);
+                    }
+                    catch (Exception exception)
+                    {
+                        LoggerWrapper.LogError(String.Format("SimilarResultsBuilder.UpdateSimilarResults for id = {0} failed", bagItem.Item1), exception);
+                    }
+                }
+            }    
         }
 
-        public static void FindNearest(TfIdfInfo[] pages, int idx, int countToFind, Action<int, List<int>, List<int>> callback)
+        public static void FindNearest(TfIdfInfo[] pages, int idx, int countToFind, bool sameCategoryOnly, Action<int, List<int>, List<int>> callback)
         {
             var dists = new OrderedBag<Tuple<double, int>>();
             double maxDist = double.MaxValue;
@@ -152,6 +173,11 @@ namespace RecipesSearch.SearchEngine.SimilarResults
             for (int j = 0; j < pages.Length; ++j)
             {
                 if (idx == j)
+                {
+                    continue;
+                }
+
+                if(sameCategoryOnly && pages[j].Category != pages[idx].Category)
                 {
                     continue;
                 }

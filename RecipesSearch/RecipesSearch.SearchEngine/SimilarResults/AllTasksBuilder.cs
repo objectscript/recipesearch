@@ -78,7 +78,10 @@ namespace RecipesSearch.SearchEngine.SimilarResults
                         return;
                     }
 
-                    await similarResultsBuilder.FindNearestResults(tfIdfConfig.SimilarResultsCount, _cancellationTokenSource);
+                    await similarResultsBuilder.FindNearestResults(
+                        tfIdfConfig.SimilarResultsCount,
+                        tfIdfConfig.SimilarResultsSameCategoryOnly,
+                        _cancellationTokenSource);
 
                     UpdateInProgress = false;
                 }

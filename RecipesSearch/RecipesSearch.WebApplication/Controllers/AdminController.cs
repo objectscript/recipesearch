@@ -303,7 +303,7 @@ namespace RecipesSearch.WebApplication.Controllers
             var tfIdfConfigRepository = new TfIdfConfigRepository();
             var tfIdfConfig = tfIdfConfigRepository.GetConfig();
 
-            _builder.BuildSimilarResults(tfIdfConfig.SimilarResultsCount);
+            _builder.BuildSimilarResults(tfIdfConfig.SimilarResultsCount, tfIdfConfig.SimilarResultsSameCategoryOnly);
 
             return RedirectToAction("Tasks");
         }
