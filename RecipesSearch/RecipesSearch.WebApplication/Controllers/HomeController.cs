@@ -51,6 +51,7 @@ namespace RecipesSearch.WebApplication.Controllers
                     SpellcheckedQuery = spellcheckedQuery,
                     ExactMatch = exactMatch,
                     DefaultResultView = (ResultsViews)searchSettings.DefaultResultsView,
+                    ResultsOnGraphView = searchSettings.ResultsForGraphView,
                     UseClustering = searchSettings.UseClusters
                 };
 

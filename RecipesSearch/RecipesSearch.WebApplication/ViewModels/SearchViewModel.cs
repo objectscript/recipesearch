@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RecipesSearch.Data.Models;
+﻿using System.Collections.Generic;
 using RecipesSearch.WebApplication.Enums;
 
 namespace RecipesSearch.WebApplication.ViewModels
@@ -20,6 +12,8 @@ namespace RecipesSearch.WebApplication.ViewModels
         public int ResultsOnPage { get; set; }
 
         public int CurrentPage { get; set; }
+
+        public int ResultsOnGraphView { get; set; }
 
         public string CurrentQuery { get; set; }
 
