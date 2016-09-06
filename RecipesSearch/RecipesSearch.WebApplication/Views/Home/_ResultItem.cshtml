@@ -11,19 +11,19 @@
     <br /><br />
 }
 
-<b>Ингредиенты:</b><br />
+<b>Ingredients:</b><br />
 @Model.Ingredients
 <br /><br />
 
-<b>Инструкция по приготовлению:</b><br />
+<b>Instruction:</b><br />
 @Model.RecipeInstructions
 
 @if (!String.IsNullOrEmpty(Model.AdditionalData))
 {
     <br /><br />
-    <b>Дополнительная информация:</b><br />
+    <b>Additional:</b><br />
     @Model.AdditionalData
     <br /><br />
 }
 
-<a class="recipe-url" href="@Model.URL" target="_blank">@Model.URL</a>
+<a class="recipe-url" href="@Model.URL" target="_blank">Show in sourceL</a>

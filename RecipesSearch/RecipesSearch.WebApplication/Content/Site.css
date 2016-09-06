@@ -226,6 +226,9 @@ th, b {
 }
 
 /* Graph view*/
+.graph-view-tab .graph-info-icon:hover {
+   color: #1b8dbb;
+}
 #graph.loading {
     width: 100%;
     height: calc(100vh - 172px);

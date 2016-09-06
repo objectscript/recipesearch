@@ -614,18 +614,18 @@
                 elementHtml += '<div class="recipe-item">' + recipe.Description + '</div>';
             }
 
-            elementHtml += '<b>Ингредиенты:</b><br />';
+            elementHtml += '<b>Ingredients:</b><br />';
             elementHtml += '<div class="recipe-item">' + recipe.Ingredients + '</div>';
 
-            elementHtml += '<b>Инструкция по приготовлению:</b><br />';
+            elementHtml += '<b>Instruction:</b><br />';
             elementHtml += '<div class="recipe-item">' + recipe.RecipeInstructions + '</div>';
 
             if (!!recipe.AdditionalData) {
-                elementHtml += '<b>Дополнительная информация:</b><br />';
+                elementHtml += '<b>Additional:</b><br />';
                 elementHtml += '<div class="recipe-item">' + recipe.AdditionalData + '</div>';
             }
 
-            elementHtml += '<a class="recipe-url" target="_blank" href="' + recipe.URL + '">' + recipe.URL + '</a>';
+            elementHtml += '<a class="recipe-url" target="_blank" href="' + recipe.URL + '">Show in source</a>';
 
             elementHtml += '</div></div>';
 

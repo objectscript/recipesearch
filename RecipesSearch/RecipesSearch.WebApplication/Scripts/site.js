@@ -3,6 +3,8 @@
         removeBanners();
         initSearchTypeahed();
         initResultsView();
+
+        $('[data-toggle="popover"]').popover()
     });
 })();
 
@@ -39,8 +41,8 @@ function initSearchTypeahed() {
         });
     }
 
-    function postSearchRequest() {
-        $('#searchForm').submit();
+    function postSearchRequest(event, data) {
+        location.replace("/Home/Index?exactMatch=true&query=" + data.value);
     }
 }
 

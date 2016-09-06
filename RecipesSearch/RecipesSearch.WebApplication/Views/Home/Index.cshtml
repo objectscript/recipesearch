@@ -65,7 +65,7 @@
                 </div>
             </div>
         }
-        @if (Model != null && Model.TotalCount == 0 && Model.SpellcheckingEnabled && !recipeNameComparer(Model.CurrentQuery, Model.SpellcheckedQuery))
+        @if (Model != null && Model.ExactMatch && Model.TotalCount == 0 && Model.SpellcheckingEnabled && !recipeNameComparer(Model.CurrentQuery, Model.SpellcheckedQuery))
         {
             <div class="row">
                 <div class="col-md-8">
@@ -81,7 +81,16 @@
                 @if (Model != null && Model.TotalCount != 0)
                 {
                     <li role="presentation" class="@getTabActiveClass(ResultsViews.Graph) graph-view-tab">
-                        <a href="#graph" role="tab" data-toggle="tab">Graph view</a>
+                        <a href="#graph" role="tab" data-toggle="tab">Graph view
+                            <i tabindex="0"
+                               class="glyphicon glyphicon-info-sign graph-info-icon"
+                               role="button"
+                               data-toggle="popover"
+                               data-container="body"
+                               data-trigger="focus"
+                               title="About graph view"
+                               data-content="The graph view visualizes relations between recipes. Similar recipes have connections between them. Also, such recipes located close to each other or even grouped together."></i>
+                        </a>
                     </li>
                     <li role="presentation" class="@getTabActiveClass(ResultsViews.List)">
                         <a href="#list" role="tab" data-toggle="tab">List view</a>
