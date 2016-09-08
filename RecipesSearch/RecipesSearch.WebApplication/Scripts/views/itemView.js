@@ -78,7 +78,7 @@
                 elementHtml += '<div class="recipe-item">' + this.recipe.AdditionalData + '</div>';
             }
 
-            elementHtml += '<a class="recipe-url" target="_blank" href="' + this.recipe.URL + '">Show in source</a>';
+            elementHtml += '<a class="recipe-url" target="_blank" href="' + this.recipe.URL + '">Show in the source</a>';
 
             elementHtml += '</div>';
 

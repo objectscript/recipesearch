@@ -114,6 +114,11 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
                 {
                     text = text.Trim();
 
+                    if (String.IsNullOrWhiteSpace(text))
+                    {
+                        return String.Empty;
+                    }
+
                     foreach (var delimiter in EndLineDelimiters)
                     {
                         if (text.EndsWith(delimiter))
@@ -121,6 +126,7 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
                             return text;
                         }
                     }
+
                     if (text.EndsWith(")"))
                     {
                         return text + ",";

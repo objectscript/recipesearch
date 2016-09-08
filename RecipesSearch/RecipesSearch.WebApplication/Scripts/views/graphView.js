@@ -625,7 +625,7 @@
                 elementHtml += '<div class="recipe-item">' + recipe.AdditionalData + '</div>';
             }
 
-            elementHtml += '<a class="recipe-url" target="_blank" href="' + recipe.URL + '">Show in source</a>';
+            elementHtml += '<a class="recipe-url" target="_blank" href="' + recipe.URL + '">Show in the source</a>';
 
             elementHtml += '</div></div>';
 

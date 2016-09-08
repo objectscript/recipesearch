@@ -18,9 +18,10 @@ namespace RecipesSearch.SitePagesImporter.Pipeline.Base
                     new RecipeSchemaParser(),
                     new GotovimDoma(),
                     new KulinarParser(),
-                    new EdimDomaParser(), 
+                    new EdimDomaParser(),
                     new Say7Parser(),
-                    new KedemParser()
+                    new KedemParser(),
+                    new AllrecipesParser()
                 });
             }
         }

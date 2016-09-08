@@ -89,6 +89,7 @@
     <Compile Include="Pipeline\Parsers\GotovimDoma.cs" />
     <Compile Include="Pipeline\Parsers\EdimDomaParser.cs" />
     <Compile Include="Pipeline\Parsers\KedemParser.cs" />
+    <Compile Include="Pipeline\Parsers\AllrecipesParser.cs" />
     <Compile Include="Pipeline\Parsers\Say7Parser.cs" />
     <Compile Include="Pipeline\Parsers\KulinarParser.cs" />
     <Compile Include="Pipeline\Base\RecipeSchemaParser.cs" />
