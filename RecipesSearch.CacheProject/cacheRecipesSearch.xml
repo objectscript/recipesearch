@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540U)" ts="2016-09-06 22:31:01">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.2 (Build 540)" ts="2016-09-11 14:20:35">
 <Class name="%Text.Russian">
 <Description><![CDATA[
 See <CLASS>%Text.Text</CLASS>
@@ -562,49 +562,6 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 ]]></Implementation>
 </Method>
 </Class>
-
-
-<Project name="Project1" LastModified="2016-02-21 14:34:04.244887" HttpServer="http://localhost:57772">
-  <Items>
-    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.Config" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.CrawlingHistoryItem" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.RecipeData.NearestResult" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.RecipeData.RecipeCluster" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.RecipeData.WordsTF" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.SearchSettings" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.SitePage" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.SiteToCrawl" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.TfIdfConfig" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Data.Utils.Seed" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Logging.LogRecord" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Builder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.Default" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredMax" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredOrdinary" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredSmooth" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.OkapiBM25" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.StringAnalyzer" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Builder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.Default" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.FilteredDouble05" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.FilteredLog" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.OkapiBM25" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfIdfBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.PredicateBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.RESTBroker" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.DefaultOnlineTfIdfBuilder" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResult" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResultItem" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Search.SitePageResult" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
-    <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
-  </Items>
-</Project>
 
 
 <Class name="RecipeSearch.Data.Base.Entity">
@@ -3814,4 +3771,47 @@ SELECT myDocument, myTitle, myPar FROM ft.doc where myDocument %CONTAINSTERM ('Ñ
 ]]></Implementation>
 </Method>
 </Class>
+
+
+<Project name="RecipesSearch" LastModified="2016-09-11 11:43:21.242479">
+  <Items>
+    <ProjectItem name="%Text.Russian" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.Base.Entity" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.Config" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.CrawlingHistoryItem" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.RecipeData.NearestResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.RecipeData.RecipeCluster" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.RecipeData.WordsTF" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.SearchSettings" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.SitePage" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.SiteToCrawl" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.TfIdfConfig" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Data.Utils.Seed" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Logging.LogRecord" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Builder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.Default" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredMax" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredOrdinary" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.FilteredSmooth" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.IdfBuild.Implementations.OkapiBM25" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.StringAnalyzer" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Builder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.Default" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.FilteredDouble05" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.FilteredLog" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfBuild.Implementations.OkapiBM25" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.RecipeAnalyze.TfIdfBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.PredicateBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.RESTBroker" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.DefaultOnlineTfIdfBuilder" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.OnlineTfIdf.WordTfIdf" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SearchResultItem" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Search.SitePageResult" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.SearchAPI.Suggestion.SuggestionEngine" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Spellcheck.SpellcheckDictionaryCreator" type="CLS"></ProjectItem>
+    <ProjectItem name="RecipeSearch.Spellcheck.Spellchecker" type="CLS"></ProjectItem>
+  </Items>
+</Project>
 </Export>
